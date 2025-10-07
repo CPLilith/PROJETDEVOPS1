@@ -9,3 +9,4 @@ Idée de interface dans le terminal qui peut réaliser les actions demandée tel
 - Créer un résumé de la sélection,
 
 Idée de gestion de mail avec des catégories par rapport au contenue, matrice d'eisenhower
+Gestion de calendrier par rapport au mail
