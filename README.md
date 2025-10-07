@@ -11,6 +11,7 @@ obligation de tri de mail en differentes catégories, optionnel ajout des évén
 système d'ajout manuel d'événement dans le calendrier 
 calendrier à définir pour l'interface 
 possibilité d'importer le calendrier sur son téléphone 
+possibilité de filtrer, coloration par rapport a l'importance etc...
 
 
 
