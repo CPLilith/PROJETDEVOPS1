@@ -1,25 +1,25 @@
 # PROJETDEVOPS1
 Github du projet DevOps M1 MIAGE APP
 
-Idée finale pour le projet:
+Etudiants:
+Franck ZHENG
+Arthur CHAUVEAU
+Swetha SARAVANAN
+Alex BRINDUSOIU
 
-interface à définir 
+Projet Gestionnaire de Mail intelligent
 
-Système de gestion de mail
-obligation de tri de mail en differentes catégories, optionnel ajout des événements dans le calendrier à partir des mails triés.
+déroulé du gestionnaire de mail intelligent
+- possibilité d'obtenir les inputs ( plusieurs approche possible, au début nous allons nous axer sur le cccv meme si non pertinent. on élaboreras sur les approches plus intéressant après avancement sur le projet )
+- matrice d'eisenhower (important, urgent, no imp, no urg) pour la décision des gestions de mail, il est possible de réaliser ce procédé de differente manière: manuel par l'utilisateur, semi auto par classificateur puis validation et complétement auto par classificateur et totale confiance dans le programme/LLM )
+- type d'action: 
+  - imp + urg -> traiter : laisser dans a traiter, confirmation quand plus dans l'espace
+  - imp + no urg -> planifier : mail into mail / mail into agenda, option de lier le mail par calendrier, alerte, tri par date
+  - no imp + urg -> déléguer : délégue le mail a une autre personne. Possibilité de rajout de message, possibilité d'associer des personnes/groupes 
+  - no imp + no urg -> supprimer : supprime le message
 
-système d'ajout manuel d'événement dans le calendrier 
-calendrier à définir pour l'interface 
-possibilité d'importer le calendrier sur son téléphone 
-possibilité de filtrer, coloration par rapport a l'importance etc...
-
-
-
-
-(Idée de interface dans le terminal qui peut réaliser les actions demandée tel que:
-- Traduction de la sélection du curseur,
-- Recherche de la sélection dans internet/ dans le llm,
-- Créer un résumé de la sélection,
-
-Idée de gestion de mail avec des catégories par rapport au contenue, matrice d'eisenhower
-Gestion de calendrier par rapport au mail)
+backlog:
+- pouvoir input par sélection les non lus/ drapeau / certain mail etc -> systeme de filtre pour input
+- choix technique : ql librairie, api, facon de stock (nv user/mail réel),  local,etc
+- trouver un moyen d'exporter les mails (input cccv?)
+- garde de tri ?
