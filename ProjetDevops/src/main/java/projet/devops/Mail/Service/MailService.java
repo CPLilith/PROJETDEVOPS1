@@ -1,7 +1,6 @@
 package projet.devops.Mail.Service;
 
 import jakarta.mail.*;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
