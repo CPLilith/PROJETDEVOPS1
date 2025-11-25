@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### Fichier json des mails ###
-mails_temp.txt
+src/main/java/projet/devops/Mail/Gestion/mails_temp.txt
