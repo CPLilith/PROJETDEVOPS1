@@ -1,18 +1,21 @@
 package projet.devops.Mail.Gestion;
 
-import org.springframework.stereotype.Component;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 @Component
 public class FichierTemp {
 
-    private static final String FILE_PATH = "src/main/java/projet/devops/Mail/Gestion/mails_temp.txt";
+    private static final String FILE_PATH = "src/main/resources/mails_temp.txt";
     private final ObjectMapper objectMapper;
 
     public FichierTemp() {
