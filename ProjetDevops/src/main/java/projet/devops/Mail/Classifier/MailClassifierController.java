@@ -9,13 +9,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import projet.devops.Mail.Mail;
+
 @RestController
 public class MailClassifierController {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     @GetMapping("/mails_classified")
-    public List<MailProcessor.Mail> getTaggedMails() throws Exception {
+    public List<Mail> getTaggedMails() throws Exception {
 
         File file = new File(getClass().getClassLoader().getResource("mails_temp.txt").getFile());
 
@@ -23,8 +25,8 @@ public class MailClassifierController {
             throw new RuntimeException("Fichier mail_temp.txt introuvable !");
         }
 
-        List<MailProcessor.Mail> mails = mapper.readValue(
-                file, new TypeReference<List<MailProcessor.Mail>>() {}
+        List<Mail> mails = mapper.readValue(
+                file, new TypeReference<List<Mail>>() {}
         );
 
         List<String> importanceWords = List.of(
