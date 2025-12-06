@@ -1,17 +1,23 @@
 package projet.devops.Mail.Service;
 
-import jakarta.mail.*;
-import jakarta.mail.internet.MimeMultipart;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.io.IOException;
 
+import jakarta.mail.BodyPart;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.Store;
+import jakarta.mail.internet.MimeMultipart;
 
 @Service
 public class MailService {
@@ -28,6 +34,10 @@ public class MailService {
     @Value("${mail.imap.password}")
     private String password;
 
+    /**
+     * Récupère les mails depuis IMAP SANS tags
+     * Les tags seront ajoutés par FichierTempTraiter
+     */
     public List<Map<String, String>> getAllMails() throws Exception {
         Properties props = new Properties();
         props.put("mail.store.protocol", "imaps");
@@ -50,11 +60,19 @@ public class MailService {
 
             for (int i = messages.length - 1; i >= 0; i--) {
                 Message message = messages[i];
+                
+                String from = Arrays.toString(message.getFrom());
+                String subject = message.getSubject() != null ? message.getSubject() : "";
+                String content = getTextFromMessage(message);
+                String date = message.getSentDate().toString();
+                
+                // Créer la map SANS tag
                 Map<String, String> info = new HashMap<>();
-                info.put("from", Arrays.toString(message.getFrom()));
-                info.put("subject", message.getSubject());
-                info.put("date", message.getSentDate().toString());
-                info.put("content", getTextFromMessage(message));
+                info.put("from", from);
+                info.put("subject", subject);
+                info.put("date", date);
+                info.put("content", content);
+                
                 list.add(info);
             }
         }
@@ -81,6 +99,7 @@ public class MailService {
     private String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException {
         StringBuilder result = new StringBuilder();
         int count = mimeMultipart.getCount();
+        
         for (int i = 0; i < count; i++) {
             BodyPart bodyPart = mimeMultipart.getBodyPart(i);
             if (bodyPart.isMimeType("text/plain")) {

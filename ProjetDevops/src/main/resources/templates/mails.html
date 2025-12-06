@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Mails</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .mail-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .tag {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .URGENT_IMPORTANT { background-color: #e74c3c; }
+        .IMPORTANT { background-color: #f39c12; }
+        .URGENT { background-color: #3498db; }
+        .NON_URGENT_NON_IMPORTANT { background-color: #95a5a6; }
+        .from { font-weight: bold; color: #2c3e50; }
+        .subject { font-size: 18px; margin: 10px 0; }
+        /* La classe .content est maintenue pour le style de la carte, mais le contenu est maintenant dans l'iframe */
+    </style>
+</head>
+<body>
+    <h1>📧 Mes Mails Classés</h1>
+    
+    <div th:each="mail : ${mails}" class="mail-card">
+        <span th:class="'tag ' + ${mail.tag}" th:text="${mail.tag}">TAG</span>
+        <div class="from">De: <span th:text="${mail.from}">expéditeur</span></div>
+        <div class="subject" th:text="${mail.subject}">Sujet</div>
+        
+        <div class="content" style="margin-top: 15px; border: 1px solid #eee; height: 400px; overflow: auto;">
+            <iframe th:srcdoc="${mail.content}" 
+                    style="width: 100%; height: 100%; border: none;">
+            </iframe>
+        </div>
+        </div>
+</body>
+</html>
