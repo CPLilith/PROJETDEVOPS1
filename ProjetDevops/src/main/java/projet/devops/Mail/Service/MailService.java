@@ -24,7 +24,7 @@ public class MailService {
 
     @Value("${mail.imap.host}")
     private String host;
-
+    // Pk port on l'utilise pas ??
     @Value("${mail.imap.port}")
     private int port;
 
@@ -43,42 +43,46 @@ public class MailService {
         props.put("mail.store.protocol", "imaps");
 
         Session session = Session.getInstance(props);
-        Store store = session.getStore("imaps");
-        store.connect(host, username, password);
-
-        Folder inbox = store.getFolder("INBOX");
-        inbox.open(Folder.READ_ONLY);
-
-        int messageCount = inbox.getMessageCount();
-        List<Map<String, String>> list = new ArrayList<>();
-
-        int start = Math.max(1, messageCount - 9); // Les 10 derniers
-        int end = messageCount;
-
-        if (messageCount > 0) {
-            Message[] messages = inbox.getMessages(start, end);
-
-            for (int i = messages.length - 1; i >= 0; i--) {
-                Message message = messages[i];
+        List<Map<String, String>> list;
+        try (Store store = session.getStore("imaps")) {
+            store.connect(host, username, password);
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_ONLY);
+            int messageCount = inbox.getMessageCount();
+            list = new ArrayList<>();
+            int start = Math.max(1, messageCount - 9); // Les 10 derniers
+            int end = messageCount;
+            if (messageCount > 0) {
+                Message[] messages = inbox.getMessages(start, end);
                 
-                String from = Arrays.toString(message.getFrom());
-                String subject = message.getSubject() != null ? message.getSubject() : "";
-                String content = getTextFromMessage(message);
-                String date = message.getSentDate().toString();
-                
-                // Créer la map SANS tag
-                Map<String, String> info = new HashMap<>();
-                info.put("from", from);
-                info.put("subject", subject);
-                info.put("date", date);
-                info.put("content", content);
-                
-                list.add(info);
-            }
+                for (int i = messages.length - 1; i >= 0; i--) {
+                    Message message = messages[i];
+                    
+                    String from = Arrays.toString(message.getFrom());
+                    String subject = message.getSubject() != null ? message.getSubject() : "";
+                    String content = getTextFromMessage(message);
+                    String date = message.getSentDate().toString();
+                    
+                    // Récupérer le messageId (important pour le tagging)
+                    String messageId = null;
+                    try {
+                        messageId = ((com.sun.mail.imap.IMAPMessage) message).getMessageID();
+                    } catch (MessagingException e) {
+                        System.err.println("Impossible de récupérer le messageId: " + e.getMessage());
+                    }
+                    
+                    // Créer la map SANS tag
+                    Map<String, String> info = new HashMap<>();
+                    info.put("from", from);
+                    info.put("subject", subject);
+                    info.put("date", date);
+                    info.put("content", content);
+                    info.put("messageId", messageId);
+                    
+                    list.add(info);
+                }
+            }   inbox.close(false);
         }
-
-        inbox.close(false);
-        store.close();
 
         return list;
     }
@@ -108,8 +112,8 @@ public class MailService {
             } else if (bodyPart.isMimeType("text/html")) {
                 String html = (String) bodyPart.getContent();
                 result.append(html);
-            } else if (bodyPart.getContent() instanceof MimeMultipart) {
-                result.append(getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent()));
+            } else if (bodyPart.getContent() instanceof MimeMultipart mimeMultipart1) {
+                result.append(getTextFromMimeMultipart(mimeMultipart1));
             }
         }
         return result.toString();

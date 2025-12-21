@@ -3,6 +3,7 @@ package projet.devops.Mail.Controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import projet.devops.Mail.Gestion.FichierTemp;
 import projet.devops.Mail.Gestion.FichierTempTraiter;
 import projet.devops.Mail.Service.MailService;
+import projet.devops.Mail.Service.TagSyncService;
 
 //@RestController
 @Controller
@@ -44,11 +46,11 @@ public class MailController {
         
         // Si le fichier traité existe, le lire
         if (fichierTempTraiter.fichierExiste()) {
-            System.out.println("📂 Chargement depuis le fichier traité");
+            System.out.println("Chargement depuis le fichier traité");
             mails = fichierTempTraiter.lireMailsTraites();
         } else {
             // Sinon, récupérer depuis IMAP, traiter et sauvegarder
-            System.out.println("🔄 Récupération et traitement des mails...");
+            System.out.println("Récupération et traitement des mails...");
             mails = mailService.getAllMails();
             fichierTempTraiter.traiterEtSauvegarder(mails);
         }
@@ -66,10 +68,21 @@ public class MailController {
     // Nouveau endpoint pour forcer le rafraîchissement
     @GetMapping("/mails/refresh")
     public String refreshMails(Model model) throws Exception {
-        System.out.println("🔄 Rafraîchissement forcé des mails...");
+        System.out.println("Rafraîchissement forcé des mails...");
         List<Map<String, String>> mails = mailService.getAllMails();
         fichierTempTraiter.traiterEtSauvegarder(mails);
         model.addAttribute("mails", mails);
+        return "mails";
+    }
+
+    @Autowired
+    private TagSyncService tagSyncService;
+
+    @GetMapping("/mails/sync-tags")
+    public String syncTagsToGmail(Model model) throws Exception {
+        TagSyncService.SyncResult result = tagSyncService.syncTagsToGmail();
+        model.addAttribute("syncResult", result);
+        model.addAttribute("mails", fichierTempTraiter.lireMailsTraites());
         return "mails";
     }
 }

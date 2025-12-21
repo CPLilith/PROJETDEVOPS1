@@ -15,9 +15,11 @@ public class MailProcessor {
 
     public enum EisenhowerTag {
         URGENT_IMPORTANT,              // Q1
-        IMPORTANT,                     // Q2
+        IMPORTANTS,                     // Q2
         URGENT,                        // Q3
         NON_URGENT_NON_IMPORTANT      // Q4
+        // ajouter tagues à modifier à la main si pas plus de 2/3 IA sont d'accord.
+        // !! les IA ne fonctionne pas vraiment donc il faut tester plusieurs IA pour connaitre les plus efficaces.
     }
 
     public static Mail tagMail(Mail mail, List<String> importanceWords, List<String> urgencyWords) {
@@ -35,7 +37,7 @@ public class MailProcessor {
 
             EisenhowerTag tag;
             if (importance && urgency) tag = EisenhowerTag.URGENT_IMPORTANT;
-            else if (importance) tag = EisenhowerTag.IMPORTANT;
+            else if (importance) tag = EisenhowerTag.IMPORTANTS;
             else if (urgency) tag = EisenhowerTag.URGENT;
             else tag = EisenhowerTag.NON_URGENT_NON_IMPORTANT;
 
@@ -58,7 +60,7 @@ public class MailProcessor {
         String prompt = "Analyse cet email et détermine son quadrant Eisenhower. "
             + "Réponds UNIQUEMENT par: URGENT_IMPORTANT, IMPORTANT, URGENT ou NON_URGENT_NON_IMPORTANT\\n"
             + "URGENT_IMPORTANT = Urgent et Important (à faire immédiatement)\\n"
-            + "IMPORTANT = Important mais pas Urgent (à planifier)\\n"
+            + "IMPORTANTS = Important mais pas Urgent (à planifier)\\n"
             + "URGENT = Urgent mais pas Important (à déléguer)\\n"
             + "NON_URGENT_NON_IMPORTANT = Ni Urgent ni Important (à éliminer)\\n\\n"
             + "Email: " + cleanedText;
@@ -97,7 +99,7 @@ public class MailProcessor {
             
             if (ollamaResponse.contains("URGENT_IMPORTANT")) return EisenhowerTag.URGENT_IMPORTANT;
             if (ollamaResponse.contains("NON_URGENT_NON_IMPORTANT")) return EisenhowerTag.NON_URGENT_NON_IMPORTANT;
-            if (ollamaResponse.contains("IMPORTANT")) return EisenhowerTag.IMPORTANT;
+            if (ollamaResponse.contains("IMPORTANTS")) return EisenhowerTag.IMPORTANTS;
             if (ollamaResponse.contains("URGENT")) return EisenhowerTag.URGENT;
         } else {
             System.err.println("Le champ 'response' est absent du JSON: " + response.body());
