@@ -1,5 +1,6 @@
 package projet.devops.Mail.Controller;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -8,8 +9,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import projet.devops.Mail.Classifier.Persona;
+import projet.devops.Mail.Classifier.PersonaResourceService;
 import projet.devops.Mail.Gestion.FichierTemp;
 import projet.devops.Mail.Gestion.FichierTempTraiter;
 import projet.devops.Mail.Service.MailService;
@@ -19,6 +25,8 @@ import projet.devops.Mail.Service.TagSyncService;
 //Donc on fait d'abord un /mails/view si mail_temps.txt n'existe pas part chercher les mails.
 //puis on peut faire un /mails/refresh pour forcer la récupération des mails depuis IMAP + tag par IA.
 //Et pour finir un /mails/sync-tags pour synchroniser les tags vers Gmail.
+//Pour selectionner le persona, on utilise /mails/persona.
+
 
 
 //@RestController
@@ -91,4 +99,40 @@ public class MailController {
         model.addAttribute("mails", fichierTempTraiter.lireMailsTraites());
         return "mails";
     }
+
+    @GetMapping("/mails/persona")
+    public String personaPage() {
+        return "persona";  // Cherche persona.html dans templates/
+    }
+
+     // Récupère le persona actuel (renvoie du texte simple)
+    @GetMapping("/mails/currentPersona")
+    @ResponseBody
+    public String getCurrentPersona() {
+        try {
+            Persona persona = PersonaResourceService.loadPersona();
+            return persona.name(); // renvoie ETUDIANT, DEVELOPPEUR, PROFESSEUR ou NEUTRE
+        } catch (Exception e) {
+            return "NEUTRE";
+        }
+    }
+
+    @RequestMapping(value = "/mails/selectPersona", method = {RequestMethod.POST, RequestMethod.GET})
+    @ResponseBody
+    public String selectPersona(@RequestParam(value = "persona", required = false) String personaValue) {
+        if (personaValue == null || personaValue.isEmpty()) {
+            return "Erreur: paramètre persona manquant";
+        }
+        try {
+            Persona persona = Persona.valueOf(personaValue.toUpperCase());
+            PersonaResourceService.savePersona(persona);
+            return "OK";
+        } catch (IllegalArgumentException e) {
+            return "Persona inconnu : " + personaValue;
+        } catch (IOException e) {
+            return "Erreur d'enregistrement : " + e.getMessage();
+        }
+    }
+
+
 }

@@ -8,28 +8,23 @@ public final class PersonaPromptProvider {
 
     public static String getPersonaSection(Persona persona) {
         return switch (persona) {
-            case MANAGER -> """
-                Tu es un manager senior.
-                Tu privilégies les enjeux stratégiques, les délais business
-                et l’impact organisationnel.
-                """;
-
-            case ASSISTANT_EXECUTIF -> """
-                Tu es un assistant exécutif.
-                Tu accordes une forte priorité aux demandes du dirigeant,
-                aux réunions et aux obligations calendaires.
+            case ETUDIANT -> """
+                Tu es un étudiant.
+                Tu privilégies les emails liés aux examens, aux devoirs,
+                aux délais universitaires et aux communications pédagogiques.
                 """;
 
             case DEVELOPPEUR -> """
-                Tu es un développeur expérimenté.
-                Tu privilégies les incidents techniques, les bugs bloquants
-                et les demandes liées à la production.
+                Tu es un développeur.
+                Tu privilégies les incidents techniques, les bugs bloquants,
+                les délais de livraison et les demandes liées au code.
                 """;
 
-            case PERSONNEL -> """
-                Tu analyses l’email dans un contexte personnel.
-                Tu considères les obligations familiales et administratives
-                comme importantes.
+            case PROFESSEUR -> """
+                Tu es un professeur.
+                Tu privilégies les obligations d’enseignement,
+                les évaluations, les réunions académiques
+                et les communications institutionnelles.
                 """;
 
             case NEUTRE -> "";
