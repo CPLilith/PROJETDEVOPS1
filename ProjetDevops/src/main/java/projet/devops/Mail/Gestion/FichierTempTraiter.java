@@ -32,11 +32,14 @@ public class FichierTempTraiter {
      * Traite les mails (ajoute les tags) et les sauvegarde
      */
     public void traiterEtSauvegarder(List<Map<String, String>> mailsOriginaux) throws IOException {
-        // Listes de mots-clés pour le fallback
+        // Listes de mots-clés pour le fallback (maintenant utilisés par les IA dans leur prompt)
         List<String> importanceWords = Arrays.asList("important", "urgent", "critique", "prioritaire", "essentiel");
         List<String> urgencyWords = Arrays.asList("asap", "immédiat", "aujourd'hui", "deadline", "rapidement");
 
         List<Map<String, String>> mailsTraites = new ArrayList<>();
+
+        // Créer un processeur avec les mots-clés
+        MailProcessor mailProcessor = new MailProcessor();
 
         for (Map<String, String> mailMap : mailsOriginaux) {
             String from = mailMap.get("from");
@@ -47,8 +50,8 @@ public class FichierTempTraiter {
             // Créer l'objet Mail
             Mail mailObj = new Mail(date, subject, from, content, null);
 
-            // Classifier avec Ollama (ou fallback)
-            Mail taggedMail = MailProcessor.tagMail(mailObj, importanceWords, urgencyWords);
+            // Classifier avec le nouveau MailProcessor
+            Mail taggedMail = mailProcessor.tagMail(mailObj);
 
             // Ajouter le tag à la map
             mailMap.put("tag", taggedMail.getTag().toString());

@@ -15,6 +15,12 @@ import projet.devops.Mail.Gestion.FichierTempTraiter;
 import projet.devops.Mail.Service.MailService;
 import projet.devops.Mail.Service.TagSyncService;
 
+//Dans cette classe, on utilise y trouve tout les url à entrer dans le navigateur, afin d'afficher les mails ou de synchroniser les tags vers Gmail.
+//Donc on fait d'abord un /mails/view si mail_temps.txt n'existe pas part chercher les mails.
+//puis on peut faire un /mails/refresh pour forcer la récupération des mails depuis IMAP + tag par IA.
+//Et pour finir un /mails/sync-tags pour synchroniser les tags vers Gmail.
+
+
 //@RestController
 @Controller
 @CrossOrigin(origins = "*")

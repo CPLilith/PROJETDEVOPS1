@@ -1,6 +1,6 @@
 package projet.devops.Mail;
 
-import projet.devops.Mail.Classifier.MailProcessor.EisenhowerTag;
+import projet.devops.Mail.Classifier.EisenhowerTag;
 
 // faudrais faire une interface Maile ou une enuleratuion afin de cacher Mail et le sécuriser. 
 // ou sinon IMail et on imprlmente dans MailTraitée et MailBrute. 
