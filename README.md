@@ -63,10 +63,10 @@ mvn spring-boot:run
 ## Version 1.0.0 alpha :
 
 ### Features :
-  > Tri des mails à l'aide de la matrice d'Eisenhower sous 4 labelles / tags =>URGENT_IMPORTANT,IMPORTANTS,URGENT, NON_URGENT_NON_IMPORTANT. Puis synchronisation
-> Supression de mails si NON_URGENT_NON_IMPORTANT
-> Ajout de Persona  : Étudiants, développeur, professeur, neutre. Afin de personnalisé les réponses des IA selon la personne qui l'utilise.
-> Proposition d'un tag A_MODIFIER si au moins 2 des 3 IA ne sont pas d'accord pour que l'utilisateur ai la main.
+ - Tri des mails à l'aide de la matrice d'Eisenhower sous 4 labelles / tags =>URGENT_IMPORTANT,IMPORTANTS,URGENT, NON_URGENT_NON_IMPORTANT. Puis synchronisation
+ - Supression de mails si NON_URGENT_NON_IMPORTANT
+ - Ajout de Persona  : Étudiants, développeur, professeur, neutre. Afin de personnalisé les réponses des IA selon la personne qui l'utilise.
+ - Proposition d'un tag A_MODIFIER si au moins 2 des 3 IA ne sont pas d'accord pour que l'utilisateur ai la main.
 
 ### Utilisation
 
