@@ -1,4 +1,4 @@
-![CI](https://github.com/<ORG>/<REPO>/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/ci.yml/badge.svg)
 
 # PROJETDEVOPS1
 Github du projet DevOps M1 MIAGE APP
