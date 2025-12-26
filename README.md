@@ -41,6 +41,11 @@ Sommaire des commandes :
 # Installer Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
+# Lancer le serveur Ollama
+ollama serve &
+
+Dans un autre terminal 
+
 # Télécharger le modèle et lancer TinyLlama 
 ollama pull tinyllama
 
@@ -49,9 +54,6 @@ ollama pull llama2
 
 # Télécharger le modèle et lancer phi
 ollama pull phi
-
-# Lancer le serveur Ollama
-ollama serve &
 
 # Aller dans le répertoire du projet
 cd /PROJETDEVOPS1/ProjetDevops
