@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suppression des emails non urgents/non importants</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-refresh {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-back {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .email-list {
+            margin-top: 30px;
+        }
+
+        .email-card {
+            background: #f8f9fa;
+            border-left: 4px solid #f44336;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .email-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .email-subject {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .email-from {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .email-date {
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .email-labels {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .label-badge {
+            background: #ff9800;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 1.3em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .stat-card {
+                min-width: 100%;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Gestion des emails non urgents/non importants</h1>
+        <p class="subtitle">Gérez les emails marqués avec le label "non_urgent_non_important"</p>
+
+        <!-- Messages de statut -->
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+        <div th:if="${error}" class="alert alert-warning" th:text="${error}"></div>
+
+        <!-- Statistiques -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" th:text="${emailCount}">0</div>
+                <div class="stat-label">Emails à supprimer</div>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="action-buttons">
+            <button class="btn btn-refresh" onclick="refreshList()">
+                <span>🔄</span>
+                <span>Actualiser la liste</span>
+                <div class="spinner" id="refresh-spinner"></div>
+            </button>
+
+            <button class="btn btn-delete" onclick="confirmDelete()" 
+                    th:disabled="${emailCount == 0}">
+                <span>🗑️</span>
+                <span>Supprimer tous ces emails</span>
+                <div class="spinner" id="delete-spinner"></div>
+            </button>
+
+            <a href="/mails/view" class="btn btn-back" style="text-decoration: none;">
+                <span>⬅️</span>
+                <span>Retour aux emails</span>
+            </a>
+        </div>
+
+        <!-- Liste des emails -->
+        <div class="email-list">
+            <div th:if="${emailCount == 0}" class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <div class="empty-state-text">Aucun email à supprimer !</div>
+            </div>
+
+            <div th:if="${emailCount > 0}">
+                <h2 style="margin-bottom: 20px; color: #333;">Emails qui seront supprimés :</h2>
+                <div th:each="email : ${emails}" class="email-card">
+                    <div class="email-subject" th:text="${email.subject}">Sujet de l'email</div>
+                    <div class="email-from">
+                        <strong>De:</strong> <span th:text="${email.from}">expediteur@example.com</span>
+                    </div>
+                    <div class="email-date">
+                        <strong>Date:</strong> <span th:text="${email.date}">01/01/2024</span>
+                    </div>
+                    <div class="email-labels" th:if="${email.labels}">
+                        <span class="label-badge" th:text="${email.labels}">Labels</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function refreshList() {
+            const btn = event.currentTarget;
+            const spinner = document.getElementById('refresh-spinner');
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            window.location.href = '/mails/delete-page';
+        }
+
+        function confirmDelete() {
+            const emailCount = parseInt(document.querySelector('.stat-number').textContent);
+            
+            if (emailCount === 0) {
+                alert('Aucun email à supprimer !');
+                return;
+            }
+
+            if (confirm(`⚠️ Êtes-vous sûr de vouloir supprimer ${emailCount} email(s) ?\n\nCette action est irréversible !`)) {
+                const btn = event.currentTarget;
+                const spinner = document.getElementById('delete-spinner');
+                btn.disabled = true;
+                spinner.style.display = 'inline-block';
+                
+                fetch('/mails/delete-execute', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`✅ ${data.deletedCount} email(s) supprimé(s) avec succès !`);
+                        window.location.reload();
+                    } else {
+                        alert('❌ Erreur : ' + data.message);
+                        btn.disabled = false;
+                        spinner.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    alert('❌ Erreur de connexion : ' + error);
+                    btn.disabled = false;
+                    spinner.style.display = 'none';
+                });
+            }
+        }
+    </script>
+</body>
+</html>

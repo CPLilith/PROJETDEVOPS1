@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -134,5 +136,72 @@ public class MailController {
         }
     }
 
+
+    //Pour la supression des mails Non_Urgent_Non_Important : 
+
+    /**
+     * Récupère tous les emails (méthode originale)
+     */
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllMails() {
+        try {
+            List<Map<String, String>> mails = mailService.getAllMails();
+            return ResponseEntity.ok(mails);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erreur: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Récupère tous les emails avec leurs labels Gmail
+     */
+    @GetMapping("/all-with-labels")
+    public ResponseEntity<?> getAllMailsWithLabels() {
+        try {
+            List<Map<String, String>> mails = mailService.getAllMailsWithLabels();
+            return ResponseEntity.ok(mails);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erreur: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Prévisualise les emails qui seraient supprimés (avec label non_urgent_non_important)
+     */
+    @GetMapping("/preview-delete")
+    public ResponseEntity<?> previewEmailsToDelete() {
+        try {
+            List<Map<String, String>> emailsToDelete = mailService.previewEmailsToDelete();
+            
+            return ResponseEntity.ok(Map.of(
+                "count", emailsToDelete.size(),
+                "emails", emailsToDelete,
+                "message", emailsToDelete.size() + " email(s) seront supprimés"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erreur: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Supprime les emails ayant le label "non_urgent_non_important"
+     */
+    @DeleteMapping("/delete-non-urgent-non-important")
+    public ResponseEntity<?> deleteNonUrgentNonImportantEmails() {
+        try {
+            int deletedCount = mailService.deleteNonUrgentNonImportantMails();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Suppression terminée avec succès",
+                "deletedCount", deletedCount
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Erreur lors de la suppression",
+                "error", e.getMessage()
+            ));
+        }
+    }
 
 }
