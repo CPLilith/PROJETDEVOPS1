@@ -1,6 +1,7 @@
 package projet.devops.Mail.Controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,6 +29,8 @@ import projet.devops.Mail.Service.TagSyncService;
 //puis on peut faire un /mails/refresh pour forcer la récupération des mails depuis IMAP + tag par IA.
 //Et pour finir un /mails/sync-tags pour synchroniser les tags vers Gmail.
 //Pour selectionner le persona, on utilise /mails/persona.
+// Pour voir les mais avec le labels 'Non_Urgent_Non_Important' on utilise /mails/delete-page
+// et cliquer sur le bouton pour lancer la suppression via /mails/delete-execute
 
 
 
@@ -165,42 +168,41 @@ public class MailController {
         }
     }
 
-    /**
-     * Prévisualise les emails qui seraient supprimés (avec label non_urgent_non_important)
-     */
-    @GetMapping("/preview-delete")
-    public ResponseEntity<?> previewEmailsToDelete() {
+    // ============================================
+    // SUPPRESSION DES MAILS NON URGENT NON IMPORTANT
+    // ============================================
+
+    @GetMapping("/mails/delete-page")
+    public String showDeletePage(Model model) {
         try {
             List<Map<String, String>> emailsToDelete = mailService.previewEmailsToDelete();
-            
-            return ResponseEntity.ok(Map.of(
-                "count", emailsToDelete.size(),
-                "emails", emailsToDelete,
-                "message", emailsToDelete.size() + " email(s) seront supprimés"
-            ));
+            model.addAttribute("emails", emailsToDelete);
+            model.addAttribute("emailCount", emailsToDelete.size());
+            return "delete-mails";
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Erreur: " + e.getMessage());
+            model.addAttribute("error", "Erreur lors du chargement: " + e.getMessage());
+            model.addAttribute("emails", new ArrayList<>());
+            model.addAttribute("emailCount", 0);
+            return "delete-mails";
         }
     }
 
-    /**
-     * Supprime les emails ayant le label "non_urgent_non_important"
-     */
-    @DeleteMapping("/delete-non-urgent-non-important")
-    public ResponseEntity<?> deleteNonUrgentNonImportantEmails() {
+    @PostMapping("/mails/delete-execute")
+    @ResponseBody
+    public Map<String, Object> executeDelete() {
         try {
             int deletedCount = mailService.deleteNonUrgentNonImportantMails();
-            return ResponseEntity.ok(Map.of(
+            return Map.of(
                 "success", true,
                 "message", "Suppression terminée avec succès",
                 "deletedCount", deletedCount
-            ));
+            );
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
+            return Map.of(
                 "success", false,
-                "message", "Erreur lors de la suppression",
-                "error", e.getMessage()
-            ));
+                "message", "Erreur lors de la suppression: " + e.getMessage(),
+                "deletedCount", 0
+            );
         }
     }
 
