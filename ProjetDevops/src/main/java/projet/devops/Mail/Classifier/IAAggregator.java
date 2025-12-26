@@ -14,8 +14,8 @@ public class IAAggregator {
         this.iaProviders = new ArrayList<>();
         iaProviders.add(new OllamaIA("tinyllama:latest"));
         //Pas assez de ram pour lancer les 3. 
-        //iaProviders.add(new OllamaIA("llama2:latest"));
-        //iaProviders.add(new OllamaIA("phi:latest"));
+        iaProviders.add(new OllamaIA("llama2:latest"));
+        iaProviders.add(new OllamaIA("phi:latest"));
     }
     
     // Constructeur avec liste personnalisée
