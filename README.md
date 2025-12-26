@@ -1,4 +1,3 @@
-[![Tests](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/ci.yml/badge.svg?branch=Alex)](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/ci.yml?branch=Alex)
 # PROJETDEVOPS1
 Github du projet DevOps M1 MIAGE APP
 
@@ -24,3 +23,34 @@ backlog:
 - choix technique : ql librairie, api, facon de stock (nv user/mail réel),  local,etc
 - trouver un moyen d'exporter les mails (input cccv?)
 - garde de tri ?
+
+---
+
+### Pré-requis & Exécution complète
+
+Les commandes suivantes :
+
+Sommaire des commandes : 
+- installent **Ollama**
+- téléchargent le modèle **TinyLlama**
+- démarrent le serveur Ollama
+- se placent dans le répertoire du projet
+- compilent et lancent l’application Spring Boot
+
+```bash
+# Installer Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Télécharger le modèle TinyLlama
+ollama pull tinyllama
+
+# Lancer le serveur Ollama
+ollama serve &
+
+# Aller dans le répertoire du projet
+cd /PROJETDEVOPS1/ProjetDevops
+
+# Compiler et exécuter l'application Spring Boot
+mvn clean install
+mvn spring-boot:run
+
