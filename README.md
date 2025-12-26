@@ -1,5 +1,4 @@
 [![Tests](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/ci.yml/badge.svg?branch=Alex)](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/ci.yml?branch=Alex)
-[![Qualité](https://img.shields.io/badge/qualité-tests%20passing-brightgreen)]
 # PROJETDEVOPS1
 Github du projet DevOps M1 MIAGE APP
 
