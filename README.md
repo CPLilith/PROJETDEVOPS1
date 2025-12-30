@@ -1,4 +1,4 @@
-![Tests](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/ci.yml/badge.svg?branch=Alex)
+[![Tests OK](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/maven.yml/badge.svg)](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/maven.yml)
 
 # PROJETDEVOPS1
 Github du projet DevOps M1 MIAGE APP
