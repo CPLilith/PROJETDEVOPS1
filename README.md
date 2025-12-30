@@ -1,4 +1,4 @@
-![Tests](https://github.com/TON_USER/TON_REPO/actions/workflows/java-ci.yml/badge.svg?branch=Alex)
+![Tests](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/ci.yml/badge.svg?branch=Alex)
 
 # PROJETDEVOPS1
 Github du projet DevOps M1 MIAGE APP
