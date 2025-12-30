@@ -12,27 +12,18 @@ on:
   push:
     branches: [ main, develop, Alex ]
   pull_request:
+    branches: [ main, develop, Alex ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Build & Test
-        run: mvn clean test
-
-      - name: Quality gate
-        run: |
-          if [ $? -ne 0 ]; then
-            echo "Build failed → quality badge should be red"
-            exit 1
-          fi
+      - run: mvn clean test
