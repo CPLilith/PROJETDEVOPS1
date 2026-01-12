@@ -117,9 +117,9 @@ public class TagSyncService {
         private int failed;
         private int notFound;
         private int skipped;
-        private Map<String, String> successDetails = new HashMap<>();
-        private Map<String, String> failureDetails = new HashMap<>();
-        private List<String> notFoundList = new java.util.ArrayList<>();
+        private final Map<String, String> successDetails = new HashMap<>();
+        private final Map<String, String> failureDetails = new HashMap<>();
+        private final List<String> notFoundList = new java.util.ArrayList<>();
         private String error;
 
         public int getTotalEmails() { return totalEmails; }

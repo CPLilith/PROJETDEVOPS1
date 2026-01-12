@@ -169,7 +169,6 @@ public class TagService {
                 store.close();
             }
         } catch (MessagingException e) {
-            e.printStackTrace();
         }
     }
 }
