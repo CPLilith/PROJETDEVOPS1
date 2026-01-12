@@ -1,0 +1,23 @@
+name: Tests OK 
+
+on:
+  push:
+    branches: [ main, develop, Alex ]
+  pull_request:
+    branches: [ main, develop, Alex ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: |
+          cd ProjetDevops
+          mvn clean test
