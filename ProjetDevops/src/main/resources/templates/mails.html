@@ -1,122 +1,92 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>EisenFlow | Premium Orchestrator</title>
+    <title>EisenFlow | Master Orchestrator</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --sidebar-bg: #f8fafc;
-            --accent: #2563eb;
-            --bg: #ffffff;
-            --border: #eef2f6;
-            --text-main: #0f172a;
-            --text-sub: #64748b;
+            --sidebar-bg: #f8fafc; --accent: #2563eb; --bg: #ffffff;
+            --border: #eef2f6; --text-main: #0f172a; --text-sub: #64748b;
             --do: #ef4444; --plan: #3b82f6; --delegate: #f59e0b; --delete: #94a3b8;
+            --note: #a855f7;
         }
 
-        /* VERROUILLAGE DU VIEWPORT */
-        html, body { 
-            height: 100vh; width: 100vw; margin: 0; padding: 0; 
-            overflow: hidden; font-family: 'Inter', sans-serif; background: #fff; 
-        }
+        /* --- CONFIGURATION VIEWPORT --- */
+        html, body { height: 100vh; width: 100vw; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; background: #fff; }
+        .app-container { display: grid; grid-template-columns: 260px 420px 1fr; height: 100vh; }
 
-        .app-container { 
-            display: grid; 
-            grid-template-columns: 260px 420px 1fr; 
-            height: 100vh; 
-        }
-
-        /* --- SIDEBAR (STYLE ÉPURÉ) --- */
-        .sidebar { 
-            background: var(--sidebar-bg); border-right: 1px solid var(--border); 
-            padding: 40px 24px; display: flex; flex-direction: column; gap: 40px;
-        }
+        /* --- SIDEBAR --- */
+        .sidebar { background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 40px 24px; display: flex; flex-direction: column; gap: 40px; }
         .logo { font-weight: 800; font-size: 22px; color: var(--text-main); letter-spacing: -1px; }
-
         .nav-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-        .nav-item { padding: 12px; border-radius: 12px; font-size: 14px; color: var(--text-sub); text-decoration: none; font-weight: 500; transition: 0.3s; }
+        .nav-item { padding: 12px; border-radius: 12px; font-size: 14px; color: var(--text-sub); text-decoration: none; font-weight: 500; transition: 0.3s; margin-bottom: 4px; display: block; }
+        .nav-item:hover { color: var(--accent); background: rgba(37, 99, 235, 0.05); }
         .nav-item.active { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--border); }
 
         .persona-box { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-top: auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.02); }
-        .persona-select { width: 100%; border: none; background: #f1f5f9; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .persona-select { width: 100%; border: none; background: #f1f5f9; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; outline: none; }
 
-        /* --- FEED COLUMN (SCROLL FIXE) --- */
-        .feed-container { 
-            display: flex; flex-direction: column; 
-            border-right: 1px solid var(--border); 
-            height: 100vh; min-width: 0; background: #fff;
-        }
-
+        /* --- FEED COLUMN --- */
+        .feed-container { display: flex; flex-direction: column; border-right: 1px solid var(--border); height: 100vh; min-width: 0; background: #fff; }
         .feed-header { padding: 32px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
         .feed-header h2 { font-size: 20px; font-weight: 700; margin: 0 0 20px 0; letter-spacing: -0.5px; }
+        .feed-list { flex: 1; overflow-y: auto; min-height: 0; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #fbfcfd; }
 
-        .feed-list { 
-            flex: 1; overflow-y: auto; min-height: 0; 
-            padding: 20px; display: flex; flex-direction: column; gap: 16px; 
-            background: #fbfcfd; 
-        }
-
-        /* --- CARDS (STYLE PREMIUM) --- */
-        .mail-card { 
-            background: #fff; padding: 20px 20px 20px 28px; border: 1px solid var(--border); 
-            border-radius: 16px; cursor: pointer; position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            flex-shrink: 0;
-        }
+        /* --- CARDS --- */
+        .mail-card { background: #fff; padding: 20px 20px 20px 28px; border: 1px solid var(--border); border-radius: 16px; cursor: pointer; position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; }
         .mail-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08); border-color: #d1d5db; }
         .mail-card.active { border-color: var(--accent); background: #f8faff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
 
         .status-strip { position: absolute; left: 0; top: 20px; bottom: 20px; width: 4px; border-radius: 0 4px 4px 0; }
         .dot-DO { background: var(--do); } .dot-PLAN { background: var(--plan); } .dot-DELEGATE { background: var(--delegate); } .dot-DELETE { background: var(--delete); } .dot-PENDING { background: #cbd5e1; }
+        .dot-NOTE { background: var(--note); }
 
-        .importance-tag { 
-            font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; 
-            text-transform: uppercase; margin-bottom: 12px; display: inline-block; 
-        }
+        .importance-tag { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; margin-bottom: 12px; display: inline-block; }
         .tag-DO { background: #fee2e2; color: var(--do); }
         .tag-PLAN { background: #dbeafe; color: var(--plan); }
         .tag-DELEGATE { background: #fef3c7; color: var(--delegate); }
         .tag-DELETE { background: #f1f5f9; color: var(--delete); }
+        .tag-NOTE { background: #f3e8ff; color: var(--note); }
 
+        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .card-author { font-size: 11px; font-weight: 700; color: var(--text-main); }
         .card-subject { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
         .card-excerpt { font-size: 13.5px; color: var(--text-sub); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
         /* --- CONTENT VIEW --- */
         .content-view { padding: 80px; overflow-y: auto; height: 100vh; box-sizing: border-box; background: #fff; }
-        .mail-title { font-size: 36px; font-weight: 800; margin: 0 0 24px 0; letter-spacing: -1px; line-height: 1.1; }
+        .mail-title { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -1px; line-height: 1.1; }
 
-        /* BUTTONS */
-        .action-bar { display: flex; gap: 10px; }
+        /* UI ELEMENTS */
+        .action-bar { display: flex; gap: 10px; flex-wrap: wrap; }
         button { background: #fff; border: 1px solid var(--border); padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-primary { background: var(--text-main); color: #fff; border: none; }
         .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .btn-sync { color: #16a34a; border-color: #dcfce7; }
 
-        /* LOADER */
+        /* LOADER PREMIUM */
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
         .loader-bar { width: 160px; height: 3px; background: #f1f5f9; position: relative; overflow: hidden; border-radius: 10px; }
         .loader-bar::after { content: ''; width: 60px; height: 3px; background: var(--accent); position: absolute; animation: load 1.4s infinite ease-in-out; }
         @keyframes load { from { left: -60px; } to { left: 160px; } }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
     <div class="loader-bar"></div>
-    <p style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">analyse IA en cours</p>
+    <p id="loader-message" style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">Traitement en cours</p>
 </div>
 
 <div class="app-container">
     <aside class="sidebar">
         <div class="logo">EisenFlow.</div>
         <div class="nav-group">
-            <div class="nav-label">Main</div>
-            <a href="#" class="nav-item active">Inbox</a>
-            <a href="#" class="nav-item">Analytics</a>
+            <div class="nav-label">Workspace</div>
+            <a href="/" th:class="${view == 'inbox' ? 'nav-item active' : 'nav-item'}">📥 Boîte Mail</a>
+            <a href="/knowledge" th:class="${view == 'knowledge' ? 'nav-item active' : 'nav-item'}">🧠 Knowledge Base</a>
         </div>
         <div class="persona-box">
             <div class="nav-label" style="margin-top:0">Active Profile</div>
@@ -132,57 +102,128 @@
 
     <main class="feed-container">
         <div class="feed-header">
-            <h2>Flux de données</h2>
+            <h2 th:text="${view == 'inbox' ? 'Flux Gmail' : 'Vault Obsidian'}"></h2>
             <div class="action-bar">
-                <form action="/fetch" method="post"><button type="submit">Charger</button></form>
-                <form id="ai-form" action="/analyze" method="post"><button type="submit" class="btn-primary">Analyser</button></form>
-                <form action="/sync" method="post"><button type="submit" class="btn-sync">Sync Gmail</button></form>
+                <th:block th:if="${view == 'inbox'}">
+                    <form action="/fetch" method="post"><button type="submit">Charger</button></form>
+                    <form id="ai-form" action="/analyze" method="post"><button type="submit" class="btn-primary">Analyser IA</button></form>
+                    <form action="/sync" method="post"><button type="submit" class="btn-sync">Sync Gmail</button></form>
+                </th:block>
+                <th:block th:if="${view == 'knowledge'}">
+                    <form action="/import-obsidian" method="post" enctype="multipart/form-data" id="obsidianForm">
+                        <input type="file" id="folderInput" name="files" webkitdirectory directory multiple style="display: none;" onchange="startKnowledgeAnalysis()">
+                        <button type="button" class="btn-primary" onclick="document.getElementById('folderInput').click()">📂 Sélectionner un Dossier</button>
+                    </form>
+                </th:block>
             </div>
         </div>
 
         <div class="feed-list">
-            <div th:each="mail, iter : ${mails}" class="mail-card" th:onclick="'openMail(' + ${iter.index} + ')'" th:id="'card-' + ${iter.index}">
-                <div th:class="'status-strip dot-' + ${mail.action}"></div>
-                <div th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.action}"></div>
-                <div class="card-subject" th:text="${mail.subject}"></div>
-                <div class="card-excerpt" th:text="${#strings.abbreviate(mail.content, 95)}"></div>
+            <th:block th:if="${view == 'inbox'}">
+                <div th:each="mail, iter : ${mails}" class="mail-card" th:onclick="'openMail(' + ${iter.index} + ')'" th:id="'card-mail-' + ${iter.index}">
+                    <div th:class="'status-strip dot-' + ${mail.action}"></div>
+                    <div class="card-meta">
+                        <span th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.action}"></span>
+                        <span style="font-size: 11px; color: var(--text-sub);" th:text="${mail.date}"></span>
+                    </div>
+                    <div class="card-subject" th:text="${mail.subject}"></div>
+                    <div class="card-excerpt" th:text="${#strings.abbreviate(mail.content, 95)}"></div>
+                    <script th:inline="javascript">
+                        window['mailData' + /*[[${iter.index}]]*/] = {
+                            subject: /*[[${mail.subject}]]*/ '',
+                            from: /*[[${mail.from}]]*/ '',
+                            content: /*[[${mail.content}]]*/ ''
+                        };
+                    </script>
+                </div>
+            </th:block>
 
-                <script th:inline="javascript">
-                    window['mailData' + /*[[${iter.index}]]*/] = {
-                        subject: /*[[${mail.subject}]]*/ '',
-                        from: /*[[${mail.from}]]*/ '',
-                        content: /*[[${mail.content}]]*/ ''
-                    };
-                </script>
-            </div>
+            <th:block th:if="${view == 'knowledge'}">
+                <div th:each="note, iter : ${notes}" class="mail-card" th:onclick="'openNote(' + ${iter.index} + ')'" th:id="'card-note-' + ${iter.index}">
+                    <div class="status-strip dot-NOTE"></div>
+                    <div class="card-meta">
+                        <span class="importance-tag tag-NOTE">KNOWLEDGE</span>
+                        <span class="card-author" th:text="${note.author}">Auteur</span>
+                    </div>
+                    <div class="card-subject" th:text="${note.title}"></div>
+                    <div class="card-excerpt" th:text="${#strings.abbreviate(note.content, 95)}"></div>
+                    <script th:inline="javascript">
+                        window['noteData' + /*[[${iter.index}]]*/] = {
+                            title: /*[[${note.title}]]*/ '',
+                            author: /*[[${note.author}]]*/ '',
+                            content: /*[[${note.content}]]*/ ''
+                        };
+                    </script>
+                </div>
+            </th:block>
         </div>
     </main>
 
-    <section class="content-view" id="mail-reader">
+    <section class="content-view" id="main-reader">
         <div style="text-align: center; margin-top: 240px; color: #cbd5e1;">
-            <div style="font-size: 64px; margin-bottom: 24px;">Inbox</div>
+            <div style="font-size: 64px; margin-bottom: 24px;">Workspace</div>
             <p style="font-size: 14px; font-weight: 500;">Sélectionnez un élément pour commencer</p>
         </div>
     </section>
 </div>
 
 <script>
+    // Fonction spécifique pour l'analyse des notes (corrige le bug d'animation)
+    function startKnowledgeAnalysis() {
+        const overlay = document.getElementById('loading-overlay');
+        const message = document.getElementById('loader-message');
+        
+        message.innerText = "Analyse IA en cours (Knowledge Base)";
+        overlay.style.display = 'flex';
+        
+        // Soumission manuelle après affichage du loader
+        document.getElementById('obsidianForm').submit();
+    }
+
     function openMail(index) {
         document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
-        document.getElementById('card-' + index).classList.add('active');
+        document.getElementById('card-mail-' + index).classList.add('active');
         const data = window['mailData' + index];
-        document.getElementById('mail-reader').innerHTML = `
-            <div style="margin-bottom: 48px;">
-                <h1 class="mail-title">${data.subject}</h1>
-                <div style="font-size: 15px; color: var(--text-sub);">De: <strong style="color: var(--text-main)">${data.from}</strong></div>
-            </div>
-            <div style="font-size: 17px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${data.content}</div>
-        `;
+        renderReader(data.subject, "Expéditeur : " + data.from, data.content, "#2563eb", null);
     }
-    document.getElementById('ai-form').addEventListener('submit', () => {
-        document.getElementById('loading-overlay').style.display = 'flex';
+
+    function openNote(index) {
+        document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
+        document.getElementById('card-note-' + index).classList.add('active');
+        const data = window['noteData' + index];
+        renderReader(data.title, "Synthèse rédigée par " + data.author, data.content, "#a855f7", data.author);
+    }
+
+    function renderReader(title, subtitle, content, accentColor, author) {
+        let headerHTML = `
+            <div style="margin-bottom: 48px; display: flex; align-items: center; gap: 20px;">
+                ${author ? `<div style="width: 50px; height: 50px; background: #f3e8ff; color: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px;">${author.charAt(0).toUpperCase()}</div>` : ''}
+                <div>
+                    <div style="color: ${accentColor}; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px;">Information System</div>
+                    <h1 class="mail-title">${title}</h1>
+                    <div style="font-size: 15px; color: var(--text-sub);">${subtitle}</div>
+                </div>
+            </div>`;
+        document.getElementById('main-reader').innerHTML = headerHTML + `<div style="font-size: 17px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${content}</div>`;
+    }
+
+    // Gestion de l'animation IA pour les autres formulaires
+    document.querySelectorAll('form').forEach(f => {
+        f.addEventListener('submit', () => {
+            // On ne traite pas obsidianForm ici car géré par startKnowledgeAnalysis
+            if (f.id === 'obsidianForm') return;
+
+            const overlay = document.getElementById('loading-overlay');
+            const message = document.getElementById('loader-message');
+            
+            if (f.id === 'ai-form') {
+                message.innerText = "Analyse IA Stratégique (Mails)";
+            } else {
+                message.innerText = "Traitement en cours...";
+            }
+            overlay.style.display = 'flex';
+        });
     });
 </script>
-
 </body>
 </html>
