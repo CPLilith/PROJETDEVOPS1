@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>EisenFlow | Enterprise Orchestrator</title>
+    <title>EisenFlow | Premium Orchestrator</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -10,82 +10,121 @@
             --sidebar-bg: #f8fafc;
             --accent: #2563eb;
             --bg: #ffffff;
-            --border: #e2e8f0;
+            --border: #eef2f6;
             --text-main: #0f172a;
             --text-sub: #64748b;
             --do: #ef4444; --plan: #3b82f6; --delegate: #f59e0b; --delete: #94a3b8;
         }
 
-        html, body { height: 100vh; width: 100vw; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
-        .app-container { display: grid; grid-template-columns: 260px 400px 1fr; height: 100vh; width: 100vw; }
+        /* VERROUILLAGE DU VIEWPORT */
+        html, body { 
+            height: 100vh; width: 100vw; margin: 0; padding: 0; 
+            overflow: hidden; font-family: 'Inter', sans-serif; background: #fff; 
+        }
 
-        /* SIDEBAR */
-        .sidebar { background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; gap: 32px; }
-        .logo { font-weight: 700; letter-spacing: -1px; font-size: 20px; color: var(--text-main); }
-        .nav-group { display: flex; flex-direction: column; gap: 4px; }
-        .nav-label { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-top: 16px; }
-        .nav-item { padding: 10px 12px; border-radius: 8px; font-size: 14px; color: var(--text-sub); text-decoration: none; transition: 0.2s; font-weight: 500; }
-        .nav-item:hover, .nav-item.active { background: #e2e8f0; color: var(--text-main); }
+        .app-container { 
+            display: grid; 
+            grid-template-columns: 260px 420px 1fr; 
+            height: 100vh; 
+        }
 
-        /* COLONNE CENTRALE */
-        .feed-container { border-right: 1px solid var(--border); display: flex; flex-direction: column; background: #fff; min-width: 0; }
-        .feed-header { padding: 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-        .feed-list { overflow-y: auto; flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #fcfcfd; }
+        /* --- SIDEBAR (STYLE ÉPURÉ) --- */
+        .sidebar { 
+            background: var(--sidebar-bg); border-right: 1px solid var(--border); 
+            padding: 40px 24px; display: flex; flex-direction: column; gap: 40px;
+        }
+        .logo { font-weight: 800; font-size: 22px; color: var(--text-main); letter-spacing: -1px; }
 
-        /* CARDS */
-        .mail-card { background: #fff; padding: 16px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s; position: relative; }
-        .mail-card:hover { border-color: #cbd5e1; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .mail-card.active { border-color: var(--accent); background: #f0f7ff; }
-        .status-dot { position: absolute; left: 8px; top: 16px; width: 4px; height: 35px; border-radius: 4px; }
+        .nav-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .nav-item { padding: 12px; border-radius: 12px; font-size: 14px; color: var(--text-sub); text-decoration: none; font-weight: 500; transition: 0.3s; }
+        .nav-item.active { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--border); }
+
+        .persona-box { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-top: auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.02); }
+        .persona-select { width: 100%; border: none; background: #f1f5f9; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+        /* --- FEED COLUMN (SCROLL FIXE) --- */
+        .feed-container { 
+            display: flex; flex-direction: column; 
+            border-right: 1px solid var(--border); 
+            height: 100vh; min-width: 0; background: #fff;
+        }
+
+        .feed-header { padding: 32px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .feed-header h2 { font-size: 20px; font-weight: 700; margin: 0 0 20px 0; letter-spacing: -0.5px; }
+
+        .feed-list { 
+            flex: 1; overflow-y: auto; min-height: 0; 
+            padding: 20px; display: flex; flex-direction: column; gap: 16px; 
+            background: #fbfcfd; 
+        }
+
+        /* --- CARDS (STYLE PREMIUM) --- */
+        .mail-card { 
+            background: #fff; padding: 20px 20px 20px 28px; border: 1px solid var(--border); 
+            border-radius: 16px; cursor: pointer; position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+        }
+        .mail-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08); border-color: #d1d5db; }
+        .mail-card.active { border-color: var(--accent); background: #f8faff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
+
+        .status-strip { position: absolute; left: 0; top: 20px; bottom: 20px; width: 4px; border-radius: 0 4px 4px 0; }
         .dot-DO { background: var(--do); } .dot-PLAN { background: var(--plan); } .dot-DELEGATE { background: var(--delegate); } .dot-DELETE { background: var(--delete); } .dot-PENDING { background: #cbd5e1; }
 
-        /* CONTENT VIEW */
-        .content-view { padding: 60px; overflow-y: auto; background: #fff; }
-        .mail-title { font-size: 28px; font-weight: 700; margin: 0 0 16px 0; }
+        .importance-tag { 
+            font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; 
+            text-transform: uppercase; margin-bottom: 12px; display: inline-block; 
+        }
+        .tag-DO { background: #fee2e2; color: var(--do); }
+        .tag-PLAN { background: #dbeafe; color: var(--plan); }
+        .tag-DELEGATE { background: #fef3c7; color: var(--delegate); }
+        .tag-DELETE { background: #f1f5f9; color: var(--delete); }
+
+        .card-subject { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+        .card-excerpt { font-size: 13.5px; color: var(--text-sub); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* --- CONTENT VIEW --- */
+        .content-view { padding: 80px; overflow-y: auto; height: 100vh; box-sizing: border-box; background: #fff; }
+        .mail-title { font-size: 36px; font-weight: 800; margin: 0 0 24px 0; letter-spacing: -1px; line-height: 1.1; }
 
         /* BUTTONS */
-        .action-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-        button { background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .action-bar { display: flex; gap: 10px; }
+        button { background: #fff; border: 1px solid var(--border); padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-primary { background: var(--text-main); color: #fff; border: none; }
-        .btn-sync { color: #16a34a; border-color: #bdf0d2; }
-        .btn-sync:hover { background: #f0fdf4; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-sync { color: #16a34a; border-color: #dcfce7; }
 
-        /* LOADING */
-        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
-        .loader-bar { width: 120px; height: 2px; background: #eee; position: relative; overflow: hidden; }
-        .loader-bar::after { content: ''; width: 40px; height: 2px; background: var(--accent); position: absolute; animation: load 1.2s infinite ease-in-out; }
-        @keyframes load { from { left: -40px; } to { left: 120px; } }
+        /* LOADER */
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
+        .loader-bar { width: 160px; height: 3px; background: #f1f5f9; position: relative; overflow: hidden; border-radius: 10px; }
+        .loader-bar::after { content: ''; width: 60px; height: 3px; background: var(--accent); position: absolute; animation: load 1.4s infinite ease-in-out; }
+        @keyframes load { from { left: -60px; } to { left: 160px; } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
     <div class="loader-bar"></div>
-    <p style="font-size: 10px; font-weight: 700; margin-top: 15px; letter-spacing: 2px; color: var(--text-sub); text-transform: uppercase;">Traitement en cours</p>
+    <p style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">analyse IA en cours</p>
 </div>
 
 <div class="app-container">
     <aside class="sidebar">
-        <div class="logo">EisenFlow</div>
-        
+        <div class="logo">EisenFlow.</div>
         <div class="nav-group">
-            <div class="nav-label">Communications</div>
-            <a href="#" class="nav-item active">Boîte de réception</a>
-            <a href="#" class="nav-item">Priorités IA</a>
+            <div class="nav-label">Main</div>
+            <a href="#" class="nav-item active">Inbox</a>
+            <a href="#" class="nav-item">Analytics</a>
         </div>
-
-        <div class="nav-group">
-            <div class="nav-label">Gestion de Notes</div>
-            <a href="#" class="nav-item" onclick="alert('Scan du dossier Obsidian lancé...')">Fusionneur Obsidian</a>
-        </div>
-        
-        <div class="nav-group" style="margin-top: auto;">
-            <div class="nav-label">Contexte Actuel</div>
+        <div class="persona-box">
+            <div class="nav-label" style="margin-top:0">Active Profile</div>
             <form action="/persona" method="post">
-                <select name="persona" onchange="this.form.submit()" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px;">
-                    <option value="ETUDIANT" th:selected="${currentPersona.name() == 'ETUDIANT'}">Profil Étudiant</option>
-                    <option value="DEVELOPPEUR" th:selected="${currentPersona.name() == 'DEVELOPPEUR'}">Profil Développeur</option>
-                    <option value="PROFESSEUR" th:selected="${currentPersona.name() == 'PROFESSEUR'}">Profil Professeur</option>
+                <select name="persona" class="persona-select" onchange="this.form.submit()">
+                    <option value="ETUDIANT" th:selected="${currentPersona.name() == 'ETUDIANT'}">🎓 Student Mode</option>
+                    <option value="DEVELOPPEUR" th:selected="${currentPersona.name() == 'DEVELOPPEUR'}">💻 Developer Mode</option>
+                    <option value="PROFESSEUR" th:selected="${currentPersona.name() == 'PROFESSEUR'}">👨‍🏫 Teacher Mode</option>
                 </select>
             </form>
         </div>
@@ -93,29 +132,20 @@
 
     <main class="feed-container">
         <div class="feed-header">
-            <h2 style="font-size: 18px; margin: 0;">Flux Entrants</h2>
+            <h2>Flux de données</h2>
             <div class="action-bar">
-                <form action="/fetch" method="post">
-                    <button type="submit">Charger</button>
-                </form>
-                <form id="ai-form" action="/analyze" method="post">
-                    <button type="submit" class="btn-primary">Analyser IA</button>
-                </form>
-                <form action="/sync" method="post">
-                    <button type="submit" class="btn-sync">Sync Gmail</button>
-                </form>
+                <form action="/fetch" method="post"><button type="submit">Charger</button></form>
+                <form id="ai-form" action="/analyze" method="post"><button type="submit" class="btn-primary">Analyser</button></form>
+                <form action="/sync" method="post"><button type="submit" class="btn-sync">Sync Gmail</button></form>
             </div>
         </div>
 
         <div class="feed-list">
             <div th:each="mail, iter : ${mails}" class="mail-card" th:onclick="'openMail(' + ${iter.index} + ')'" th:id="'card-' + ${iter.index}">
-                <div th:class="'status-dot dot-' + ${mail.action}"></div>
-                <div class="card-meta">
-                    <span th:text="${mail.from}"></span>
-                    <span th:text="${mail.date}"></span>
-                </div>
+                <div th:class="'status-strip dot-' + ${mail.action}"></div>
+                <div th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.action}"></div>
                 <div class="card-subject" th:text="${mail.subject}"></div>
-                <div class="card-excerpt" th:text="${#strings.abbreviate(mail.content, 90)}"></div>
+                <div class="card-excerpt" th:text="${#strings.abbreviate(mail.content, 95)}"></div>
 
                 <script th:inline="javascript">
                     window['mailData' + /*[[${iter.index}]]*/] = {
@@ -129,9 +159,9 @@
     </main>
 
     <section class="content-view" id="mail-reader">
-        <div style="text-align: center; margin-top: 200px; color: var(--text-sub);">
-            <div style="font-size: 40px; margin-bottom: 20px; opacity: 0.2;">✉️</div>
-            <p style="font-size: 14px; font-weight: 500;">Sélectionnez un message ou une note</p>
+        <div style="text-align: center; margin-top: 240px; color: #cbd5e1;">
+            <div style="font-size: 64px; margin-bottom: 24px;">Inbox</div>
+            <p style="font-size: 14px; font-weight: 500;">Sélectionnez un élément pour commencer</p>
         </div>
     </section>
 </div>
@@ -141,16 +171,14 @@
         document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
         document.getElementById('card-' + index).classList.add('active');
         const data = window['mailData' + index];
-        const reader = document.getElementById('mail-reader');
-        reader.innerHTML = `
-            <div style="border-bottom: 1px solid var(--border); padding-bottom: 30px; margin-bottom: 30px;">
+        document.getElementById('mail-reader').innerHTML = `
+            <div style="margin-bottom: 48px;">
                 <h1 class="mail-title">${data.subject}</h1>
-                <div style="color: var(--text-sub); font-size: 14px;">De: <strong>${data.from}</strong></div>
+                <div style="font-size: 15px; color: var(--text-sub);">De: <strong style="color: var(--text-main)">${data.from}</strong></div>
             </div>
-            <div style="font-size: 16px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${data.content}</div>
+            <div style="font-size: 17px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${data.content}</div>
         `;
     }
-
     document.getElementById('ai-form').addEventListener('submit', () => {
         document.getElementById('loading-overlay').style.display = 'flex';
     });
