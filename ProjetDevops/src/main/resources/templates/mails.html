@@ -1,54 +1,160 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <title>EisenFlow | Enterprise Orchestrator</title>
     <meta charset="UTF-8">
-    <title>Liste des Mails</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
+        :root {
+            --sidebar-bg: #f8fafc;
+            --accent: #2563eb;
+            --bg: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --do: #ef4444; --plan: #3b82f6; --delegate: #f59e0b; --delete: #94a3b8;
         }
-        h1 {
-            color: #333;
-        }
-        .mail-card {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .tag {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-        }
-        .URGENT_IMPORTANT { background-color: #e74c3c; }
-        .IMPORTANT { background-color: #f39c12; }
-        .URGENT { background-color: #3498db; }
-        .NON_URGENT_NON_IMPORTANT { background-color: #95a5a6; }
-        .from { font-weight: bold; color: #2c3e50; }
-        .subject { font-size: 18px; margin: 10px 0; }
-        /* La classe .content est maintenue pour le style de la carte, mais le contenu est maintenant dans l'iframe */
+
+        html, body { height: 100vh; width: 100vw; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+        .app-container { display: grid; grid-template-columns: 260px 400px 1fr; height: 100vh; width: 100vw; }
+
+        /* SIDEBAR */
+        .sidebar { background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; gap: 32px; }
+        .logo { font-weight: 700; letter-spacing: -1px; font-size: 20px; color: var(--text-main); }
+        .nav-group { display: flex; flex-direction: column; gap: 4px; }
+        .nav-label { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-top: 16px; }
+        .nav-item { padding: 10px 12px; border-radius: 8px; font-size: 14px; color: var(--text-sub); text-decoration: none; transition: 0.2s; font-weight: 500; }
+        .nav-item:hover, .nav-item.active { background: #e2e8f0; color: var(--text-main); }
+
+        /* COLONNE CENTRALE */
+        .feed-container { border-right: 1px solid var(--border); display: flex; flex-direction: column; background: #fff; min-width: 0; }
+        .feed-header { padding: 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .feed-list { overflow-y: auto; flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #fcfcfd; }
+
+        /* CARDS */
+        .mail-card { background: #fff; padding: 16px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s; position: relative; }
+        .mail-card:hover { border-color: #cbd5e1; transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .mail-card.active { border-color: var(--accent); background: #f0f7ff; }
+        .status-dot { position: absolute; left: 8px; top: 16px; width: 4px; height: 35px; border-radius: 4px; }
+        .dot-DO { background: var(--do); } .dot-PLAN { background: var(--plan); } .dot-DELEGATE { background: var(--delegate); } .dot-DELETE { background: var(--delete); } .dot-PENDING { background: #cbd5e1; }
+
+        /* CONTENT VIEW */
+        .content-view { padding: 60px; overflow-y: auto; background: #fff; }
+        .mail-title { font-size: 28px; font-weight: 700; margin: 0 0 16px 0; }
+
+        /* BUTTONS */
+        .action-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        button { background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--text-main); color: #fff; border: none; }
+        .btn-sync { color: #16a34a; border-color: #bdf0d2; }
+        .btn-sync:hover { background: #f0fdf4; }
+
+        /* LOADING */
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
+        .loader-bar { width: 120px; height: 2px; background: #eee; position: relative; overflow: hidden; }
+        .loader-bar::after { content: ''; width: 40px; height: 2px; background: var(--accent); position: absolute; animation: load 1.2s infinite ease-in-out; }
+        @keyframes load { from { left: -40px; } to { left: 120px; } }
     </style>
 </head>
 <body>
-    <h1>📧 Mes Mails Classés</h1>
-    
-    <div th:each="mail : ${mails}" class="mail-card">
-        <span th:class="'tag ' + ${mail.tag}" th:text="${mail.tag}">TAG</span>
-        <div class="from">De: <span th:text="${mail.from}">expéditeur</span></div>
-        <div class="subject" th:text="${mail.subject}">Sujet</div>
+
+<div id="loading-overlay">
+    <div class="loader-bar"></div>
+    <p style="font-size: 10px; font-weight: 700; margin-top: 15px; letter-spacing: 2px; color: var(--text-sub); text-transform: uppercase;">Traitement en cours</p>
+</div>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="logo">EisenFlow</div>
         
-        <div class="content" style="margin-top: 15px; border: 1px solid #eee; height: 400px; overflow: auto;">
-            <iframe th:srcdoc="${mail.content}" 
-                    style="width: 100%; height: 100%; border: none;">
-            </iframe>
+        <div class="nav-group">
+            <div class="nav-label">Communications</div>
+            <a href="#" class="nav-item active">Boîte de réception</a>
+            <a href="#" class="nav-item">Priorités IA</a>
         </div>
+
+        <div class="nav-group">
+            <div class="nav-label">Gestion de Notes</div>
+            <a href="#" class="nav-item" onclick="alert('Scan du dossier Obsidian lancé...')">Fusionneur Obsidian</a>
         </div>
+        
+        <div class="nav-group" style="margin-top: auto;">
+            <div class="nav-label">Contexte Actuel</div>
+            <form action="/persona" method="post">
+                <select name="persona" onchange="this.form.submit()" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px;">
+                    <option value="ETUDIANT" th:selected="${currentPersona.name() == 'ETUDIANT'}">Profil Étudiant</option>
+                    <option value="DEVELOPPEUR" th:selected="${currentPersona.name() == 'DEVELOPPEUR'}">Profil Développeur</option>
+                    <option value="PROFESSEUR" th:selected="${currentPersona.name() == 'PROFESSEUR'}">Profil Professeur</option>
+                </select>
+            </form>
+        </div>
+    </aside>
+
+    <main class="feed-container">
+        <div class="feed-header">
+            <h2 style="font-size: 18px; margin: 0;">Flux Entrants</h2>
+            <div class="action-bar">
+                <form action="/fetch" method="post">
+                    <button type="submit">Charger</button>
+                </form>
+                <form id="ai-form" action="/analyze" method="post">
+                    <button type="submit" class="btn-primary">Analyser IA</button>
+                </form>
+                <form action="/sync" method="post">
+                    <button type="submit" class="btn-sync">Sync Gmail</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="feed-list">
+            <div th:each="mail, iter : ${mails}" class="mail-card" th:onclick="'openMail(' + ${iter.index} + ')'" th:id="'card-' + ${iter.index}">
+                <div th:class="'status-dot dot-' + ${mail.action}"></div>
+                <div class="card-meta">
+                    <span th:text="${mail.from}"></span>
+                    <span th:text="${mail.date}"></span>
+                </div>
+                <div class="card-subject" th:text="${mail.subject}"></div>
+                <div class="card-excerpt" th:text="${#strings.abbreviate(mail.content, 90)}"></div>
+
+                <script th:inline="javascript">
+                    window['mailData' + /*[[${iter.index}]]*/] = {
+                        subject: /*[[${mail.subject}]]*/ '',
+                        from: /*[[${mail.from}]]*/ '',
+                        content: /*[[${mail.content}]]*/ ''
+                    };
+                </script>
+            </div>
+        </div>
+    </main>
+
+    <section class="content-view" id="mail-reader">
+        <div style="text-align: center; margin-top: 200px; color: var(--text-sub);">
+            <div style="font-size: 40px; margin-bottom: 20px; opacity: 0.2;">✉️</div>
+            <p style="font-size: 14px; font-weight: 500;">Sélectionnez un message ou une note</p>
+        </div>
+    </section>
+</div>
+
+<script>
+    function openMail(index) {
+        document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
+        document.getElementById('card-' + index).classList.add('active');
+        const data = window['mailData' + index];
+        const reader = document.getElementById('mail-reader');
+        reader.innerHTML = `
+            <div style="border-bottom: 1px solid var(--border); padding-bottom: 30px; margin-bottom: 30px;">
+                <h1 class="mail-title">${data.subject}</h1>
+                <div style="color: var(--text-sub); font-size: 14px;">De: <strong>${data.from}</strong></div>
+            </div>
+            <div style="font-size: 16px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${data.content}</div>
+        `;
+    }
+
+    document.getElementById('ai-form').addEventListener('submit', () => {
+        document.getElementById('loading-overlay').style.display = 'flex';
+    });
+</script>
+
 </body>
 </html>
