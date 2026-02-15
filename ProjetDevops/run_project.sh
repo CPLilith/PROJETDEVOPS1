@@ -9,8 +9,8 @@ echo -e "\e[1;34m   🚀 $APP_TITLE\e[0m"
 echo -e "\e[1;34m=========================================\e[0m"
 
 # 1. Lancement d'Ollama Serve en arrière-plan
-echo -e "\e[1;32m[1/3]\e[0m 🌐 Lancement du serveur Ollama..."
-ollama serve > /dev/null 2>&1 &
+echo -e "\e[1;32m[1/3]\e[0m 🌐 Lancement du serveur Ollama...."
+ollama serve > /dev/null 2>&1 & 
 OLLAMA_PID=$!
 
 # On attend que le service soit prêt
@@ -27,4 +27,4 @@ echo ""
 # Fonction de nettoyage pour fermer Ollama quand on fait CTRL+C
 trap "echo -e '\e[1;31m\nStopping Ollama...\e[0m'; kill $OLLAMA_PID; exit" INT
 
-mvn spring-boot:run
+mvn clean spring-boot:run

@@ -1,10 +1,3 @@
-projet/devops/Mail/Classifier/PersonaConfigLoader.class
-projet/devops/Mail/Classifier/TextCleaner.class
-projet/devops/Mail/Classifier/Persona.class
-projet/devops/Mail/Classifier/OllamaClient.class
+projet/devops/Mail/Classifier/ClassificationStrategy.class
 projet/devops/Mail/Classifier/PersonaPromptProvider$1.class
-projet/devops/Mail/Classifier/PersonaPromptProvider.class
-projet/devops/Mail/Mail.class
 projet/devops/ProjetDevopsApplication.class
-projet/devops/Mail/Classifier/PersonaResourceService.class
-projet/devops/Mail/Service/MailService.class

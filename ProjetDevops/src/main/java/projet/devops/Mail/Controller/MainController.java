@@ -96,9 +96,17 @@ public class MainController {
         return "redirect:/";
     }
 
+    // --- MISE À JOUR PRIORITÉ NOTES ---
     @PostMapping("/update-note-tag")
     public String updateNoteTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
         noteService.updateNoteTag(index, tag);
-        return "redirect:/knowledge"; // On recharge pour voir le changement de couleur
+        return "redirect:/knowledge";
+    }
+
+    // --- MISE À JOUR PRIORITÉ MAILS ---
+    @PostMapping("/update-mail-tag")
+    public String updateMailTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
+        flowService.updateMailTag(index, tag);
+        return "redirect:/";
     }
 }

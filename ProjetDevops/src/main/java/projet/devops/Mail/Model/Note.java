@@ -45,4 +45,5 @@ public class Note {
     public void setContent(String content) { this.content = content; }
     public void setAuthor(String author) { this.author = author; }
     public void setDate(String date) { this.date = date; }
+    
 }

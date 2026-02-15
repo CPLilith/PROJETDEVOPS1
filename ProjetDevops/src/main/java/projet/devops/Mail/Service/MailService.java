@@ -132,4 +132,10 @@ public class MailService {
         }
         return result.toString();
     }
+
+    public List<String> getLabelsForMessage(String messageId) {
+    // Pour l'instant, on retourne une liste vide pour débloquer la compilation
+    // Tu pourras implémenter la vraie récupération Gmail plus tard
+    return new java.util.ArrayList<>();
+}
 }

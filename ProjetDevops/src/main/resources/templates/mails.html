@@ -201,17 +201,17 @@
     function renderReader(title, subtitle, content, accentColor, author, index, isNote) {
         let avatar = author ? `<div style="width: 50px; height: 50px; background: #f3e8ff; color: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">${author.charAt(0).toUpperCase()}</div>` : '';
         
-        // --- SÉLECTEUR DE TAG MANUEL (FONCTIONNALITÉ HUMAINE DANS LA BOUCLE) ---
-        let tagSelector = isNote ? `
+        // --- SÉLECTEUR DE TAG UNIFIÉ (S'affiche pour Mails ET Notes) ---
+        let tagSelector = `
             <div style="margin-top: 20px; display: flex; gap: 12px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
                 <span style="font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;">Priorité :</span>
                 <div style="display: flex; gap: 8px;">
-                    <button onclick="changeTag(${index}, 'DO')" class="importance-tag tag-DO">DO</button>
-                    <button onclick="changeTag(${index}, 'PLAN')" class="importance-tag tag-PLAN">PLAN</button>
-                    <button onclick="changeTag(${index}, 'DELEGATE')" class="importance-tag tag-DELEGATE">DELEGATE</button>
-                    <button onclick="changeTag(${index}, 'DELETE')" class="importance-tag tag-DELETE">DELETE</button>
+                    <button onclick="updatePriority(${index}, 'DO', ${isNote})" class="importance-tag tag-DO">DO</button>
+                    <button onclick="updatePriority(${index}, 'PLAN', ${isNote})" class="importance-tag tag-PLAN">PLAN</button>
+                    <button onclick="updatePriority(${index}, 'DELEGATE', ${isNote})" class="importance-tag tag-DELEGATE">DELEGATE</button>
+                    <button onclick="updatePriority(${index}, 'DELETE', ${isNote})" class="importance-tag tag-DELETE">DELETE</button>
                 </div>
-            </div>` : '';
+            </div>`;
 
         let deleteAction = isNote ? `
             <form action="/delete-note" method="post" style="margin-top: 48px; border-top: 1px solid var(--border); padding-top: 32px;">
@@ -235,15 +235,17 @@
             ${deleteAction}`;
     }
 
-    // FONCTION POUR CHANGER LE TAG MANUELLEMENT
-    function changeTag(index, newTag) {
+    // FONCTION UNIFIÉE POUR CHANGER LA PRIORITÉ (CHOISIT LA BONNE ROUTE)
+    function updatePriority(index, newTag, isNote) {
         const overlay = document.getElementById('loading-overlay');
-        document.getElementById('loader-message').innerText = "Mise à jour du tag...";
+        document.getElementById('loader-message').innerText = "Mise à jour...";
         overlay.style.display = 'flex';
 
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '/update-note-tag';
+        
+        // Sélection de la route dynamique
+        form.action = isNote ? '/update-note-tag' : '/update-mail-tag';
         
         const indexInput = document.createElement('input');
         indexInput.type = 'hidden'; indexInput.name = 'index'; indexInput.value = index;

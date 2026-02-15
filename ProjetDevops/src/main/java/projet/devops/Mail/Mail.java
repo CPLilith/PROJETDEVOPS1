@@ -37,5 +37,20 @@ public class Mail {
     public void setContent(String content) { this.content = content; }
 
     public EisenhowerAction getAction() { return action; }
-    public void setAction(EisenhowerAction action) { this.action = action; }
+
+    public void setAction(String actionStr) { 
+        try {
+            // On convertit le texte "DO" en l'objet Enum EisenhowerAction.DO
+            this.action = EisenhowerAction.valueOf(actionStr.toUpperCase()); 
+        } catch (IllegalArgumentException e) {
+            // En cas de texte invalide, on remet en PENDING par sécurité
+            this.action = EisenhowerAction.PENDING;
+        }
+    }
+
+    // Garde aussi la version qui accepte l'Enum (pour l'IA)
+    public void setAction(EisenhowerAction action) { 
+        this.action = action; 
+    }
+    
 }
