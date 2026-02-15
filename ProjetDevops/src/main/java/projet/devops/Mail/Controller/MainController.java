@@ -5,7 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile; // Important pour l'upload
+import org.springframework.web.multipart.MultipartFile;
 
 import projet.devops.Mail.Classifier.Persona;
 import projet.devops.Mail.Classifier.PersonaResourceService;
@@ -18,10 +18,6 @@ public class MainController {
     private final MailFlowService flowService;
     private final NoteService noteService;
 
-    /**
-     * Le constructeur injecte les deux services nécessaires au fonctionnement 
-     * de l'Inbox et de la Knowledge Base.
-     */
     public MainController(MailFlowService flowService, NoteService noteService) {
         this.flowService = flowService;
         this.noteService = noteService;
@@ -30,19 +26,28 @@ public class MainController {
     // --- SECTION INBOX (ACCUEIL) ---
     @GetMapping("/")
     public String index(Model model) {
-        model.addAttribute("view", "inbox"); // Active la vue Inbox dans le HTML
+        model.addAttribute("view", "inbox"); 
         model.addAttribute("mails", flowService.getMails());
         model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
         return "mails";
     }
 
-    // --- SECTION KNOWLEDGE (NOTES) ---
+    // --- SECTION KNOWLEDGE (NOTES SYNTHÉTISÉES) ---
     @GetMapping("/knowledge")
     public String knowledge(Model model) {
-        model.addAttribute("view", "knowledge"); // Active la vue Notes dans le HTML
+        model.addAttribute("view", "knowledge"); 
+        // Récupère la liste des notes (chargée depuis le JSON au démarrage)
         model.addAttribute("notes", noteService.getNotes()); 
         model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
         return "mails";
+    }
+
+
+    // --- Suprimer une note spécifique (en fonction de son index dans la liste) ---
+    @PostMapping("/delete-note")
+    public String deleteNote(@RequestParam("index") int index) {
+        noteService.deleteNote(index);
+        return "redirect:/knowledge";
     }
 
     // --- ACTIONS GMAIL ---
@@ -65,16 +70,22 @@ public class MainController {
         return "redirect:/";
     }
 
-    // --- ACTIONS OBSIDIAN (CORRIGÉ POUR EXPLORATEUR) ---
+    // --- ACTIONS OBSIDIAN (DOUBLE ANALYSE IA + PERSISTANCE) ---
     @PostMapping("/import-obsidian")
     public String importObsidian(@RequestParam("files") MultipartFile[] files) {
         try {
-            // On récupère le persona actuel pour adapter le ton de la synthèse
+            // 1. Récupération du profil actif pour influencer l'IA
             Persona current = PersonaResourceService.loadPersona();
-            noteService.generateAiSynthesis(files, current);
+            
+            // 2. Déclenchement de la Feature 4 & 5 (Synthèse + Triage Eisenhower)
+            // Cette méthode gère aussi la sauvegarde automatique en JSON
+            noteService.generateAiKnowledge(files, current);
+            
         } catch (Exception e) {
-            System.err.println("Erreur IA : " + e.getMessage());
+            System.err.println("❌ Erreur lors de l'importation IA : " + e.getMessage());
         }
+        
+        // Redirection vers l'onglet Knowledge pour voir le résultat
         return "redirect:/knowledge";
     }
     

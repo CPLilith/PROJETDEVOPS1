@@ -13,7 +13,6 @@
             --note: #a855f7;
         }
 
-        /* --- CONFIGURATION VIEWPORT --- */
         html, body { height: 100vh; width: 100vw; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; background: #fff; }
         .app-container { display: grid; grid-template-columns: 260px 420px 1fr; height: 100vh; }
 
@@ -25,8 +24,19 @@
         .nav-item:hover { color: var(--accent); background: rgba(37, 99, 235, 0.05); }
         .nav-item.active { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--border); }
 
-        .persona-box { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-top: auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.02); }
-        .persona-select { width: 100%; border: none; background: #f1f5f9; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; outline: none; }
+        /* --- NOUVEAU DESIGN PERSONA (ESTHÉTIQUE) --- */
+        .persona-box { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-top: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.03); }
+        .persona-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+        .persona-btn { 
+            width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px; 
+            border-radius: 12px; border: 1px solid transparent; background: #f8fafc; 
+            color: var(--text-sub); font-size: 13px; font-weight: 600; cursor: pointer; 
+            transition: 0.2s ease; text-align: left;
+        }
+        .persona-btn:hover { background: #f1f5f9; color: var(--text-main); transform: translateX(4px); }
+        .persona-btn.active { background: #fff; border-color: var(--accent); color: var(--accent); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08); }
+        .dot-indicator { width: 6px; height: 6px; border-radius: 50%; background: #cbd5e1; transition: 0.3s; }
+        .persona-btn.active .dot-indicator { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 
         /* --- FEED COLUMN --- */
         .feed-container { display: flex; flex-direction: column; border-right: 1px solid var(--border); height: 100vh; min-width: 0; background: #fff; }
@@ -35,38 +45,28 @@
         .feed-list { flex: 1; overflow-y: auto; min-height: 0; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #fbfcfd; }
 
         /* --- CARDS --- */
-        .mail-card { background: #fff; padding: 20px 20px 20px 28px; border: 1px solid var(--border); border-radius: 16px; cursor: pointer; position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; }
-        .mail-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08); border-color: #d1d5db; }
+        .mail-card { background: #fff; padding: 20px 20px 20px 28px; border: 1px solid var(--border); border-radius: 16px; cursor: pointer; position: relative; transition: 0.3s; flex-shrink: 0; }
+        .mail-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08); }
         .mail-card.active { border-color: var(--accent); background: #f8faff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
-
         .status-strip { position: absolute; left: 0; top: 20px; bottom: 20px; width: 4px; border-radius: 0 4px 4px 0; }
         .dot-DO { background: var(--do); } .dot-PLAN { background: var(--plan); } .dot-DELEGATE { background: var(--delegate); } .dot-DELETE { background: var(--delete); } .dot-PENDING { background: #cbd5e1; }
-        .dot-NOTE { background: var(--note); }
 
         .importance-tag { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; margin-bottom: 12px; display: inline-block; }
-        .tag-DO { background: #fee2e2; color: var(--do); }
-        .tag-PLAN { background: #dbeafe; color: var(--plan); }
-        .tag-DELEGATE { background: #fef3c7; color: var(--delegate); }
-        .tag-DELETE { background: #f1f5f9; color: var(--delete); }
-        .tag-NOTE { background: #f3e8ff; color: var(--note); }
+        .tag-DO { background: #fee2e2; color: var(--do); } .tag-PLAN { background: #dbeafe; color: var(--plan); } .tag-DELEGATE { background: #fef3c7; color: var(--delegate); } .tag-DELETE { background: #f1f5f9; color: var(--delete); } .tag-PENDING { background: #f1f5f9; color: #64748b; }
 
-        .card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .card-author { font-size: 11px; font-weight: 700; color: var(--text-main); }
-        .card-subject { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
-        .card-excerpt { font-size: 13.5px; color: var(--text-sub); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        /* --- BUTTONS --- */
+        .action-bar { display: flex; gap: 10px; flex-wrap: wrap; }
+        button { background: #fff; border: 1px solid var(--border); padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text-main); }
+        button:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .btn-primary { background: var(--text-main); color: #fff; border: none; }
+        .btn-primary:hover { background: #000; transform: translateY(-1px); }
+        .btn-sync { color: #16a34a; border-color: #dcfce7; }
 
         /* --- CONTENT VIEW --- */
         .content-view { padding: 80px; overflow-y: auto; height: 100vh; box-sizing: border-box; background: #fff; }
         .mail-title { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -1px; line-height: 1.1; }
 
-        /* UI ELEMENTS */
-        .action-bar { display: flex; gap: 10px; flex-wrap: wrap; }
-        button { background: #fff; border: 1px solid var(--border); padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-primary { background: var(--text-main); color: #fff; border: none; }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .btn-sync { color: #16a34a; border-color: #dcfce7; }
-
-        /* LOADER PREMIUM */
+        /* --- LOADER --- */
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
         .loader-bar { width: 160px; height: 3px; background: #f1f5f9; position: relative; overflow: hidden; border-radius: 10px; }
         .loader-bar::after { content: ''; width: 60px; height: 3px; background: var(--accent); position: absolute; animation: load 1.4s infinite ease-in-out; }
@@ -77,7 +77,7 @@
 
 <div id="loading-overlay">
     <div class="loader-bar"></div>
-    <p id="loader-message" style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">Traitement en cours</p>
+    <p id="loader-message" style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">Analyse en cours</p>
 </div>
 
 <div class="app-container">
@@ -88,14 +88,31 @@
             <a href="/" th:class="${view == 'inbox' ? 'nav-item active' : 'nav-item'}">📥 Boîte Mail</a>
             <a href="/knowledge" th:class="${view == 'knowledge' ? 'nav-item active' : 'nav-item'}">🧠 Knowledge Base</a>
         </div>
+
         <div class="persona-box">
-            <div class="nav-label" style="margin-top:0">Active Profile</div>
-            <form action="/persona" method="post">
-                <select name="persona" class="persona-select" onchange="this.form.submit()">
-                    <option value="ETUDIANT" th:selected="${currentPersona.name() == 'ETUDIANT'}">🎓 Student Mode</option>
-                    <option value="DEVELOPPEUR" th:selected="${currentPersona.name() == 'DEVELOPPEUR'}">💻 Developer Mode</option>
-                    <option value="PROFESSEUR" th:selected="${currentPersona.name() == 'PROFESSEUR'}">👨‍🏫 Teacher Mode</option>
-                </select>
+            <div class="nav-label" style="margin:0">Active Profile</div>
+            <form action="/persona" method="post" id="personaForm">
+                <input type="hidden" name="persona" id="selectedPersona">
+                <div class="persona-grid">
+                    <button type="button" class="persona-btn" 
+                            th:classappend="${currentPersona.name() == 'ETUDIANT' ? 'active' : ''}"
+                            onclick="switchPersona('ETUDIANT')">
+                        <div class="dot-indicator"></div>
+                        <span>🎓 Student Mode</span>
+                    </button>
+                    <button type="button" class="persona-btn" 
+                            th:classappend="${currentPersona.name() == 'DEVELOPPEUR' ? 'active' : ''}"
+                            onclick="switchPersona('DEVELOPPEUR')">
+                        <div class="dot-indicator"></div>
+                        <span>💻 Developer Mode</span>
+                    </button>
+                    <button type="button" class="persona-btn" 
+                            th:classappend="${currentPersona.name() == 'PROFESSEUR' ? 'active' : ''}"
+                            onclick="switchPersona('PROFESSEUR')">
+                        <div class="dot-indicator"></div>
+                        <span>👨‍🏫 Teacher Mode</span>
+                    </button>
+                </div>
             </form>
         </div>
     </aside>
@@ -129,30 +146,22 @@
                     <div class="card-subject" th:text="${mail.subject}"></div>
                     <div class="card-excerpt" th:text="${#strings.abbreviate(mail.content, 95)}"></div>
                     <script th:inline="javascript">
-                        window['mailData' + /*[[${iter.index}]]*/] = {
-                            subject: /*[[${mail.subject}]]*/ '',
-                            from: /*[[${mail.from}]]*/ '',
-                            content: /*[[${mail.content}]]*/ ''
-                        };
+                        window['mailData' + /*[[${iter.index}]]*/] = { subject: /*[[${mail.subject}]]*/ '', from: /*[[${mail.from}]]*/ '', content: /*[[${mail.content}]]*/ '' };
                     </script>
                 </div>
             </th:block>
 
             <th:block th:if="${view == 'knowledge'}">
                 <div th:each="note, iter : ${notes}" class="mail-card" th:onclick="'openNote(' + ${iter.index} + ')'" th:id="'card-note-' + ${iter.index}">
-                    <div class="status-strip dot-NOTE"></div>
+                    <div th:class="'status-strip dot-' + ${note.action}"></div>
                     <div class="card-meta">
-                        <span class="importance-tag tag-NOTE">KNOWLEDGE</span>
-                        <span class="card-author" th:text="${note.author}">Auteur</span>
+                        <span th:class="'importance-tag tag-' + ${note.action}" th:text="${note.action}"></span>
+                        <span class="card-author" th:text="${note.author}"></span>
                     </div>
                     <div class="card-subject" th:text="${note.title}"></div>
                     <div class="card-excerpt" th:text="${#strings.abbreviate(note.content, 95)}"></div>
                     <script th:inline="javascript">
-                        window['noteData' + /*[[${iter.index}]]*/] = {
-                            title: /*[[${note.title}]]*/ '',
-                            author: /*[[${note.author}]]*/ '',
-                            content: /*[[${note.content}]]*/ ''
-                        };
+                        window['noteData' + /*[[${iter.index}]]*/] = { title: /*[[${note.title}]]*/ '', author: /*[[${note.author}]]*/ '', content: /*[[${note.content}]]*/ '', action: /*[[${note.action}]]*/ '' };
                     </script>
                 </div>
             </th:block>
@@ -168,60 +177,69 @@
 </div>
 
 <script>
-    // Fonction spécifique pour l'analyse des notes (corrige le bug d'animation)
+    // GESTION PERSONA
+    function switchPersona(role) {
+        document.getElementById('selectedPersona').value = role;
+        const overlay = document.getElementById('loading-overlay');
+        const message = document.getElementById('loader-message');
+        message.innerText = "Adaptation au profil " + role + "...";
+        overlay.style.display = 'flex';
+        document.getElementById('personaForm').submit();
+    }
+
     function startKnowledgeAnalysis() {
         const overlay = document.getElementById('loading-overlay');
         const message = document.getElementById('loader-message');
-        
-        message.innerText = "Analyse IA en cours (Knowledge Base)";
+        message.innerText = "Double Analyse IA : Synthèse & Classification...";
         overlay.style.display = 'flex';
-        
-        // Soumission manuelle après affichage du loader
         document.getElementById('obsidianForm').submit();
     }
 
     function openMail(index) {
-        document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
-        document.getElementById('card-mail-' + index).classList.add('active');
+        setActiveCard('card-mail-' + index);
         const data = window['mailData' + index];
-        renderReader(data.subject, "Expéditeur : " + data.from, data.content, "#2563eb", null);
+        renderReader(data.subject, "Expéditeur : " + data.from, data.content, "#2563eb", null, index, false);
     }
 
     function openNote(index) {
-        document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
-        document.getElementById('card-note-' + index).classList.add('active');
+        setActiveCard('card-note-' + index);
         const data = window['noteData' + index];
-        renderReader(data.title, "Synthèse rédigée par " + data.author, data.content, "#a855f7", data.author);
+        renderReader(data.title, "Synthèse IA (" + data.action + ")", data.content, "#a855f7", data.author, index, true);
     }
 
-    function renderReader(title, subtitle, content, accentColor, author) {
-        let headerHTML = `
-            <div style="margin-bottom: 48px; display: flex; align-items: center; gap: 20px;">
-                ${author ? `<div style="width: 50px; height: 50px; background: #f3e8ff; color: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px;">${author.charAt(0).toUpperCase()}</div>` : ''}
+    function setActiveCard(id) {
+        document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function renderReader(title, subtitle, content, accentColor, author, index, isNote) {
+        let avatar = author ? `<div style="width: 50px; height: 50px; background: #f3e8ff; color: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">${author.charAt(0).toUpperCase()}</div>` : '';
+        
+        let deleteAction = isNote ? `
+            <form action="/delete-note" method="post" style="margin-top: 48px; border-top: 1px solid var(--border); padding-top: 32px;">
+                <input type="hidden" name="index" value="${index}">
+                <button type="submit" onclick="return confirm('Supprimer définitivement ?')" style="color: #ef4444; border-color: #fee2e2; background: #fef2f2; width: 100%;">
+                    🗑️ Supprimer cette note
+                </button>
+            </form>` : '';
+
+        document.getElementById('main-reader').innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 48px;">
+                ${avatar}
                 <div>
-                    <div style="color: ${accentColor}; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px;">Information System</div>
+                    <div style="color: ${accentColor}; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Information System</div>
                     <h1 class="mail-title">${title}</h1>
                     <div style="font-size: 15px; color: var(--text-sub);">${subtitle}</div>
                 </div>
-            </div>`;
-        document.getElementById('main-reader').innerHTML = headerHTML + `<div style="font-size: 17px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${content}</div>`;
+            </div>
+            <div style="font-size: 17px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${content}</div>
+            ${deleteAction}`;
     }
 
-    // Gestion de l'animation IA pour les autres formulaires
     document.querySelectorAll('form').forEach(f => {
         f.addEventListener('submit', () => {
-            // On ne traite pas obsidianForm ici car géré par startKnowledgeAnalysis
-            if (f.id === 'obsidianForm') return;
-
-            const overlay = document.getElementById('loading-overlay');
-            const message = document.getElementById('loader-message');
-            
-            if (f.id === 'ai-form') {
-                message.innerText = "Analyse IA Stratégique (Mails)";
-            } else {
-                message.innerText = "Traitement en cours...";
-            }
-            overlay.style.display = 'flex';
+            if (f.id === 'obsidianForm' || f.id === 'personaForm') return;
+            document.getElementById('loading-overlay').style.display = 'flex';
         });
     });
 </script>
