@@ -87,7 +87,7 @@
             <div class="nav-label">Workspace</div>
             <a href="/" th:class="${view == 'inbox' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-inbox"></i> Boîte Mail</a>
             <a href="/knowledge" th:class="${view == 'knowledge' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-brain"></i> Knowledge Base</a>
-            <a href="/events" th:class="${view == 'events' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-calendar-alt"></i> Agenda / RDV</a>
+            <a href="/events" id="link-agenda" th:class="${view == 'events' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-calendar-alt"></i> Agenda / RDV</a>
         </div>
 
         <div class="persona-box">
@@ -116,7 +116,7 @@
             <div class="action-bar">
                 <th:block th:if="${view == 'inbox'}">
                     <form action="/fetch" method="post"><button type="submit">Charger</button></form>
-                    <form id="ai-form" action="/analyze" method="post"><button type="submit" class="btn-primary">Analyser IA</button></form>
+                    <form id="ai-form" action="/analyze" method="post"><button id="btn-analyze" type="submit" class="btn-primary">Analyser IA</button></form>
                     <form action="/sync" method="post"><button type="submit" class="btn-sync">Sync Gmail</button></form>
                 </th:block>
                 <th:block th:if="${view == 'knowledge'}">
@@ -160,22 +160,32 @@
                         window['noteData' + /*[[${iter.index}]]*/] = { title: /*[[${note.title}]]*/ '', author: /*[[${note.author}]]*/ '', content: /*[[${note.content}]]*/ '', action: /*[[${note.action}]]*/ '' };
                     </script>
                 </div>
-            </th:block>
-
-            <th:block th:if="${view == 'events'}">
+            </th:block> <th:block th:if="${view == 'events'}">
+                
                 <div th:if="${#lists.isEmpty(events)}" style="text-align: center; padding: 40px; color: #94a3b8;">
                     <i class="fas fa-calendar-times" style="font-size: 24px; margin-bottom: 10px;"></i>
-                    <p>Aucun événement urgent détecté.</p>
+                    <p>Aucun RDV urgent détecté.</p>
                 </div>
 
                 <div th:each="event, iter : ${events}" class="mail-card" th:onclick="'openEvent(' + ${iter.index} + ')'" th:id="'card-event-' + ${iter.index}">
                     <div class="status-strip dot-DO"></div>
-                    <div class="card-meta">
-                        <span class="importance-tag tag-DO">URGENT</span>
-                        <span th:class="'importance-tag tag-' + ${event.type}" th:text="${event.type}" style="margin-left: 5px;">SOURCE</span>
+                    
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #2563eb; margin-bottom: 6px;">
+                        <i class="far fa-clock"></i>
+                        <span th:text="${event.dateLieu}">12/05/2026 - Paris</span>
                     </div>
-                    <div class="card-subject" th:text="${event.title}"></div>
-                    <div class="card-excerpt" th:text="${event.dateLieu}" style="color: #2563eb; font-weight: 600;"></div>
+
+                    <div class="card-subject" th:text="${event.title}" style="font-size: 15px; margin-bottom: 10px; line-height: 1.4;">
+                        Rendez-vous Docteur
+                    </div>
+
+                    <div class="card-meta" style="display: flex; gap: 8px;">
+                        <span class="importance-tag tag-DO">URGENT</span>
+                        <span th:class="'importance-tag tag-' + ${event.type}">
+                            <i th:class="${event.type == 'MAIL' ? 'fas fa-envelope' : 'fas fa-sticky-note'}" style="margin-right:4px;"></i>
+                            <span th:text="${event.type}">SOURCE</span>
+                        </span>
+                    </div>
                     
                     <script th:inline="javascript">
                         window['eventData' + /*[[${iter.index}]]*/] = { 
@@ -198,19 +208,35 @@
 </div>
 
 <script>
-    // --- Tes scripts existants ---
+    // --- FONCTIONS D'AFFICHAGE DU LOADER PERSONNALISÉ ---
+    function showLoader(message) {
+        document.getElementById('loader-message').innerText = message;
+        document.getElementById('loading-overlay').style.display = 'flex';
+    }
+
+    // Écouteur pour le lien Agenda
+    document.getElementById('link-agenda').addEventListener('click', function() {
+        showLoader("Analyse de vos futurs événements...");
+    });
+
+    // Écouteur pour le bouton Analyser (s'il existe sur la page)
+    const btnAnalyze = document.getElementById('btn-analyze');
+    if (btnAnalyze) {
+        btnAnalyze.addEventListener('click', function() {
+            showLoader("Analyse IA en cours...");
+        });
+    }
+
+    // --- FONCTIONS EXISTANTES ---
+
     function switchPersona(role) {
         document.getElementById('selectedPersona').value = role;
-        const overlay = document.getElementById('loading-overlay');
-        document.getElementById('loader-message').innerText = "Mode " + role + "...";
-        overlay.style.display = 'flex';
+        showLoader("Mode " + role + "...");
         document.getElementById('personaForm').submit();
     }
 
     function startKnowledgeAnalysis() {
-        const overlay = document.getElementById('loading-overlay');
-        document.getElementById('loader-message').innerText = "Double Analyse IA...";
-        overlay.style.display = 'flex';
+        showLoader("Double Analyse IA...");
         document.getElementById('obsidianForm').submit();
     }
 
@@ -226,12 +252,10 @@
         renderReader(data.title, "Synthèse IA (" + data.author + ")", data.content, "#a855f7", data.author, index, true);
     }
 
-    // --- NOUVEAU : Script pour afficher un événement ---
     function openEvent(index) {
         setActiveCard('card-event-' + index);
         const data = window['eventData' + index];
         
-        // Affichage simplifié et propre dans le panneau de lecture
         document.getElementById('main-reader').innerHTML = `
             <div style="display: flex; align-items: center; margin-bottom: 24px;">
                 <div style="width: 50px; height: 50px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">
@@ -297,10 +321,7 @@
     }
 
     function updatePriority(index, newTag, isNote) {
-        const overlay = document.getElementById('loading-overlay');
-        document.getElementById('loader-message').innerText = "Mise à jour...";
-        overlay.style.display = 'flex';
-
+        showLoader("Mise à jour...");
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = isNote ? '/update-note-tag' : '/update-mail-tag';
@@ -317,12 +338,11 @@
         form.submit();
     }
     
-    // Ajout d'un écouteur pour le formulaire IA pour afficher le loader (car il n'était pas couvert par le script générique)
+    // Fallback pour les formulaires sans ID spécifique (comme le bouton Charger)
     document.querySelectorAll('form').forEach(f => {
         f.addEventListener('submit', () => {
-             // On évite le double trigger si tu l'avais déjà
-             if (f.id === 'obsidianForm' || f.id === 'personaForm') return; 
-             document.getElementById('loading-overlay').style.display = 'flex';
+             if (f.id === 'obsidianForm' || f.id === 'personaForm' || f.id === 'ai-form') return; 
+             showLoader("Chargement...");
         });
     });
 </script>

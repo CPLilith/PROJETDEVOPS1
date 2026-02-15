@@ -1,6 +1,7 @@
 package projet.devops.Mail.Controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -34,55 +35,45 @@ public class MainController {
 
     public record EventItem(String title, String dateLieu, String type, String sourceId) {}
 
-    // --- SECTION INBOX ---
+    // --- SECTION INBOX (Affichage Inversé) ---
     @GetMapping("/")
     public String index(Model model) {
-        model.addAttribute("view", "inbox"); 
-        model.addAttribute("mails", flowService.getMails());
+        model.addAttribute("view", "inbox");
+        List<Mail> sortedMails = new ArrayList<>(flowService.getMails());
+        Collections.reverse(sortedMails); // On inverse pour l'affichage
+        model.addAttribute("mails", sortedMails);
         model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
-        return "mails"; // On utilise le template unique mails.html
+        return "mails";
     }
 
-    // --- SECTION KNOWLEDGE ---
+    // --- SECTION KNOWLEDGE (Affichage Inversé) ---
     @GetMapping("/knowledge")
     public String knowledge(Model model) {
-        model.addAttribute("view", "knowledge"); 
-        model.addAttribute("notes", noteService.getNotes());
+        model.addAttribute("view", "knowledge");
+        List<Note> sortedNotes = new ArrayList<>(noteService.getNotes());
+        Collections.reverse(sortedNotes); // On inverse pour l'affichage
+        model.addAttribute("notes", sortedNotes);
         model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
         return "mails"; 
     }
 
-    // --- SECTION EVENTS (AGENDA) ---
+    // --- SECTION EVENTS ---
     @GetMapping("/events")
     public String showEvents(Model model) {
-        System.out.println("\n========== 🕵️ DÉBUT DEBUG EVENTS (AVEC AUTO-FETCH) ==========");
+        System.out.println("\n========== 📅 CHARGEMENT AGENDA ==========");
         List<EventItem> events = new ArrayList<>();
         Persona current = PersonaResourceService.loadPersona();
 
-        // 1. AUTO-FETCH FIX : Si la mémoire est vide (F5), on recharge Gmail
         if (flowService.getMails().isEmpty()) {
-            System.out.println("⚠️ Mémoire vide ! Tentative de téléchargement automatique...");
-            try {
-                flowService.fetchMails();
-            } catch (Exception e) {
-                System.err.println("❌ Erreur auto-fetch : " + e.getMessage());
-            }
+            try { flowService.fetchMails(); } catch (Exception e) {}
         }
 
-        // 2. DEBUG MAILS
+        // Scan des Mails
         List<Mail> mails = flowService.getMails();
-        System.out.println("📧 Mails en mémoire : " + (mails != null ? mails.size() : 0));
-        
         if (mails != null) {
             for (Mail mail : mails) {
-                // On n'affiche le détail que si c'est un DO pour ne pas polluer la console
                 if (mail.getAction() == EisenhowerAction.DO) {
-                    System.out.print("   - [MAIL DO] '" + mail.getSubject() + "'");
-                    System.out.print(" -> 🧠 Analyse IA...");
-                    
                     String extraction = classifier.extractEventDetails(mail.getContent());
-                    System.out.println(" Résultat: " + extraction);
-                    
                     if (!extraction.contains("AUCUN")) {
                         events.add(new EventItem(mail.getSubject(), extraction, "MAIL", mail.getMessageId()));
                     }
@@ -90,21 +81,13 @@ public class MainController {
             }
         }
 
-        // 3. DEBUG NOTES
+        // Scan des Notes
         List<Note> notes = noteService.getNotes();
-        System.out.println("📝 Notes en mémoire : " + (notes != null ? notes.size() : 0));
-
         if (notes != null) {
             for (Note note : notes) {
                 String action = note.getAction() != null ? note.getAction() : "NULL";
-                
                 if ("DO".equalsIgnoreCase(action)) {
-                     System.out.print("   - [NOTE DO] '" + note.getTitle() + "'");
-                     System.out.print(" -> 🧠 Analyse IA...");
-                     
                      String extraction = classifier.extractEventDetails(note.getContent());
-                     System.out.println(" Résultat: " + extraction);
-                     
                      if (!extraction.contains("AUCUN")) {
                         events.add(new EventItem(note.getTitle(), extraction, "NOTE", note.getId()));
                     }
@@ -112,22 +95,50 @@ public class MainController {
             }
         }
         
-        System.out.println("🎯 TOTAL ÉVÉNEMENTS AFFICHÉS : " + events.size());
-        System.out.println("========== FIN DEBUG EVENTS ==========\n");
+        Collections.reverse(events); // On inverse aussi les events
 
         model.addAttribute("view", "events");
         model.addAttribute("events", events);
         model.addAttribute("currentPersona", current);
-        return "mails"; // Important : renvoie vers mails.html
+        return "mails";
     }
 
-    // --- LE RESTE DES MÉTHODES ---
+    // --- ACTIONS (CORRECTION DES INDEX INVERSÉS) ---
 
     @PostMapping("/delete-note")
     public String deleteNote(@RequestParam("index") int index) {
-        noteService.deleteNote(index);
+        // Formule magique : (Taille - 1) - IndexAffiché = VraiIndex
+        List<Note> notes = noteService.getNotes();
+        if (notes != null && !notes.isEmpty()) {
+            int realIndex = notes.size() - 1 - index;
+            noteService.deleteNote(realIndex);
+        }
         return "redirect:/knowledge";
     }
+
+    @PostMapping("/update-note-tag")
+    public String updateNoteTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
+        // Correction de l'index pour les Notes
+        List<Note> notes = noteService.getNotes();
+        if (notes != null && !notes.isEmpty()) {
+            int realIndex = notes.size() - 1 - index;
+            noteService.updateNoteTag(realIndex, tag);
+        }
+        return "redirect:/knowledge";
+    }
+
+    @PostMapping("/update-mail-tag")
+    public String updateMailTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
+        // Correction de l'index pour les Mails
+        List<Mail> mails = flowService.getMails();
+        if (mails != null && !mails.isEmpty()) {
+            int realIndex = mails.size() - 1 - index;
+            flowService.updateMailTag(realIndex, tag);
+        }
+        return "redirect:/";
+    }
+
+    // --- AUTRES ACTIONS (Sans index) ---
 
     @PostMapping("/fetch")
     public String fetchMails() throws Exception {
@@ -153,27 +164,13 @@ public class MainController {
         try {
             Persona current = PersonaResourceService.loadPersona();
             noteService.generateAiKnowledge(files, current);
-        } catch (Exception e) {
-            System.err.println("❌ Erreur import IA : " + e.getMessage());
-        }
+        } catch (Exception e) { e.printStackTrace(); }
         return "redirect:/knowledge";
     }
     
     @PostMapping("/persona")
     public String changePersona(@RequestParam String persona) throws Exception {
         PersonaResourceService.savePersona(Persona.valueOf(persona.toUpperCase()));
-        return "redirect:/";
-    }
-
-    @PostMapping("/update-note-tag")
-    public String updateNoteTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
-        noteService.updateNoteTag(index, tag);
-        return "redirect:/knowledge";
-    }
-
-    @PostMapping("/update-mail-tag")
-    public String updateMailTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
-        flowService.updateMailTag(index, tag);
         return "redirect:/";
     }
 }
