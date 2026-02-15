@@ -128,4 +128,14 @@ public class NoteService {
     public List<Note> getNotes() {
         return notes;
     }
+
+    public void updateNoteTag(int index, String newTag) {
+    if (index >= 0 && index < notes.size()) {
+        Note note = notes.get(index);
+        // On met à jour le tag (on s'assure qu'il est en majuscules)
+        note.setAction(newTag.toUpperCase()); 
+        saveNoteToJson(); // Persistance immédiate
+        System.out.println("✅ [Persistence] Tag de la note " + index + " mis à jour en : " + newTag);
+    }
+}
 }

@@ -21,10 +21,9 @@
         .logo { font-weight: 800; font-size: 22px; color: var(--text-main); letter-spacing: -1px; }
         .nav-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
         .nav-item { padding: 12px; border-radius: 12px; font-size: 14px; color: var(--text-sub); text-decoration: none; font-weight: 500; transition: 0.3s; margin-bottom: 4px; display: block; }
-        .nav-item:hover { color: var(--accent); background: rgba(37, 99, 235, 0.05); }
         .nav-item.active { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--border); }
 
-        /* --- NOUVEAU DESIGN PERSONA (ESTHÉTIQUE) --- */
+        /* --- PERSONA DESIGN --- */
         .persona-box { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-top: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.03); }
         .persona-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
         .persona-btn { 
@@ -51,15 +50,14 @@
         .status-strip { position: absolute; left: 0; top: 20px; bottom: 20px; width: 4px; border-radius: 0 4px 4px 0; }
         .dot-DO { background: var(--do); } .dot-PLAN { background: var(--plan); } .dot-DELEGATE { background: var(--delegate); } .dot-DELETE { background: var(--delete); } .dot-PENDING { background: #cbd5e1; }
 
-        .importance-tag { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; margin-bottom: 12px; display: inline-block; }
+        .importance-tag { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; margin-bottom: 12px; display: inline-block; border: none; cursor: pointer; transition: 0.2s; }
+        .importance-tag:hover { transform: scale(1.05); filter: brightness(0.95); }
         .tag-DO { background: #fee2e2; color: var(--do); } .tag-PLAN { background: #dbeafe; color: var(--plan); } .tag-DELEGATE { background: #fef3c7; color: var(--delegate); } .tag-DELETE { background: #f1f5f9; color: var(--delete); } .tag-PENDING { background: #f1f5f9; color: #64748b; }
 
         /* --- BUTTONS --- */
         .action-bar { display: flex; gap: 10px; flex-wrap: wrap; }
         button { background: #fff; border: 1px solid var(--border); padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text-main); }
-        button:hover { background: #f8fafc; border-color: #cbd5e1; }
         .btn-primary { background: var(--text-main); color: #fff; border: none; }
-        .btn-primary:hover { background: #000; transform: translateY(-1px); }
         .btn-sync { color: #16a34a; border-color: #dcfce7; }
 
         /* --- CONTENT VIEW --- */
@@ -77,7 +75,7 @@
 
 <div id="loading-overlay">
     <div class="loader-bar"></div>
-    <p id="loader-message" style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">Analyse en cours</p>
+    <p id="loader-message" style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">Mise à jour...</p>
 </div>
 
 <div class="app-container">
@@ -94,23 +92,14 @@
             <form action="/persona" method="post" id="personaForm">
                 <input type="hidden" name="persona" id="selectedPersona">
                 <div class="persona-grid">
-                    <button type="button" class="persona-btn" 
-                            th:classappend="${currentPersona.name() == 'ETUDIANT' ? 'active' : ''}"
-                            onclick="switchPersona('ETUDIANT')">
-                        <div class="dot-indicator"></div>
-                        <span>🎓 Student Mode</span>
+                    <button type="button" class="persona-btn" th:classappend="${currentPersona.name() == 'ETUDIANT' ? 'active' : ''}" onclick="switchPersona('ETUDIANT')">
+                        <div class="dot-indicator"></div><span>🎓 Student Mode</span>
                     </button>
-                    <button type="button" class="persona-btn" 
-                            th:classappend="${currentPersona.name() == 'DEVELOPPEUR' ? 'active' : ''}"
-                            onclick="switchPersona('DEVELOPPEUR')">
-                        <div class="dot-indicator"></div>
-                        <span>💻 Developer Mode</span>
+                    <button type="button" class="persona-btn" th:classappend="${currentPersona.name() == 'DEVELOPPEUR' ? 'active' : ''}" onclick="switchPersona('DEVELOPPEUR')">
+                        <div class="dot-indicator"></div><span>💻 Developer Mode</span>
                     </button>
-                    <button type="button" class="persona-btn" 
-                            th:classappend="${currentPersona.name() == 'PROFESSEUR' ? 'active' : ''}"
-                            onclick="switchPersona('PROFESSEUR')">
-                        <div class="dot-indicator"></div>
-                        <span>👨‍🏫 Teacher Mode</span>
+                    <button type="button" class="persona-btn" th:classappend="${currentPersona.name() == 'PROFESSEUR' ? 'active' : ''}" onclick="switchPersona('PROFESSEUR')">
+                        <div class="dot-indicator"></div><span>👨‍🏫 Teacher Mode</span>
                     </button>
                 </div>
             </form>
@@ -177,20 +166,17 @@
 </div>
 
 <script>
-    // GESTION PERSONA
     function switchPersona(role) {
         document.getElementById('selectedPersona').value = role;
         const overlay = document.getElementById('loading-overlay');
-        const message = document.getElementById('loader-message');
-        message.innerText = "Adaptation au profil " + role + "...";
+        document.getElementById('loader-message').innerText = "Mode " + role + "...";
         overlay.style.display = 'flex';
         document.getElementById('personaForm').submit();
     }
 
     function startKnowledgeAnalysis() {
         const overlay = document.getElementById('loading-overlay');
-        const message = document.getElementById('loader-message');
-        message.innerText = "Double Analyse IA : Synthèse & Classification...";
+        document.getElementById('loader-message').innerText = "Double Analyse IA...";
         overlay.style.display = 'flex';
         document.getElementById('obsidianForm').submit();
     }
@@ -204,7 +190,7 @@
     function openNote(index) {
         setActiveCard('card-note-' + index);
         const data = window['noteData' + index];
-        renderReader(data.title, "Synthèse IA (" + data.action + ")", data.content, "#a855f7", data.author, index, true);
+        renderReader(data.title, "Synthèse IA (" + data.author + ")", data.content, "#a855f7", data.author, index, true);
     }
 
     function setActiveCard(id) {
@@ -215,6 +201,18 @@
     function renderReader(title, subtitle, content, accentColor, author, index, isNote) {
         let avatar = author ? `<div style="width: 50px; height: 50px; background: #f3e8ff; color: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">${author.charAt(0).toUpperCase()}</div>` : '';
         
+        // --- SÉLECTEUR DE TAG MANUEL (FONCTIONNALITÉ HUMAINE DANS LA BOUCLE) ---
+        let tagSelector = isNote ? `
+            <div style="margin-top: 20px; display: flex; gap: 12px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                <span style="font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;">Priorité :</span>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="changeTag(${index}, 'DO')" class="importance-tag tag-DO">DO</button>
+                    <button onclick="changeTag(${index}, 'PLAN')" class="importance-tag tag-PLAN">PLAN</button>
+                    <button onclick="changeTag(${index}, 'DELEGATE')" class="importance-tag tag-DELEGATE">DELEGATE</button>
+                    <button onclick="changeTag(${index}, 'DELETE')" class="importance-tag tag-DELETE">DELETE</button>
+                </div>
+            </div>` : '';
+
         let deleteAction = isNote ? `
             <form action="/delete-note" method="post" style="margin-top: 48px; border-top: 1px solid var(--border); padding-top: 32px;">
                 <input type="hidden" name="index" value="${index}">
@@ -224,7 +222,7 @@
             </form>` : '';
 
         document.getElementById('main-reader').innerHTML = `
-            <div style="display: flex; align-items: center; margin-bottom: 48px;">
+            <div style="display: flex; align-items: center; margin-bottom: 24px;">
                 ${avatar}
                 <div>
                     <div style="color: ${accentColor}; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Information System</div>
@@ -232,8 +230,31 @@
                     <div style="font-size: 15px; color: var(--text-sub);">${subtitle}</div>
                 </div>
             </div>
-            <div style="font-size: 17px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${content}</div>
+            ${tagSelector}
+            <div style="margin-top: 32px; font-size: 17px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${content}</div>
             ${deleteAction}`;
+    }
+
+    // FONCTION POUR CHANGER LE TAG MANUELLEMENT
+    function changeTag(index, newTag) {
+        const overlay = document.getElementById('loading-overlay');
+        document.getElementById('loader-message').innerText = "Mise à jour du tag...";
+        overlay.style.display = 'flex';
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/update-note-tag';
+        
+        const indexInput = document.createElement('input');
+        indexInput.type = 'hidden'; indexInput.name = 'index'; indexInput.value = index;
+        
+        const tagInput = document.createElement('input');
+        tagInput.type = 'hidden'; tagInput.name = 'tag'; tagInput.value = newTag;
+        
+        form.appendChild(indexInput);
+        form.appendChild(tagInput);
+        document.body.appendChild(form);
+        form.submit();
     }
 
     document.querySelectorAll('form').forEach(f => {
