@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --sidebar-bg: #f8fafc; --accent: #2563eb; --bg: #ffffff;
@@ -20,8 +21,9 @@
         .sidebar { background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 40px 24px; display: flex; flex-direction: column; gap: 40px; }
         .logo { font-weight: 800; font-size: 22px; color: var(--text-main); letter-spacing: -1px; }
         .nav-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-        .nav-item { padding: 12px; border-radius: 12px; font-size: 14px; color: var(--text-sub); text-decoration: none; font-weight: 500; transition: 0.3s; margin-bottom: 4px; display: block; }
+        .nav-item { padding: 12px; border-radius: 12px; font-size: 14px; color: var(--text-sub); text-decoration: none; font-weight: 500; transition: 0.3s; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
         .nav-item.active { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--border); }
+        .nav-item i { width: 20px; text-align: center; }
 
         /* --- PERSONA DESIGN --- */
         .persona-box { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-top: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.03); }
@@ -83,8 +85,9 @@
         <div class="logo">EisenFlow.</div>
         <div class="nav-group">
             <div class="nav-label">Workspace</div>
-            <a href="/" th:class="${view == 'inbox' ? 'nav-item active' : 'nav-item'}">Boîte Mail</a>
-            <a href="/knowledge" th:class="${view == 'knowledge' ? 'nav-item active' : 'nav-item'}">Knowledge Base</a>
+            <a href="/" th:class="${view == 'inbox' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-inbox"></i> Boîte Mail</a>
+            <a href="/knowledge" th:class="${view == 'knowledge' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-brain"></i> Knowledge Base</a>
+            <a href="/events" th:class="${view == 'events' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-calendar-alt"></i> Agenda / RDV</a>
         </div>
 
         <div class="persona-box">
@@ -108,7 +111,8 @@
 
     <main class="feed-container">
         <div class="feed-header">
-            <h2 th:text="${view == 'inbox' ? 'Flux Gmail' : 'Vault Obsidian'}"></h2>
+            <h2 th:text="${view == 'inbox' ? 'Flux Gmail' : (view == 'knowledge' ? 'Vault Obsidian' : 'Agenda IA')}"></h2>
+            
             <div class="action-bar">
                 <th:block th:if="${view == 'inbox'}">
                     <form action="/fetch" method="post"><button type="submit">Charger</button></form>
@@ -120,6 +124,9 @@
                         <input type="file" id="folderInput" name="files" webkitdirectory directory multiple style="display: none;" onchange="startKnowledgeAnalysis()">
                         <button type="button" class="btn-primary" onclick="document.getElementById('folderInput').click()">📂 Sélectionner un Dossier</button>
                     </form>
+                </th:block>
+                <th:block th:if="${view == 'events'}">
+                    <button onclick="window.location.reload()"><i class="fas fa-sync-alt"></i> Actualiser</button>
                 </th:block>
             </div>
         </div>
@@ -154,6 +161,31 @@
                     </script>
                 </div>
             </th:block>
+
+            <th:block th:if="${view == 'events'}">
+                <div th:if="${#lists.isEmpty(events)}" style="text-align: center; padding: 40px; color: #94a3b8;">
+                    <i class="fas fa-calendar-times" style="font-size: 24px; margin-bottom: 10px;"></i>
+                    <p>Aucun événement urgent détecté.</p>
+                </div>
+
+                <div th:each="event, iter : ${events}" class="mail-card" th:onclick="'openEvent(' + ${iter.index} + ')'" th:id="'card-event-' + ${iter.index}">
+                    <div class="status-strip dot-DO"></div>
+                    <div class="card-meta">
+                        <span class="importance-tag tag-DO">URGENT</span>
+                        <span th:class="'importance-tag tag-' + ${event.type}" th:text="${event.type}" style="margin-left: 5px;">SOURCE</span>
+                    </div>
+                    <div class="card-subject" th:text="${event.title}"></div>
+                    <div class="card-excerpt" th:text="${event.dateLieu}" style="color: #2563eb; font-weight: 600;"></div>
+                    
+                    <script th:inline="javascript">
+                        window['eventData' + /*[[${iter.index}]]*/] = { 
+                            title: /*[[${event.title}]]*/ '', 
+                            dateLieu: /*[[${event.dateLieu}]]*/ '', 
+                            type: /*[[${event.type}]]*/ '' 
+                        };
+                    </script>
+                </div>
+            </th:block>
         </div>
     </main>
 
@@ -166,6 +198,7 @@
 </div>
 
 <script>
+    // --- Tes scripts existants ---
     function switchPersona(role) {
         document.getElementById('selectedPersona').value = role;
         const overlay = document.getElementById('loading-overlay');
@@ -193,15 +226,43 @@
         renderReader(data.title, "Synthèse IA (" + data.author + ")", data.content, "#a855f7", data.author, index, true);
     }
 
+    // --- NOUVEAU : Script pour afficher un événement ---
+    function openEvent(index) {
+        setActiveCard('card-event-' + index);
+        const data = window['eventData' + index];
+        
+        // Affichage simplifié et propre dans le panneau de lecture
+        document.getElementById('main-reader').innerHTML = `
+            <div style="display: flex; align-items: center; margin-bottom: 24px;">
+                <div style="width: 50px; height: 50px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div>
+                    <div style="color: #ef4444; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Agenda Item</div>
+                    <h1 class="mail-title">${data.title}</h1>
+                    <div style="font-size: 18px; color: #2563eb; font-weight: 600; margin-top: 5px;">${data.dateLieu}</div>
+                </div>
+            </div>
+            <div style="margin-top: 32px; padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; line-height: 1.6;">
+                <p style="margin: 0; color: #475569;">
+                    <i class="fas fa-robot" style="margin-right:8px;"></i>
+                    Cet événement a été extrait automatiquement de votre flux <strong>${data.type}</strong> car il a été classé comme urgent (DO).
+                </p>
+                <br>
+                <p style="color: #64748b; font-size: 14px;">L'IA a détecté une intention de rendez-vous ou une date butoir dans le contenu original.</p>
+            </div>
+        `;
+    }
+
     function setActiveCard(id) {
         document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+        const el = document.getElementById(id);
+        if(el) el.classList.add('active');
     }
 
     function renderReader(title, subtitle, content, accentColor, author, index, isNote) {
         let avatar = author ? `<div style="width: 50px; height: 50px; background: #f3e8ff; color: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">${author.charAt(0).toUpperCase()}</div>` : '';
         
-        // --- SÉLECTEUR DE TAG UNIFIÉ (S'affiche pour Mails ET Notes) ---
         let tagSelector = `
             <div style="margin-top: 20px; display: flex; gap: 12px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
                 <span style="font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;">Priorité :</span>
@@ -235,7 +296,6 @@
             ${deleteAction}`;
     }
 
-    // FONCTION UNIFIÉE POUR CHANGER LA PRIORITÉ (CHOISIT LA BONNE ROUTE)
     function updatePriority(index, newTag, isNote) {
         const overlay = document.getElementById('loading-overlay');
         document.getElementById('loader-message').innerText = "Mise à jour...";
@@ -243,8 +303,6 @@
 
         const form = document.createElement('form');
         form.method = 'POST';
-        
-        // Sélection de la route dynamique
         form.action = isNote ? '/update-note-tag' : '/update-mail-tag';
         
         const indexInput = document.createElement('input');
@@ -258,11 +316,13 @@
         document.body.appendChild(form);
         form.submit();
     }
-
+    
+    // Ajout d'un écouteur pour le formulaire IA pour afficher le loader (car il n'était pas couvert par le script générique)
     document.querySelectorAll('form').forEach(f => {
         f.addEventListener('submit', () => {
-            if (f.id === 'obsidianForm' || f.id === 'personaForm') return;
-            document.getElementById('loading-overlay').style.display = 'flex';
+             // On évite le double trigger si tu l'avais déjà
+             if (f.id === 'obsidianForm' || f.id === 'personaForm') return; 
+             document.getElementById('loading-overlay').style.display = 'flex';
         });
     });
 </script>

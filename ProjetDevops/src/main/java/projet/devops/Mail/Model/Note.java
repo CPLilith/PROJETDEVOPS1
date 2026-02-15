@@ -1,49 +1,56 @@
 package projet.devops.Mail.Model;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+// Cette annotation empêche le plantage si le JSON contient des champs inconnus
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Note {
+
+    private String id;
     private String title;
-    private String content;
     private String author;
+    
+    // On s'assure que Jackson map bien le champ "content" du JSON vers cette variable
+    @JsonProperty("content") 
+    private String content;
+    
     private String action;
-    private String date;
 
-    /**
-     * CONSTRUCTEUR VIDE : Indispensable pour que Jackson 
-     * puisse recréer l'objet depuis le JSON.
-     */
-    public Note() {}
+    // Constructeur vide OBLIGATOIRE pour Jackson (lecture du JSON)
+    public Note() {
+        // Si l'ID n'existe pas dans le JSON (vieille note), on en génère un à la volée
+        this.id = UUID.randomUUID().toString();
+    }
 
-    /**
-     * CONSTRUCTEUR COMPLET : Utilisé pour créer les nouvelles synthèses.
-     */
-    public Note(String title, String content, String author, String action) {
+    // Constructeur complet
+    public Note(String title, String author, String content, String action) {
+        this.id = UUID.randomUUID().toString();
         this.title = title;
-        this.content = content;
         this.author = author;
+        this.content = content;
         this.action = action;
-        this.date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMM, yyyy"));
     }
 
-    // --- GETTERS (Pour l'affichage Thymeleaf) ---
+    // --- Getters & Setters ---
+    public String getId() {
+        // Sécurité : si l'ID est null (vieux JSON), on en donne un
+        if (id == null) id = UUID.randomUUID().toString();
+        return id;
+    }
+    public void setId(String id) { this.id = id; }
+
     public String getTitle() { return title; }
-    public String getContent() { return content; }
-    public String getAuthor() { return author; }
-    public String getAction() { return action; }
-    public String getDate() { return date; }
-
-    // --- SETTERS (Requis pour Jackson et la modification manuelle) ---
-    
-    // Cette méthode règle ton erreur "cannot find symbol"
-    public void setAction(String action) { 
-        this.action = action; 
-    }
-
     public void setTitle(String title) { this.title = title; }
-    public void setContent(String content) { this.content = content; }
+
+    public String getAuthor() { return author; }
     public void setAuthor(String author) { this.author = author; }
-    public void setDate(String date) { this.date = date; }
-    
+
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
+
+    public String getAction() { return action; }
+    public void setAction(String action) { this.action = action; }
 }

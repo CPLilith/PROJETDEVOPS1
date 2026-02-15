@@ -16,6 +16,7 @@ import jakarta.mail.Session;
 import jakarta.mail.Store;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.search.MessageIDTerm;
+import projet.devops.Mail.Classifier.EisenhowerAction;
 import projet.devops.Mail.Mail;
 
 @Service
@@ -29,7 +30,7 @@ public class MailService {
     private String password;
 
     /**
-     * Récupère les mails depuis Gmail et les convertit en objets Mail
+     * Récupère les mails (Version stable pour compilation)
      */
     public List<Mail> fetchAllMails() {
         List<Mail> mails = new ArrayList<>();
@@ -38,20 +39,26 @@ public class MailService {
             Folder inbox = store.getFolder("INBOX");
             inbox.open(Folder.READ_ONLY);
 
-            // On prend les 10 derniers mails pour l'exemple (évite de charger 5000 mails)
             int count = inbox.getMessageCount();
             int start = Math.max(1, count - 10);
             Message[] messages = inbox.getMessages(start, count);
 
             for (Message msg : messages) {
+                // Utilisation des méthodes utilitaires sécurisées
                 String messageId = getMessageId(msg);
                 String subject = msg.getSubject() != null ? msg.getSubject() : "(Sans sujet)";
                 String from = msg.getFrom()[0].toString();
                 String date = msg.getSentDate() != null ? msg.getSentDate().toString() : "";
                 String content = getTextFromMessage(msg);
 
-                // On crée l'objet propre. Par défaut l'action est PENDING.
-                mails.add(new Mail(messageId, date, subject, from, content));
+                Mail mail = new Mail(messageId, date, subject, from, content);
+                
+                // Pour éviter l'erreur de compilation sur les Labels Gmail complexes,
+                // on initialise par défaut en PENDING.
+                // La récupération des labels Gmail spécifiques nécessite une config Maven plus avancée.
+                mail.setAction(EisenhowerAction.PENDING);
+
+                mails.add(mail);
             }
 
             inbox.close(false);
@@ -63,7 +70,17 @@ public class MailService {
     }
 
     /**
-     * Applique un label (Tag) sur un mail dans Gmail (Pour la synchro)
+     * Version simplifiée pour éviter l'erreur "incompatible types"
+     */
+    public List<String> getLabelsForMessage(String messageId) {
+        // Retourne une liste vide pour permettre la compilation immédiate.
+        // L'implémentation complète des extensions Gmail IMAP (X-GM-LABELS)
+        // est désactivée temporairement pour résoudre le BUILD FAILURE.
+        return new ArrayList<>();
+    }
+
+    /**
+     * Applique un label (Tag) sur un mail dans Gmail
      */
     public void applyLabelToMail(String messageId, String labelName) {
         try {
@@ -71,21 +88,17 @@ public class MailService {
             Folder inbox = store.getFolder("INBOX");
             inbox.open(Folder.READ_WRITE);
 
-            // Recherche du mail par son ID
             Message[] messages = inbox.search(new MessageIDTerm(messageId));
             if (messages.length > 0) {
-                // Création/Récupération du dossier Label (ex: "DO", "DELEGATE")
                 Folder labelFolder = store.getFolder(labelName);
                 if (!labelFolder.exists()) labelFolder.create(Folder.HOLDS_MESSAGES);
-
-                // Copie du message vers le label
                 inbox.copyMessages(messages, labelFolder);
-                System.out.println("Label " + labelName + " appliqué sur " + messageId);
+                System.out.println("✅ Sync Gmail : Label " + labelName + " appliqué.");
             }
             inbox.close(false);
             store.close();
         } catch (Exception e) {
-            System.err.println("Erreur sync Gmail: " + e.getMessage());
+            System.err.println("❌ Erreur sync Gmail: " + e.getMessage());
         }
     }
 
@@ -103,39 +116,28 @@ public class MailService {
 
     private String getMessageId(Message msg) {
         try {
-            return ((com.sun.mail.imap.IMAPMessage) msg).getMessageID();
-        } catch (Exception e) {
+            // Tentative sécurisée de récupération d'ID
+            if (msg instanceof jakarta.mail.internet.MimeMessage) {
+                 return ((jakarta.mail.internet.MimeMessage) msg).getMessageID();
+            }
             return "";
-        }
+        } catch (Exception e) { return ""; }
     }
 
     private String getTextFromMessage(Message message) throws MessagingException, IOException {
-        if (message.isMimeType("text/plain")) {
-            return message.getContent().toString();
-        } else if (message.isMimeType("multipart/*")) {
-            MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
-            return getTextFromMimeMultipart(mimeMultipart);
-        }
+        if (message.isMimeType("text/plain")) return message.getContent().toString();
+        if (message.isMimeType("multipart/*")) return getTextFromMimeMultipart((MimeMultipart) message.getContent());
         return "";
     }
 
     private String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException {
         StringBuilder result = new StringBuilder();
-        int count = mimeMultipart.getCount();
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < mimeMultipart.getCount(); i++) {
             BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-            if (bodyPart.isMimeType("text/plain")) {
-                return result.append(bodyPart.getContent()).toString();
-            } else if (bodyPart.getContent() instanceof MimeMultipart) {
+            if (bodyPart.isMimeType("text/plain")) return bodyPart.getContent().toString();
+            else if (bodyPart.getContent() instanceof MimeMultipart) 
                 result.append(getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent()));
-            }
         }
         return result.toString();
     }
-
-    public List<String> getLabelsForMessage(String messageId) {
-    // Pour l'instant, on retourne une liste vide pour débloquer la compilation
-    // Tu pourras implémenter la vraie récupération Gmail plus tard
-    return new java.util.ArrayList<>();
-}
 }
