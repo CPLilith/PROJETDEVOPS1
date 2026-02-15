@@ -95,4 +95,10 @@ public class MainController {
         PersonaResourceService.savePersona(Persona.valueOf(persona.toUpperCase()));
         return "redirect:/";
     }
+
+    @PostMapping("/update-note-tag")
+    public String updateNoteTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
+        noteService.updateNoteTag(index, tag);
+        return "redirect:/knowledge"; // On recharge pour voir le changement de couleur
+    }
 }
