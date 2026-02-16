@@ -1,0 +1,13 @@
+[ {
+  "id" : "c6ed667d-2d31-472b-96c3-66fceb412afc",
+  "title" : "Intelligence Collective (PROFESSEUR)",
+  "author" : "En tant que PROFESSEUR, vous souhaitez formuler une synthèse comparative intelligente des notes de deux étudiants sur la technologie d'archivage et la création numérique d'œuvres d'art.\n\n# Notes : Technologie d'archivage et création numérique d'œuvres d'art\r\n**Auteur : Jane Doe**\r\n**Date : 2 Février 2026**\r\n\r\n## Points Clés du Course\n* **PiPEline Jenkins** : Mise en place de scripts `JenPlist` pour automatiser le dépôt et la récupération des pièces jointes d'artiste.\r\n* **Dockerisation** : Utilisation de Docker pour isoler les environnement du développement et du traitement de l’image.\r\n* **Kubernetes** : Introduction à la création numérique de l'œuvre d'art en tant qu'environnement de base pour l'exécution et la distribution d'images Docker.\n\n--- SOURCE : Obsidian_Test_Devops/Intelligence_Artificielle_LLM.md ---\n# Notes : Introduction aux LLMs et Prompt Engineering\r\n**Auteur : Charlie Dubosc**\r\n**Date : 14 Février 2026**\r\n\r\n## Définitions\r\n* **Transformer** : Architecture de base des modèles comme GPTA et LlamA.\r\n* **Finé-tuning** : Processus d'ajustement dans un espace local (crucial pour notre projet EisenFlow).\r\n* **Ollama** : Outil permettant de faire tournurer les modèles préentrée en fonction des données spécifiques.",
+  "action" : "DO",
+  "content" : "AI Orchestrator"
+}, {
+  "id" : "43d4fd02-163a-4887-9745-8c2d39b32fdc",
+  "title" : "Intelligence Collective (PROFESSEUR)",
+  "author" : "Based on the given notes, here are some key points that you can summarize and use for comparison purposes:\n\n1. Architecture of DevOps and CI/CD pipelines\n2. Introduction to LLMs and Prompt Engineering\n3. Fine-tuning models based on specialized data\n4. Examples of IA and security\n5. Firewalling and zero trust principles",
+  "action" : "DO",
+  "content" : "AI Orchestrator"
+} ]

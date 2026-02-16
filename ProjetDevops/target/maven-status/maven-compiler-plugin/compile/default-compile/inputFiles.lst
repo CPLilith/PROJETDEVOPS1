@@ -1,0 +1,17 @@
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/ClassificationStrategy.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/EisenhowerAction.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/EisenhowerClassifier.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/OllamaClient.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/OllamaStrategy.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/Persona.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaConfigLoader.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaPromptProvider.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaResourceService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/TextCleaner.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/MainController.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Mail.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Model/Note.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailFlowService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/NoteService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/ProjetDevopsApplication.java
