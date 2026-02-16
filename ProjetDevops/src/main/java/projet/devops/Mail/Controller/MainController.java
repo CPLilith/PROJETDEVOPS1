@@ -20,6 +20,9 @@ import projet.devops.Mail.Model.Note;
 import projet.devops.Mail.Service.MailFlowService;
 import projet.devops.Mail.Service.NoteService;
 
+// Record sorti de la classe pour éviter les problèmes de visibilité
+record EventItem(String title, String dateLieu, String type, String sourceId) {}
+
 @Controller
 public class MainController {
 
@@ -33,34 +36,31 @@ public class MainController {
         this.classifier = classifier;
     }
 
-    public record EventItem(String title, String dateLieu, String type, String sourceId) {}
-
-    // --- SECTION INBOX (Affichage Inversé) ---
+    // --- SECTION INBOX ---
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("view", "inbox");
         List<Mail> sortedMails = new ArrayList<>(flowService.getMails());
-        Collections.reverse(sortedMails); // On inverse pour l'affichage
+        Collections.reverse(sortedMails);
         model.addAttribute("mails", sortedMails);
         model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
         return "mails";
     }
 
-    // --- SECTION KNOWLEDGE (Affichage Inversé) ---
+    // --- SECTION KNOWLEDGE ---
     @GetMapping("/knowledge")
     public String knowledge(Model model) {
         model.addAttribute("view", "knowledge");
         List<Note> sortedNotes = new ArrayList<>(noteService.getNotes());
-        Collections.reverse(sortedNotes); // On inverse pour l'affichage
+        Collections.reverse(sortedNotes);
         model.addAttribute("notes", sortedNotes);
         model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
         return "mails"; 
     }
 
-    // --- SECTION EVENTS ---
+    // --- SECTION AGENDA (EVENTS) ---
     @GetMapping("/events")
     public String showEvents(Model model) {
-        System.out.println("\n========== 📅 CHARGEMENT AGENDA ==========");
         List<EventItem> events = new ArrayList<>();
         Persona current = PersonaResourceService.loadPersona();
 
@@ -68,132 +68,65 @@ public class MainController {
             try { flowService.fetchMails(); } catch (Exception e) {}
         }
 
-        // Scan des Mails
-        List<Mail> mails = flowService.getMails();
-        if (mails != null) {
-            for (Mail mail : mails) {
-                if (mail.getAction() == EisenhowerAction.DO) {
-                    String extraction = classifier.extractEventDetails(mail.getContent());
-                    if (!extraction.contains("AUCUN")) {
-                        events.add(new EventItem(mail.getSubject(), extraction, "MAIL", mail.getMessageId()));
-                    }
-                }
-            }
-        }
-
-        // Scan des Notes
-        List<Note> notes = noteService.getNotes();
-        if (notes != null) {
-            for (Note note : notes) {
-                String action = note.getAction() != null ? note.getAction() : "NULL";
-                if ("DO".equalsIgnoreCase(action)) {
-                     String extraction = classifier.extractEventDetails(note.getContent());
-                     if (!extraction.contains("AUCUN")) {
-                        events.add(new EventItem(note.getTitle(), extraction, "NOTE", note.getId()));
-                    }
+        // Extraction pour les Mails (Seulement DO)
+        for (Mail mail : flowService.getMails()) {
+            if (mail.getAction() == EisenhowerAction.DO) {
+                String extraction = classifier.extractEventDetails(mail.getContent());
+                if (!extraction.contains("AUCUN")) {
+                    events.add(new EventItem(mail.getSubject(), extraction, "MAIL", mail.getMessageId()));
                 }
             }
         }
         
-        Collections.reverse(events); // On inverse aussi les events
-
+        // Extraction pour les Notes
+        for (Note note : noteService.getNotes()) {
+            if ("DO".equalsIgnoreCase(note.getAction())) {
+                 String extraction = classifier.extractEventDetails(note.getContent());
+                 if (!extraction.contains("AUCUN")) {
+                    events.add(new EventItem(note.getTitle(), extraction, "NOTE", note.getId()));
+                }
+            }
+        }
+        
+        Collections.reverse(events);
         model.addAttribute("view", "events");
         model.addAttribute("events", events);
         model.addAttribute("currentPersona", current);
         return "mails";
     }
 
-    // --- ACTIONS (CORRECTION DES INDEX INVERSÉS) ---
-
-    @PostMapping("/delete-note")
-    public String deleteNote(@RequestParam("index") int index) {
-        // Formule magique : (Taille - 1) - IndexAffiché = VraiIndex
-        List<Note> notes = noteService.getNotes();
-        if (notes != null && !notes.isEmpty()) {
-            int realIndex = notes.size() - 1 - index;
-            noteService.deleteNote(realIndex);
-        }
-        return "redirect:/knowledge";
-    }
-
-    @PostMapping("/update-note-tag")
-    public String updateNoteTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
-        // Correction de l'index pour les Notes
-        List<Note> notes = noteService.getNotes();
-        if (notes != null && !notes.isEmpty()) {
-            int realIndex = notes.size() - 1 - index;
-            noteService.updateNoteTag(realIndex, tag);
-        }
-        return "redirect:/knowledge";
-    }
-
-    @PostMapping("/update-mail-tag")
-    public String updateMailTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
-        // Correction de l'index pour les Mails
-        List<Mail> mails = flowService.getMails();
-        if (mails != null && !mails.isEmpty()) {
-            int realIndex = mails.size() - 1 - index;
-            flowService.updateMailTag(realIndex, tag);
-        }
-        return "redirect:/";
-    }
-
-    // --- AUTRES ACTIONS (Sans index) ---
-
-    @PostMapping("/fetch")
-    public String fetchMails() throws Exception {
-        flowService.fetchMails();
-        return "redirect:/";
-    }
-
-    @PostMapping("/analyze")
-    public String analyzeMails() {
-        Persona current = PersonaResourceService.loadPersona();
-        flowService.processPendingMails(current);
-        return "redirect:/";
-    }
-
-    @PostMapping("/sync")
-    public String sync() {
-        flowService.syncToGmail();
-        return "redirect:/";
-    }
-
-    @PostMapping("/import-obsidian")
-    public String importObsidian(@RequestParam("files") MultipartFile[] files) {
-        try {
-            Persona current = PersonaResourceService.loadPersona();
-            noteService.generateAiKnowledge(files, current);
-        } catch (Exception e) { e.printStackTrace(); }
-        return "redirect:/knowledge";
-    }
-    
-    @PostMapping("/persona")
-    public String changePersona(@RequestParam String persona) throws Exception {
-        PersonaResourceService.savePersona(Persona.valueOf(persona.toUpperCase()));
-        return "redirect:/";
-    }
-
+    // --- SECTION KANBAN (SUIVI DÉLÉGATION) ---
     @GetMapping("/kanban")
     public String kanban(Model model) {
         List<Mail> mails = flowService.getMails();
+        if (mails == null) mails = new ArrayList<>();
+
+        // LOGIQUE MODIFIÉE ICI :
+        // On ne garde QUE les mails classés DELEGATE dans la colonne "À SUIVRE".
+        // Les mails PENDING, DO ou PLAN n'apparaîtront pas ici.
+        List<Mail> delegues = mails.stream()
+            .filter(m -> m.getAction() == EisenhowerAction.DELEGATE) // Filtre Strict
+            .filter(m -> !"FINALISÉ".equals(m.getStatus()))          // Pas encore fini
+            .toList();
+
+        // Pour la colonne FINALISÉ, on affiche tout ce qui est terminé (pour l'historique)
+        List<Mail> termines = mails.stream()
+            .filter(m -> "FINALISÉ".equals(m.getStatus()))
+            .toList();
         
-        // Filtrage pour le Kanban
-        model.addAttribute("todoMails", mails.stream()
-            .filter(m -> !"FINALISÉ".equals(m.getStatus())).toList());
-        model.addAttribute("doneMails", mails.stream()
-            .filter(m -> "FINALISÉ".equals(m.getStatus())).toList());
+        model.addAttribute("todoMails", delegues);
+        model.addAttribute("doneMails", termines);
         
         model.addAttribute("view", "kanban");
-        return "mails"; // On réutilise ton template de base
+        model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
+        return "mails";
     }
 
+    // --- ACTIONS ---
+
     @PostMapping("/update-status")
-    public String updateStatus(@RequestParam int index, @RequestParam String status) {
-        List<Mail> mails = flowService.getMails();
-        if (index >= 0 && index < mails.size()) {
-            mails.get(index).setStatus(status.toUpperCase());
-        }
+    public String updateStatus(@RequestParam String messageId, @RequestParam String status) {
+        flowService.updateStatusById(messageId, status.toUpperCase());
         return "redirect:/kanban";
     }
 
@@ -201,5 +134,39 @@ public class MainController {
     public String autoStatus() {
         flowService.detectStatusWithAI();
         return "redirect:/kanban";
+    }
+
+    // --- ACTIONS STANDARDS ---
+
+    @PostMapping("/fetch") public String fetchMails() throws Exception { flowService.fetchMails(); return "redirect:/"; }
+    @PostMapping("/analyze") public String analyzeMails() { flowService.processPendingMails(PersonaResourceService.loadPersona()); return "redirect:/"; }
+    @PostMapping("/sync") public String sync() { flowService.syncToGmail(); return "redirect:/"; }
+    @PostMapping("/persona") public String changePersona(@RequestParam String persona) throws Exception { PersonaResourceService.savePersona(Persona.valueOf(persona.toUpperCase())); return "redirect:/"; }
+    
+    @PostMapping("/update-mail-tag") 
+    public String updateMailTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
+        int realIndex = flowService.getMails().size() - 1 - index;
+        flowService.updateMailTag(realIndex, tag);
+        return "redirect:/";
+    }
+
+    @PostMapping("/import-obsidian") 
+    public String importObsidian(@RequestParam("files") MultipartFile[] files) {
+        try { noteService.generateAiKnowledge(files, PersonaResourceService.loadPersona()); } catch (Exception e) {}
+        return "redirect:/knowledge";
+    }
+
+    @PostMapping("/delete-note") 
+    public String deleteNote(@RequestParam("index") int index) {
+        int realIndex = noteService.getNotes().size() - 1 - index;
+        noteService.deleteNote(realIndex);
+        return "redirect:/knowledge";
+    }
+
+    @PostMapping("/update-note-tag") 
+    public String updateNoteTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
+        int realIndex = noteService.getNotes().size() - 1 - index;
+        noteService.updateNoteTag(realIndex, tag);
+        return "redirect:/knowledge";
     }
 }

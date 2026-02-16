@@ -13,7 +13,6 @@ projet/devops/Mail/Classifier/EisenhowerAction.class
 projet/devops/Mail/Classifier/Persona.class
 projet/devops/Mail/Classifier/OllamaClient.class
 projet/devops/Mail/Model/Note.class
-projet/devops/Mail/Controller/MailController.class
 projet/devops/Mail/Classifier/OllamaStrategy.class
 projet/devops/Mail/Classifier/PersonaPromptProvider.class
 projet/devops/Mail/Classifier/StatusClassifier.class
