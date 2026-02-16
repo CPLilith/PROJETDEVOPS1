@@ -101,4 +101,8 @@ public class MailFlowService {
             }
         }
     }
+
+    public void detectStatusWithAI() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
