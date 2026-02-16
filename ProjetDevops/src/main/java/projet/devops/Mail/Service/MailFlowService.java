@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import projet.devops.Mail.Classifier.EisenhowerAction;
 import projet.devops.Mail.Classifier.EisenhowerClassifier;
 import projet.devops.Mail.Classifier.Persona;
+import projet.devops.Mail.Classifier.StatusClassifier;
 import projet.devops.Mail.Mail;
 
 @Service
@@ -17,6 +18,7 @@ public class MailFlowService {
     private final MailService imapService; 
     private final EisenhowerClassifier classifier;
     private List<Mail> cachedMails = new ArrayList<>();
+    private final StatusClassifier statusClassifier = new StatusClassifier();
 
     public MailFlowService(MailService imapService, EisenhowerClassifier classifier) {
         this.imapService = imapService;
@@ -119,4 +121,13 @@ public class MailFlowService {
             }
         }
     }
+
+    public void detectStatusWithAI() {
+    for (Mail mail : cachedMails) {
+        if (mail.getAction() != EisenhowerAction.PENDING) {
+            String aiStatus = statusClassifier.classifyStatus(mail.getContent());
+            mail.setStatus(aiStatus);
+        }
+    }
+}
 }
