@@ -11,11 +11,16 @@
             --sidebar-bg: #f8fafc; --accent: #2563eb; --bg: #ffffff;
             --border: #eef2f6; --text-main: #0f172a; --text-sub: #64748b;
             --do: #ef4444; --plan: #3b82f6; --delegate: #f59e0b; --delete: #94a3b8;
-            --note: #a855f7;
+            --note: #a855f7; --success: #22c55e; --purple: #6f42c1;
         }
 
         html, body { height: 100vh; width: 100vw; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; background: #fff; }
+        
+        /* Layout par défaut (3 colonnes) */
         .app-container { display: grid; grid-template-columns: 260px 420px 1fr; height: 100vh; }
+        
+        /* Layout étendu pour Agenda et Kanban (2 colonnes) */
+        .app-container.full-view { grid-template-columns: 260px 1fr; }
 
         /* --- SIDEBAR --- */
         .sidebar { background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 40px 24px; display: flex; flex-direction: column; gap: 40px; }
@@ -25,46 +30,36 @@
         .nav-item.active { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 1px solid var(--border); }
         .nav-item i { width: 20px; text-align: center; }
 
-        /* --- PERSONA DESIGN --- */
+        /* --- PERSONA --- */
         .persona-box { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-top: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.03); }
         .persona-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-        .persona-btn { 
-            width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px; 
-            border-radius: 12px; border: 1px solid transparent; background: #f8fafc; 
-            color: var(--text-sub); font-size: 13px; font-weight: 600; cursor: pointer; 
-            transition: 0.2s ease; text-align: left;
-        }
+        .persona-btn { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; border: 1px solid transparent; background: #f8fafc; color: var(--text-sub); font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s ease; text-align: left; }
         .persona-btn:hover { background: #f1f5f9; color: var(--text-main); transform: translateX(4px); }
-        .persona-btn.active { background: #fff; border-color: var(--accent); color: var(--accent); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08); }
-        .dot-indicator { width: 6px; height: 6px; border-radius: 50%; background: #cbd5e1; transition: 0.3s; }
-        .persona-btn.active .dot-indicator { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+        .persona-btn.active { background: #fff; border-color: var(--accent); color: var(--accent); }
 
         /* --- FEED COLUMN --- */
         .feed-container { display: flex; flex-direction: column; border-right: 1px solid var(--border); height: 100vh; min-width: 0; background: #fff; }
         .feed-header { padding: 32px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-        .feed-header h2 { font-size: 20px; font-weight: 700; margin: 0 0 20px 0; letter-spacing: -0.5px; }
-        .feed-list { flex: 1; overflow-y: auto; min-height: 0; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #fbfcfd; }
+        .feed-header h2 { font-size: 20px; font-weight: 700; margin: 0 0 20px 0; }
+        .feed-list { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #fbfcfd; }
 
         /* --- CARDS --- */
         .mail-card { background: #fff; padding: 20px 20px 20px 28px; border: 1px solid var(--border); border-radius: 16px; cursor: pointer; position: relative; transition: 0.3s; flex-shrink: 0; }
         .mail-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.08); }
-        .mail-card.active { border-color: var(--accent); background: #f8faff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
         .status-strip { position: absolute; left: 0; top: 20px; bottom: 20px; width: 4px; border-radius: 0 4px 4px 0; }
         .dot-DO { background: var(--do); } .dot-PLAN { background: var(--plan); } .dot-DELEGATE { background: var(--delegate); } .dot-DELETE { background: var(--delete); } .dot-PENDING { background: #cbd5e1; }
-
         .importance-tag { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; margin-bottom: 12px; display: inline-block; border: none; cursor: pointer; transition: 0.2s; }
-        .importance-tag:hover { transform: scale(1.05); filter: brightness(0.95); }
-        .tag-DO { background: #fee2e2; color: var(--do); } .tag-PLAN { background: #dbeafe; color: var(--plan); } .tag-DELEGATE { background: #fef3c7; color: var(--delegate); } .tag-DELETE { background: #f1f5f9; color: var(--delete); } .tag-PENDING { background: #f1f5f9; color: #64748b; }
+        .tag-DO { background: #fee2e2; color: var(--do); } .tag-PLAN { background: #dbeafe; color: var(--plan); }
 
-        /* --- BUTTONS --- */
-        .action-bar { display: flex; gap: 10px; flex-wrap: wrap; }
-        button { background: #fff; border: 1px solid var(--border); padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text-main); }
-        .btn-primary { background: var(--text-main); color: #fff; border: none; }
-        .btn-sync { color: #16a34a; border-color: #dcfce7; }
-
-        /* --- CONTENT VIEW --- */
-        .content-view { padding: 80px; overflow-y: auto; height: 100vh; box-sizing: border-box; background: #fff; }
-        .mail-title { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -1px; line-height: 1.1; }
+        /* --- KANBAN & AGENDA VIEWS --- */
+        .view-wrapper { padding: 60px; overflow-y: auto; height: 100vh; box-sizing: border-box; background: #fff; }
+        
+        .kanban-container { display: flex; gap: 24px; align-items: flex-start; }
+        .kanban-col { flex: 1; background: #f8fafc; border: 1px solid var(--border); border-radius: 20px; padding: 25px; min-height: 600px; }
+        .kanban-col h3 { font-size: 13px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        .btn-ai-status { background: var(--purple); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        .btn-ai-status:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(111, 66, 193, 0.3); }
 
         /* --- LOADER --- */
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
@@ -77,10 +72,11 @@
 
 <div id="loading-overlay">
     <div class="loader-bar"></div>
-    <p id="loader-message" style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">Mise à jour...</p>
+    <p id="loader-message" style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">Traitement...</p>
 </div>
 
-<div class="app-container">
+<div class="app-container" th:classappend="${view == 'events' or view == 'kanban' ? 'full-view' : ''}">
+    
     <aside class="sidebar">
         <div class="logo">EisenFlow.</div>
         <div class="nav-group">
@@ -88,10 +84,11 @@
             <a href="/" th:class="${view == 'inbox' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-inbox"></i> Boîte Mail</a>
             <a href="/knowledge" th:class="${view == 'knowledge' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-brain"></i> Knowledge Base</a>
             <a href="/events" id="link-agenda" th:class="${view == 'events' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-calendar-alt"></i> Agenda / RDV</a>
+            <a href="/kanban" th:class="${view == 'kanban' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-columns"></i> Suivi Kanban</a>
         </div>
 
         <div class="persona-box">
-            <div class="nav-label" style="margin:0">Active Profile</div>
+            <div class="nav-label">Active Profile</div>
             <form action="/persona" method="post" id="personaForm">
                 <input type="hidden" name="persona" id="selectedPersona">
                 <div class="persona-grid">
@@ -109,9 +106,9 @@
         </div>
     </aside>
 
-    <main class="feed-container">
+    <main class="feed-container" th:if="${view != 'events' and view != 'kanban'}">
         <div class="feed-header">
-            <h2 th:text="${view == 'inbox' ? 'Flux Gmail' : (view == 'knowledge' ? 'Vault Obsidian' : 'Agenda IA')}"></h2>
+            <h2 th:text="${view == 'inbox' ? 'Flux Gmail' : 'Vault Obsidian'}"></h2>
             
             <div class="action-bar">
                 <th:block th:if="${view == 'inbox'}">
@@ -124,9 +121,6 @@
                         <input type="file" id="folderInput" name="files" webkitdirectory directory multiple style="display: none;" onchange="startKnowledgeAnalysis()">
                         <button type="button" class="btn-primary" onclick="document.getElementById('folderInput').click()">📂 Sélectionner un Dossier</button>
                     </form>
-                </th:block>
-                <th:block th:if="${view == 'events'}">
-                    <button onclick="window.location.reload()"><i class="fas fa-sync-alt"></i> Actualiser</button>
                 </th:block>
             </div>
         </div>
@@ -142,7 +136,7 @@
                     <div class="card-subject" th:text="${mail.subject}"></div>
                     <div class="card-excerpt" th:text="${#strings.abbreviate(mail.content, 95)}"></div>
                     <script th:inline="javascript">
-                        window['mailData' + /*[[${iter.index}]]*/] = { subject: /*[[${mail.subject}]]*/ '', from: /*[[${mail.from}]]*/ '', content: /*[[${mail.content}]]*/ '' };
+                        window['mailData' + /[[${iter.index}]]/] = { subject: /[[${mail.subject}]]/ '', from: /[[${mail.from}]]/ '', content: /[[${mail.content}]]/ '' };
                     </script>
                 </div>
             </th:block>
@@ -157,84 +151,97 @@
                     <div class="card-subject" th:text="${note.title}"></div>
                     <div class="card-excerpt" th:text="${#strings.abbreviate(note.content, 95)}"></div>
                     <script th:inline="javascript">
-                        window['noteData' + /*[[${iter.index}]]*/] = { title: /*[[${note.title}]]*/ '', author: /*[[${note.author}]]*/ '', content: /*[[${note.content}]]*/ '', action: /*[[${note.action}]]*/ '' };
-                    </script>
-                </div>
-            </th:block> <th:block th:if="${view == 'events'}">
-                
-                <div th:if="${#lists.isEmpty(events)}" style="text-align: center; padding: 40px; color: #94a3b8;">
-                    <i class="fas fa-calendar-times" style="font-size: 24px; margin-bottom: 10px;"></i>
-                    <p>Aucun RDV urgent détecté.</p>
-                </div>
-
-                <div th:each="event, iter : ${events}" class="mail-card" th:onclick="'openEvent(' + ${iter.index} + ')'" th:id="'card-event-' + ${iter.index}">
-                    <div class="status-strip dot-DO"></div>
-                    
-                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #2563eb; margin-bottom: 6px;">
-                        <i class="far fa-clock"></i>
-                        <span th:text="${event.dateLieu}">12/05/2026 - Paris</span>
-                    </div>
-
-                    <div class="card-subject" th:text="${event.title}" style="font-size: 15px; margin-bottom: 10px; line-height: 1.4;">
-                        Rendez-vous Docteur
-                    </div>
-
-                    <div class="card-meta" style="display: flex; gap: 8px;">
-                        <span class="importance-tag tag-DO">URGENT</span>
-                        <span th:class="'importance-tag tag-' + ${event.type}">
-                            <i th:class="${event.type == 'MAIL' ? 'fas fa-envelope' : 'fas fa-sticky-note'}" style="margin-right:4px;"></i>
-                            <span th:text="${event.type}">SOURCE</span>
-                        </span>
-                    </div>
-                    
-                    <script th:inline="javascript">
-                        window['eventData' + /*[[${iter.index}]]*/] = { 
-                            title: /*[[${event.title}]]*/ '', 
-                            dateLieu: /*[[${event.dateLieu}]]*/ '', 
-                            type: /*[[${event.type}]]*/ '' 
-                        };
+                        window['noteData' + /[[${iter.index}]]/] = { title: /[[${note.title}]]/ '', author: /[[${note.author}]]/ '', content: /[[${note.content}]]/ '', action: /[[${note.action}]]/ '' };
                     </script>
                 </div>
             </th:block>
         </div>
     </main>
 
-    <section class="content-view" id="main-reader">
-        <div style="text-align: center; margin-top: 240px; color: #cbd5e1;">
-            <div style="font-size: 64px; margin-bottom: 24px;">Workspace</div>
-            <p style="font-size: 14px; font-weight: 500;">Sélectionnez un élément pour commencer</p>
-        </div>
+    <section th:class="${view == 'events' or view == 'kanban' ? 'view-wrapper' : 'content-view'}" id="main-reader">
+        
+        <th:block th:if="${view == 'events'}">
+            <h1 style="font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 30px;">Agenda IA</h1>
+            
+            <div th:if="${#lists.isEmpty(events)}" style="color: var(--text-sub); text-align:center; padding: 40px;">
+                <i class="fas fa-calendar-times" style="font-size: 24px; margin-bottom: 10px;"></i>
+                <p>Aucun RDV urgent détecté.</p>
+            </div>
+
+            <div th:each="event : ${events}" class="mail-card" style="margin-bottom: 16px; cursor: default;">
+                <div class="status-strip dot-DO"></div>
+                <div style="color: var(--accent); font-weight: 700; margin-bottom: 8px;">
+                    <i class="far fa-clock"></i> <span th:text="${event.dateLieu}"></span>
+                </div>
+                <div th:text="${event.title}" style="font-size: 18px; font-weight: 700;"></div>
+                <div style="margin-top: 10px;">
+                     <span th:class="'importance-tag tag-' + ${event.type}" th:text="${event.type}"></span>
+                </div>
+            </div>
+        </th:block>
+
+        <th:block th:if="${view == 'kanban'}">
+            <h1 style="font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px;">Tableau Kanban</h1>
+            <p style="color: var(--text-sub); margin-bottom: 30px;">Suivi de l'état d'avancement des tâches.</p>
+
+            <form action="/auto-status" method="post">
+                <button type="submit" class="btn-ai-status" onclick="showLoader('Analyse IA des statuts...')">
+                    <i class="fas fa-robot"></i> Analyser les statuts via IA
+                </button>
+            </form>
+
+            <div class="kanban-container">
+                <div class="kanban-col">
+                    <h3>🚀 À SUIVRE</h3>
+                    <div th:each="mail : ${todoMails}" class="mail-card" style="margin-bottom: 15px; cursor: default;">
+                        <div class="status-strip dot-DO"></div>
+                        <strong th:text="${mail.subject}">Sujet</strong><br>
+                        <span th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.action}" style="margin-top: 8px;"></span>
+                        
+                        <form action="/update-status" method="post" style="margin-top: 10px;">
+                            <input type="hidden" name="messageId" th:value="${mail.messageId}">
+                            <button type="submit" name="status" value="FINALISÉ" style="font-size: 11px; padding: 5px 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); background: #fff;">✅ Terminer</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="kanban-col">
+                    <h3>✅ FINALISÉ</h3>
+                    <div th:each="mail : ${doneMails}" class="mail-card" style="margin-bottom: 15px; cursor: default; opacity: 0.6;">
+                        <div class="status-strip" style="background: var(--success)"></div>
+                        <strike th:text="${mail.subject}"></strike>
+                        
+                        <form action="/update-status" method="post" style="margin-top: 10px;">
+                            <input type="hidden" name="messageId" th:value="${mail.messageId}">
+                            <button type="submit" name="status" value="SUIVI" style="font-size: 11px; padding: 5px 10px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); background: #fff;">🔙 Réouvrir</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+
+        <th:block th:if="${view != 'events' and view != 'kanban'}">
+             <div style="text-align: center; margin-top: 240px; color: #cbd5e1;">
+                <div style="font-size: 64px; margin-bottom: 24px;"><i class="fas fa-layer-group"></i></div>
+                <p style="font-size: 14px; font-weight: 500;">Sélectionnez un élément pour commencer</p>
+            </div>
+        </th:block>
+
     </section>
 </div>
 
 <script>
-    // --- FONCTIONS D'AFFICHAGE DU LOADER PERSONNALISÉ ---
     function showLoader(message) {
         document.getElementById('loader-message').innerText = message;
         document.getElementById('loading-overlay').style.display = 'flex';
     }
 
-    // Écouteur pour le lien Agenda
-    document.getElementById('link-agenda').addEventListener('click', function() {
-        showLoader("Analyse de vos futurs événements...");
-    });
-
-    // Écouteur pour le bouton Analyser (s'il existe sur la page)
-    const btnAnalyze = document.getElementById('btn-analyze');
-    if (btnAnalyze) {
-        btnAnalyze.addEventListener('click', function() {
-            showLoader("Analyse IA en cours...");
-        });
-    }
-
-    // --- FONCTIONS EXISTANTES ---
-
     function switchPersona(role) {
         document.getElementById('selectedPersona').value = role;
-        showLoader("Mode " + role + "...");
+        showLoader("Passage au mode " + role + "...");
         document.getElementById('personaForm').submit();
     }
-
+    
     function startKnowledgeAnalysis() {
         showLoader("Double Analyse IA...");
         document.getElementById('obsidianForm').submit();
@@ -251,33 +258,7 @@
         const data = window['noteData' + index];
         renderReader(data.title, "Synthèse IA (" + data.author + ")", data.content, "#a855f7", data.author, index, true);
     }
-
-    function openEvent(index) {
-        setActiveCard('card-event-' + index);
-        const data = window['eventData' + index];
-        
-        document.getElementById('main-reader').innerHTML = `
-            <div style="display: flex; align-items: center; margin-bottom: 24px;">
-                <div style="width: 50px; height: 50px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <div>
-                    <div style="color: #ef4444; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Agenda Item</div>
-                    <h1 class="mail-title">${data.title}</h1>
-                    <div style="font-size: 18px; color: #2563eb; font-weight: 600; margin-top: 5px;">${data.dateLieu}</div>
-                </div>
-            </div>
-            <div style="margin-top: 32px; padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; line-height: 1.6;">
-                <p style="margin: 0; color: #475569;">
-                    <i class="fas fa-robot" style="margin-right:8px;"></i>
-                    Cet événement a été extrait automatiquement de votre flux <strong>${data.type}</strong> car il a été classé comme urgent (DO).
-                </p>
-                <br>
-                <p style="color: #64748b; font-size: 14px;">L'IA a détecté une intention de rendez-vous ou une date butoir dans le contenu original.</p>
-            </div>
-        `;
-    }
-
+    
     function setActiveCard(id) {
         document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
         const el = document.getElementById(id);
@@ -285,7 +266,7 @@
     }
 
     function renderReader(title, subtitle, content, accentColor, author, index, isNote) {
-        let avatar = author ? `<div style="width: 50px; height: 50px; background: #f3e8ff; color: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">${author.charAt(0).toUpperCase()}</div>` : '';
+        let avatar = author ? <div style="width: 50px; height: 50px; background: #f3e8ff; color: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">${author.charAt(0).toUpperCase()}</div> : '';
         
         let tagSelector = `
             <div style="margin-top: 20px; display: flex; gap: 12px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
@@ -301,7 +282,7 @@
         let deleteAction = isNote ? `
             <form action="/delete-note" method="post" style="margin-top: 48px; border-top: 1px solid var(--border); padding-top: 32px;">
                 <input type="hidden" name="index" value="${index}">
-                <button type="submit" onclick="return confirm('Supprimer définitivement ?')" style="color: #ef4444; border-color: #fee2e2; background: #fef2f2; width: 100%;">
+                <button type="submit" onclick="return confirm('Supprimer définitivement ?')" style="color: #ef4444; border-color: #fee2e2; background: #fef2f2; width: 100%; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     🗑️ Supprimer cette note
                 </button>
             </form>` : '';
@@ -310,7 +291,7 @@
             <div style="display: flex; align-items: center; margin-bottom: 24px;">
                 ${avatar}
                 <div>
-                    <div style="color: ${accentColor}; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Information System</div>
+                    <div style="color: ${accentColor}; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Workspace Content</div>
                     <h1 class="mail-title">${title}</h1>
                     <div style="font-size: 15px; color: var(--text-sub);">${subtitle}</div>
                 </div>

@@ -12,6 +12,11 @@ target/
 .settings
 .springBeans
 .sts4-cache
+.createdFiles
+.inputFiles.lst
+.createdFiles.lst
+.inputFiles.
+
 
 ### IntelliJ IDEA ###
 .idea
