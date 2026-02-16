@@ -9,6 +9,7 @@
 /home/cplilith/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaResourceService.java
 /home/cplilith/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/StatusClassifier.java
 /home/cplilith/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/TextCleaner.java
+/home/cplilith/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/MailController.java
 /home/cplilith/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/MainController.java
 /home/cplilith/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Gestion/FichierTemp.java
 /home/cplilith/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Mail.java
