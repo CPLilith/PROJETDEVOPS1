@@ -136,7 +136,7 @@
                     <div class="card-subject" th:text="${mail.subject}"></div>
                     <div class="card-excerpt" th:text="${#strings.abbreviate(mail.content, 95)}"></div>
                     <script th:inline="javascript">
-                        window['mailData' + /[[${iter.index}]]/] = { subject: /[[${mail.subject}]]/ '', from: /[[${mail.from}]]/ '', content: /[[${mail.content}]]/ '' };
+                        window['mailData' + /[[${iter.index}]]/] = { subject: /[[${mail.subject}]]/ , from: /[[${mail.from}]]/ , content: /[[${mail.content}]]/ };
                     </script>
                 </div>
             </th:block>
@@ -151,7 +151,7 @@
                     <div class="card-subject" th:text="${note.title}"></div>
                     <div class="card-excerpt" th:text="${#strings.abbreviate(note.content, 95)}"></div>
                     <script th:inline="javascript">
-                        window['noteData' + /[[${iter.index}]]/] = { title: /[[${note.title}]]/ '', author: /[[${note.author}]]/ '', content: /[[${note.content}]]/ '', action: /[[${note.action}]]/ '' };
+                        window['noteData' + /[[${iter.index}]]/] = { title: /[[${note.title}]]/, author: /[[${note.author}]]/, content: /[[${note.content}]]/, action: /[[${note.action}]]/ };
                     </script>
                 </div>
             </th:block>
