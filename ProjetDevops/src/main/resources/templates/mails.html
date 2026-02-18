@@ -11,11 +11,12 @@
             --sidebar-bg: #f8fafc; --accent: #2563eb; --bg: #ffffff;
             --border: #eef2f6; --text-main: #0f172a; --text-sub: #64748b;
             --do: #ef4444; --plan: #3b82f6; --delegate: #f59e0b; --delete: #94a3b8;
-            --note: #a855f7;
+            --note: #a855f7; --purple: #6f42c1;
         }
 
         html, body { height: 100vh; width: 100vw; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; background: #fff; }
         .app-container { display: grid; grid-template-columns: 260px 420px 1fr; height: 100vh; }
+        .app-container.full-view { grid-template-columns: 260px 1fr; }
 
         /* --- SIDEBAR --- */
         .sidebar { background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 40px 24px; display: flex; flex-direction: column; gap: 40px; }
@@ -90,7 +91,7 @@
     <p id="loader-message" style="font-size: 11px; font-weight: 700; margin-top: 24px; letter-spacing: 3px; color: var(--text-main); text-transform: uppercase;">Mise à jour...</p>
 </div>
 
-<div class="app-container">
+<div class="app-container" th:classappend="${view == 'events' or view == 'kanban' ? 'full-view' : ''}">
     <aside class="sidebar">
         <div class="logo">EisenFlow.</div>
         <div class="nav-group">
@@ -130,32 +131,28 @@
                     <form id="ai-form" action="/analyze" method="post"><button id="btn-analyze" type="submit" class="btn-primary">Analyser IA</button></form>
                     <form action="/sync" method="post"><button type="submit" class="btn-sync">Sync Gmail</button></form>
                 </th:block>
-                <th:block th:if="${view == 'knowledge'}">
-                    <form action="/import-obsidian" method="post" enctype="multipart/form-data" id="obsidianForm">
-                        <input type="file" id="folderInput" name="files" webkitdirectory directory multiple style="display: none;" onchange="startKnowledgeAnalysis()">
-                        <button type="button" class="btn-primary" onclick="document.getElementById('folderInput').click()">📂 Sélectionner un Dossier</button>
-                    </form>
-                </th:block>
-                <th:block th:if="${view == 'events'}">
-                    <button onclick="window.location.reload()"><i class="fas fa-sync-alt"></i> Actualiser</button>
-                </th:block>
             </div>
         </div>
 
-        
-
         <div class="feed-list">
             <th:block th:if="${view == 'inbox'}">
-                <div th:each="mail, iter : ${mails}" class="mail-card" th:onclick="'openMail(' + ${iter.index} + ')'" th:id="'card-mail-' + ${iter.index}">
+                <div th:each="mail, iter : ${mails}" class="mail-card" 
+                     th:data-id="${mail.messageId}"
+                     th:data-index="${iter.index}"
+                     onclick="openMail(this.getAttribute('data-id'), this.getAttribute('data-index'))" 
+                     th:id="'card-mail-' + ${iter.index}">
                     <div th:class="'status-strip dot-' + ${mail.action}"></div>
                     <div class="card-meta">
                         <span th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.action}"></span>
                         <span style="font-size: 11px; color: var(--text-sub);" th:text="${mail.date}"></span>
                     </div>
                     <div class="card-subject" th:text="${mail.subject}"></div>
-                    <div class="card-excerpt" th:text="${#strings.abbreviate(mail.content, 95)}"></div>
                     <script th:inline="javascript">
-                        window['mailData' + /*[[${iter.index}]]*/] = { subject: /*[[${mail.subject}]]*/ '', from: /*[[${mail.from}]]*/ '', content: /*[[${mail.content}]]*/ '' };
+                        window['mailData' + /*[[${iter.index}]]*/] = { 
+                            subject: /*[[${mail.subject}]]*/ '', 
+                            from: /*[[${mail.from}]]*/ '', 
+                            content: /*[[${mail.content}]]*/ '' 
+                        };
                     </script>
                 </div>
             </th:block>
@@ -168,44 +165,8 @@
                         <span class="card-author" th:text="${note.author}"></span>
                     </div>
                     <div class="card-subject" th:text="${note.title}"></div>
-                    <div class="card-excerpt" th:text="${#strings.abbreviate(note.content, 95)}"></div>
                     <script th:inline="javascript">
                         window['noteData' + /*[[${iter.index}]]*/] = { title: /*[[${note.title}]]*/ '', author: /*[[${note.author}]]*/ '', content: /*[[${note.content}]]*/ '', action: /*[[${note.action}]]*/ '' };
-                    </script>
-                </div>
-            </th:block> <th:block th:if="${view == 'events'}">
-                
-                <div th:if="${#lists.isEmpty(events)}" style="text-align: center; padding: 40px; color: #94a3b8;">
-                    <i class="fas fa-calendar-times" style="font-size: 24px; margin-bottom: 10px;"></i>
-                    <p>Aucun RDV urgent détecté.</p>
-                </div>
-
-                <div th:each="event, iter : ${events}" class="mail-card" th:onclick="'openEvent(' + ${iter.index} + ')'" th:id="'card-event-' + ${iter.index}">
-                    <div class="status-strip dot-DO"></div>
-                    
-                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #2563eb; margin-bottom: 6px;">
-                        <i class="far fa-clock"></i>
-                        <span th:text="${event.dateLieu}">12/05/2026 - Paris</span>
-                    </div>
-
-                    <div class="card-subject" th:text="${event.title}" style="font-size: 15px; margin-bottom: 10px; line-height: 1.4;">
-                        Rendez-vous Docteur
-                    </div>
-
-                    <div class="card-meta" style="display: flex; gap: 8px;">
-                        <span class="importance-tag tag-DO">URGENT</span>
-                        <span th:class="'importance-tag tag-' + ${event.type}">
-                            <i th:class="${event.type == 'MAIL' ? 'fas fa-envelope' : 'fas fa-sticky-note'}" style="margin-right:4px;"></i>
-                            <span th:text="${event.type}">SOURCE</span>
-                        </span>
-                    </div>
-                    
-                    <script th:inline="javascript">
-                        window['eventData' + /*[[${iter.index}]]*/] = { 
-                            title: /*[[${event.title}]]*/ '', 
-                            dateLieu: /*[[${event.dateLieu}]]*/ '', 
-                            type: /*[[${event.type}]]*/ '' 
-                        };
                     </script>
                 </div>
             </th:block>
@@ -213,11 +174,53 @@
     </main>
 
     <section th:class="${view == 'events' or view == 'kanban' ? 'view-wrapper' : 'content-view'}" id="main-reader">
-                <!-- Contenu chargé par JS -->
-     </section>
+        
+        <th:block th:if="${view == 'events'}">
+            <h1 style="font-size: 32px; font-weight:800; margin-bottom:30px;">Agenda IA</h1>
+            <div th:each="event : ${events}" class="mail-card" style="margin-bottom:15px; cursor:default;">
+                <div class="status-strip dot-DO"></div>
+                <div style="color:#2563eb; font-weight:700; margin-bottom:5px;" th:text="${event.dateLieu}"></div>
+                <div th:text="${event.title}" style="font-weight:700;"></div>
+                <span class="importance-tag tag-DO" style="margin-top:5px;">URGENT</span>
+            </div>
+        </th:block>
 
-    <section class="content-view" id="main-reader">
-        <div style="text-align: center; margin-top: 240px; color: #cbd5e1;">
+        <th:block th:if="${view == 'kanban'}">
+            <h1 style="font-size: 32px; font-weight:800; margin-bottom:10px;">Suivi Délégation</h1>
+            <form action="/auto-status" method="post"><button class="btn-ai-status"><i class="fas fa-robot"></i> Analyser Statuts IA</button></form>
+            <div class="kanban-container">
+                <div class="kanban-col">
+                    <h3>🚀 À SUIVRE (DELEGATE)</h3>
+                    <div th:each="mail : ${todoMails}" class="mail-card" style="margin-bottom:15px; cursor:default;">
+                        <div class="status-strip dot-DELEGATE"></div>
+                        <div style="font-size:11px; font-weight:700; color:#d97706; margin-bottom:5px; text-transform:uppercase; display:flex; align-items:center; gap:5px;">
+                            <i class="fas fa-user-clock"></i> 
+                            <span th:text="${mail.status}">EN ATTENTE</span>
+                        </div>
+                        <strong th:text="${mail.subject}" style="display:block; margin-bottom:10px;"></strong>
+                        <form action="/update-status" method="post">
+                            <input type="hidden" name="messageId" th:value="${mail.messageId}">
+                            <button type="submit" name="status" value="FINALISÉ" style="font-size:11px; padding:6px 12px; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; border-radius:6px; width:100%; text-align:center;">
+                                ✅ Valider & Terminer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="kanban-col">
+                    <h3>✅ FINALISÉ</h3>
+                    <div th:each="mail : ${doneMails}" class="mail-card" style="margin-bottom:15px; cursor:default; opacity:0.6;">
+                        <div class="status-strip dot-DO" style="background:#22c55e;"></div>
+                        <strike th:text="${mail.subject}"></strike>
+                        <form action="/update-status" method="post" style="margin-top:10px;">
+                            <input type="hidden" name="messageId" th:value="${mail.messageId}">
+                            <button type="submit" name="status" value="SUIVI" style="font-size:11px; padding:5px 10px; background:#f1f5f9; color:#64748b; border:none;">🔙 Réouvrir</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+
+        <div th:if="${view != 'events' and view != 'kanban'}" style="text-align: center; margin-top: 240px; color: #cbd5e1;">
             <div style="font-size: 64px; margin-bottom: 24px;">Workspace</div>
             <p style="font-size: 14px; font-weight: 500;">Sélectionnez un élément pour commencer</p>
         </div>
@@ -225,26 +228,10 @@
 </div>
 
 <script>
-    // --- FONCTIONS D'AFFICHAGE DU LOADER PERSONNALISÉ ---
     function showLoader(message) {
-        document.getElementById('loader-message').innerText = message;
+        if(message) document.getElementById('loader-message').innerText = message;
         document.getElementById('loading-overlay').style.display = 'flex';
     }
-
-    // Écouteur pour le lien Agenda
-    document.getElementById('link-agenda').addEventListener('click', function() {
-        showLoader("Analyse de vos futurs événements...");
-    });
-
-    // Écouteur pour le bouton Analyser (s'il existe sur la page)
-    const btnAnalyze = document.getElementById('btn-analyze');
-    if (btnAnalyze) {
-        btnAnalyze.addEventListener('click', function() {
-            showLoader("Analyse IA en cours...");
-        });
-    }
-
-    // --- FONCTIONS EXISTANTES ---
 
     function switchPersona(role) {
         document.getElementById('selectedPersona').value = role;
@@ -252,116 +239,105 @@
         document.getElementById('personaForm').submit();
     }
 
-    function startKnowledgeAnalysis() {
-        showLoader("Double Analyse IA...");
-        document.getElementById('obsidianForm').submit();
-    }
-
-    function openMail(index) {
-        setActiveCard('card-mail-' + index);
-        const data = window['mailData' + index];
-        renderReader(data.subject, "Expéditeur : " + data.from, data.content, "#2563eb", null, index, false);
-    }
-
-    function openNote(index) {
-        setActiveCard('card-note-' + index);
-        const data = window['noteData' + index];
-        renderReader(data.title, "Synthèse IA (" + data.author + ")", data.content, "#a855f7", data.author, index, true);
-    }
-
-    function openEvent(index) {
-        setActiveCard('card-event-' + index);
-        const data = window['eventData' + index];
-        
-        document.getElementById('main-reader').innerHTML = `
-            <div style="display: flex; align-items: center; margin-bottom: 24px;">
-                <div style="width: 50px; height: 50px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <div>
-                    <div style="color: #ef4444; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Agenda Item</div>
-                    <h1 class="mail-title">${data.title}</h1>
-                    <div style="font-size: 18px; color: #2563eb; font-weight: 600; margin-top: 5px;">${data.dateLieu}</div>
-                </div>
-            </div>
-            <div style="margin-top: 32px; padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; line-height: 1.6;">
-                <p style="margin: 0; color: #475569;">
-                    <i class="fas fa-robot" style="margin-right:8px;"></i>
-                    Cet événement a été extrait automatiquement de votre flux <strong>${data.type}</strong> car il a été classé comme urgent (DO).
-                </p>
-                <br>
-                <p style="color: #64748b; font-size: 14px;">L'IA a détecté une intention de rendez-vous ou une date butoir dans le contenu original.</p>
-            </div>
-        `;
-    }
-
-    function setActiveCard(id) {
+    function openMail(messageId, index) {
         document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
-        const el = document.getElementById(id);
-        if(el) el.classList.add('active');
+        const card = document.getElementById('card-mail-' + index);
+        if(card) card.classList.add('active');
+        
+        const data = window['mailData' + index];
+        renderReader(data.subject, "Expéditeur : " + data.from, data.content, "#2563eb", null, messageId, false);
     }
 
-    function renderReader(title, subtitle, content, accentColor, author, index, isNote) {
+    function renderReader(title, subtitle, content, accentColor, author, idOrIndex, isNote) {
         let avatar = author ? `<div style="width: 50px; height: 50px; background: #f3e8ff; color: #a855f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; margin-right:20px;">${author.charAt(0).toUpperCase()}</div>` : '';
         
-        let tagSelector = `
-            <div style="margin-top: 20px; display: flex; gap: 12px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
-                <span style="font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px;">Priorité :</span>
-                <div style="display: flex; gap: 8px;">
-                    <button onclick="updatePriority(${index}, 'DO', ${isNote})" class="importance-tag tag-DO">DO</button>
-                    <button onclick="updatePriority(${index}, 'PLAN', ${isNote})" class="importance-tag tag-PLAN">PLAN</button>
-                    <button onclick="updatePriority(${index}, 'DELEGATE', ${isNote})" class="importance-tag tag-DELEGATE">DELEGATE</button>
-                    <button onclick="updatePriority(${index}, 'DELETE', ${isNote})" class="importance-tag tag-DELETE">DELETE</button>
+        let actions = `
+            <div style="margin-top: 20px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase;">Actions :</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="updatePriority('${idOrIndex}', 'DO', ${isNote})" class="importance-tag tag-DO">DO</button>
+                        <button onclick="updatePriority('${idOrIndex}', 'PLAN', ${isNote})" class="importance-tag tag-PLAN">PLAN</button>
+                        <button onclick="startDelegation('${idOrIndex}')" class="importance-tag tag-DELEGATE" style="border: 2px solid #f59e0b; display:flex; align-items:center; gap:5px;">
+                            <i class="fas fa-magic"></i> AUTO DELEGATE
+                        </button>
+                        <button onclick="updatePriority('${idOrIndex}', 'DELETE', ${isNote})" class="importance-tag tag-DELETE">DELETE</button>
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 15px;">
+                    <span style="font-size: 11px; font-weight: 800; color: var(--text-sub); display:block; margin-bottom:12px;">OU ASSIGNER MANUELLEMENT :</span>
+                    <form action="/delegate-manual" method="post" style="display: flex; gap: 10px;">
+                        <input type="hidden" name="messageId" value="${idOrIndex}">
+                        <select name="assignee" style="flex:1; padding:10px; border-radius:8px; border:1px solid #cbd5e1; background: white; font-family:'Inter'; font-size:13px;">
+                            <option value="Thomas">Thomas (Expert Backend)</option>
+                            <option value="Sophie">Sophie (Expert Frontend)</option>
+                            <option value="Marc">Marc (Expert Ops)</option>
+                            <option value="Julie">Julie (Manager)</option>
+                        </select>
+                        <button type="submit" style="background:#f59e0b; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600;">Déléguer</button>
+                    </form>
+                </div>
+
+                <div id="delegation-result-${idOrIndex}" style="display:none; border-top:1px solid #e2e8f0; margin-top:15px; padding-top:15px;">
+                    <div style="font-size:10px; color:#64748b; font-weight:700; margin-bottom:5px;">🤖 SUGGESTION IA POUR <span id="del-who-${idOrIndex}">...</span></div>
+                    <textarea id="del-draft-${idOrIndex}" style="width:100%; height:120px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font-family:'Inter'; font-size:13px; color:#334155; line-height:1.5; resize:none; box-sizing:border-box;"></textarea>
+                    <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; color:#94a3b8; font-family:monospace; background:#f1f5f9; padding:4px 8px; border-radius:4px;">ID: <span id="del-id-${idOrIndex}">...</span></span>
+                        <button onclick="alert('Brouillon enregistré !')" style="background:#2563eb; color:white; border:none; padding:8px 16px; border-radius:8px; font-size:12px; font-weight:600;">Sauvegarder</button>
+                    </div>
                 </div>
             </div>`;
-
-        let deleteAction = isNote ? `
-            <form action="/delete-note" method="post" style="margin-top: 48px; border-top: 1px solid var(--border); padding-top: 32px;">
-                <input type="hidden" name="index" value="${index}">
-                <button type="submit" onclick="return confirm('Supprimer définitivement ?')" style="color: #ef4444; border-color: #fee2e2; background: #fef2f2; width: 100%;">
-                    🗑️ Supprimer cette note
-                </button>
-            </form>` : '';
 
         document.getElementById('main-reader').innerHTML = `
             <div style="display: flex; align-items: center; margin-bottom: 24px;">
                 ${avatar}
                 <div>
-                    <div style="color: ${accentColor}; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px;">Information System</div>
                     <h1 class="mail-title">${title}</h1>
                     <div style="font-size: 15px; color: var(--text-sub);">${subtitle}</div>
                 </div>
             </div>
-            ${tagSelector}
-            <div style="margin-top: 32px; font-size: 17px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${content}</div>
-            ${deleteAction}`;
+            ${actions}
+            <div style="margin-top: 32px; font-size: 16px; line-height: 1.8; color: #334155; white-space: pre-wrap;">${content}</div>`;
     }
 
-    function updatePriority(index, newTag, isNote) {
+    function startDelegation(messageId) {
+        const resultDiv = document.getElementById('delegation-result-' + messageId);
+        resultDiv.style.display = 'block';
+        document.getElementById('del-who-' + messageId).innerText = "Analyse...";
+
+        fetch('/delegate-auto', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'messageId=' + encodeURIComponent(messageId)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('del-who-' + messageId).innerText = data.assignee;
+            document.getElementById('del-draft-' + messageId).value = data.draftBody;
+            document.getElementById('del-id-' + messageId).innerText = data.trackingId;
+        });
+    }
+
+    function updatePriority(idOrIndex, newTag, isNote) {
         showLoader("Mise à jour...");
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = isNote ? '/update-note-tag' : '/update-mail-tag';
         
-        const indexInput = document.createElement('input');
-        indexInput.type = 'hidden'; indexInput.name = 'index'; indexInput.value = index;
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden'; 
+        idInput.name = isNote ? 'index' : 'messageId'; 
+        idInput.value = idOrIndex;
         
         const tagInput = document.createElement('input');
         tagInput.type = 'hidden'; tagInput.name = 'tag'; tagInput.value = newTag;
         
-        form.appendChild(indexInput);
+        form.appendChild(idInput);
         form.appendChild(tagInput);
         document.body.appendChild(form);
         form.submit();
     }
-    
-    // Fallback pour les formulaires sans ID spécifique (comme le bouton Charger)
-    document.querySelectorAll('form').forEach(f => {
-        f.addEventListener('submit', () => {
-             if (f.id === 'obsidianForm' || f.id === 'personaForm' || f.id === 'ai-form') return; 
-             showLoader("Chargement...");
-        });
-    });
 </script>
 </body>
 </html>

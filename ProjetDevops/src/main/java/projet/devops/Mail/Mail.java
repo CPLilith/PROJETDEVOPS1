@@ -9,7 +9,7 @@ public class Mail {
     private String from;
     private String content;
     private EisenhowerAction action;
-    private String status = "SUIVI"; // Nouveau champ pour le Kanban
+    private String status = "SUIVI"; // Initialisé par défaut pour le Kanban
 
     public Mail(String messageId, String date, String subject, String from, String content) {
         this.messageId = messageId;
@@ -20,37 +20,80 @@ public class Mail {
         this.action = EisenhowerAction.PENDING;
     }
 
-    // --- NOUVEAUX GETTERS/SETTERS POUR LE STATUT ---
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    // --- GETTERS & SETTERS ---
 
-    // --- GETTERS ET SETTERS EXISTANTS ---
-    public String getMessageId() { return messageId; }
-    public void setMessageId(String messageId) { this.messageId = messageId; }
+    public String getMessageId() {
+        return messageId;
+    }
 
-    public String getDate() { return date; }
-    public void setDate(String date) { this.date = date; }
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
 
-    public String getSubject() { return subject; }
-    public void setSubject(String subject) { this.subject = subject; }
+    public String getDate() {
+        return date;
+    }
 
-    public String getFrom() { return from; }
-    public void setFrom(String from) { this.from = from; }
+    public void setDate(String date) {
+        this.date = date;
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public String getSubject() {
+        return subject;
+    }
 
-    public EisenhowerAction getAction() { return action; }
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
 
-    public void setAction(String actionStr) { 
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public EisenhowerAction getAction() {
+        return action;
+    }
+
+    // Setter intelligent qui accepte une String (utile pour l'IA et IMAP)
+    public void setAction(String actionStr) {
         try {
-            this.action = EisenhowerAction.valueOf(actionStr.toUpperCase()); 
-        } catch (Exception e) {
+            if (actionStr != null) {
+                this.action = EisenhowerAction.valueOf(actionStr.toUpperCase());
+            }
+        } catch (IllegalArgumentException e) {
             this.action = EisenhowerAction.PENDING;
         }
     }
 
-    public void setAction(EisenhowerAction action) { 
-        this.action = action; 
+    // Setter standard pour l'Enum
+    public void setAction(EisenhowerAction action) {
+        this.action = action;
+    }
+
+    // --- GESTION DU STATUT (KANBAN) ---
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    
+    // Pour l'affichage dans le template (compatibilité)
+    public String status() {
+        return status;
     }
 }

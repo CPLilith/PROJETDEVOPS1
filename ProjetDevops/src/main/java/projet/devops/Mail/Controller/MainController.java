@@ -1,10 +1,18 @@
 package projet.devops.Mail.Controller;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import projet.devops.Mail.Classifier.EisenhowerAction;
 import projet.devops.Mail.Classifier.EisenhowerClassifier;
 import projet.devops.Mail.Classifier.Persona;
@@ -12,8 +20,8 @@ import projet.devops.Mail.Classifier.PersonaResourceService;
 import projet.devops.Mail.Mail;
 import projet.devops.Mail.Model.Note;
 import projet.devops.Mail.Service.MailFlowService;
+import projet.devops.Mail.Service.MailFlowService.DelegationData;
 import projet.devops.Mail.Service.NoteService;
-import projet.devops.Mail.Classifier.StatusClassifier;
 
 record EventItem(String title, String dateLieu, String type, String sourceId) {}
 record RestResponse<T>(T data, Map<String, String> _links) {}
@@ -31,14 +39,25 @@ public class MainController {
         this.classifier = classifier;
     }
 
-    // --- VUES ---
+    private void addPersonaToModel(Model model) {
+        try {
+            model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
+        } catch (Exception e) {
+            model.addAttribute("currentPersona", Persona.ETUDIANT);
+        }
+    }
+
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("view", "inbox");
-        List<Mail> sortedMails = new ArrayList<>(flowService.getMails());
-        Collections.reverse(sortedMails);
+        List<Mail> currentMails = flowService.getMails();
+        if (currentMails == null) currentMails = new ArrayList<>();
+        
+        List<Mail> sortedMails = new ArrayList<>(currentMails);
+        if (!sortedMails.isEmpty()) Collections.reverse(sortedMails);
+        
         model.addAttribute("mails", sortedMails);
-        model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
+        addPersonaToModel(model);
         return "mails";
     }
 
@@ -47,16 +66,14 @@ public class MainController {
         List<Mail> mails = flowService.getMails();
         if (mails == null) mails = new ArrayList<>();
         
-        // "À SUIVRE" = Uniquement DELEGATE non fini
         model.addAttribute("todoMails", mails.stream()
             .filter(m -> m.getAction() == EisenhowerAction.DELEGATE && !"FINALISÉ".equals(m.getStatus())).toList());
         
-        // "FINALISÉ" = Tout ce qui est fini
         model.addAttribute("doneMails", mails.stream()
             .filter(m -> "FINALISÉ".equals(m.getStatus())).toList());
         
         model.addAttribute("view", "kanban");
-        model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
+        addPersonaToModel(model);
         return "mails";
     }
 
@@ -66,31 +83,42 @@ public class MainController {
         List<Note> sortedNotes = new ArrayList<>(noteService.getNotes());
         Collections.reverse(sortedNotes);
         model.addAttribute("notes", sortedNotes);
-        model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
+        addPersonaToModel(model);
         return "mails"; 
     }
 
     @GetMapping("/events")
     public String showEvents(Model model) {
         List<EventItem> events = new ArrayList<>();
-        if (flowService.getMails().isEmpty()) try { flowService.fetchMails(); } catch (Exception e) {}
-
+        if (flowService.getMails().isEmpty()) {
+            try { flowService.fetchMails(); } catch (Exception e) {}
+        }
         for (Mail m : flowService.getMails()) {
             if (m.getAction() == EisenhowerAction.DO) {
                 String ex = classifier.extractEventDetails(m.getContent());
-                if (!ex.contains("AUCUN")) events.add(new EventItem(m.getSubject(), ex, "MAIL", m.getMessageId()));
+                String displayDate = ex.contains("AUCUN") ? "⚠️ À Planifier (Urgent)" : ex;
+                events.add(new EventItem(m.getSubject(), displayDate, "MAIL", m.getMessageId()));
             }
         }
         Collections.reverse(events);
         model.addAttribute("view", "events");
         model.addAttribute("events", events);
-        model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
+        addPersonaToModel(model);
         return "mails";
     }
 
-    // --- ACTIONS CORRIGÉES ---
+    @PostMapping("/delegate-auto")
+    @ResponseBody
+    public DelegationData delegateAuto(@RequestParam String messageId) {
+        return flowService.processDelegation(messageId);
+    }
 
-    // C'EST ICI QUE CA CHANGE : On utilise messageId
+    @PostMapping("/delegate-manual")
+    public String delegateManual(@RequestParam String messageId, @RequestParam String assignee) {
+        flowService.processManualDelegation(messageId, assignee);
+        return "redirect:/kanban";
+    }
+
     @PostMapping("/update-mail-tag") 
     public String updateMailTag(@RequestParam("messageId") String messageId, @RequestParam("tag") String tag) {
         flowService.updateMailTagById(messageId, tag);
@@ -103,29 +131,16 @@ public class MainController {
         return "redirect:/kanban";
     }
 
-    // --- AUTRES ACTIONS ---
     @PostMapping("/fetch") public String fetch() throws Exception { flowService.fetchMails(); return "redirect:/"; }
     @PostMapping("/analyze") public String analyze() { flowService.processPendingMails(PersonaResourceService.loadPersona()); return "redirect:/"; }
     @PostMapping("/sync") public String sync() { flowService.syncToGmail(); return "redirect:/"; }
     @PostMapping("/auto-status") public String autoStatus() { flowService.detectStatusWithAI(); return "redirect:/kanban"; }
-    @PostMapping("/persona") public String persona(@RequestParam String p) throws Exception { PersonaResourceService.savePersona(Persona.valueOf(p)); return "redirect:/"; }
     
-    // Notes (restent par index pour l'instant)
-    @PostMapping("/update-note-tag") public String upNote(@RequestParam int index, @RequestParam String tag) {
-        int realIndex = noteService.getNotes().size() - 1 - index;
-        noteService.updateNoteTag(realIndex, tag);
-        return "redirect:/knowledge";
+    @PostMapping("/persona") 
+    public String persona(@RequestParam("persona") String p) throws Exception { 
+        PersonaResourceService.savePersona(Persona.valueOf(p.toUpperCase())); 
+        return "redirect:/"; 
     }
-    @PostMapping("/delete-note") public String delNote(@RequestParam int index) {
-        int realIndex = noteService.getNotes().size() - 1 - index;
-        noteService.deleteNote(realIndex);
-        return "redirect:/knowledge";
-    }
-    @PostMapping("/import-obsidian") public String impObs(@RequestParam("files") MultipartFile[] f) {
-        try { noteService.generateAiKnowledge(f, PersonaResourceService.loadPersona()); } catch (Exception e) {}
-        return "redirect:/knowledge";
-    }
-    
-    // API (Conservée)
+
     @GetMapping("/api") @ResponseBody public RestResponse<String> api() { return new RestResponse<>("API Ready", new HashMap<>()); }
 }
