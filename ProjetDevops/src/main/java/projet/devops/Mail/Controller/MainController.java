@@ -21,10 +21,23 @@ import projet.devops.Mail.Mail;
 import projet.devops.Mail.Model.Note;
 import projet.devops.Mail.Service.MailFlowService;
 import projet.devops.Mail.Service.MailFlowService.DelegationData;
+import projet.devops.Mail.Service.MeetingPrepService;
 import projet.devops.Mail.Service.NoteService;
 
-record EventItem(String title, String dateLieu, String type, String sourceId) {}
-record RestResponse<T>(T data, Map<String, String> _links) {}
+import com.lowagie.text.Document;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfWriter;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import java.io.ByteArrayOutputStream;
+
+record EventItem(String title, String dateLieu, String type, String sourceId) {
+}
+
+record RestResponse<T>(T data, Map<String, String> _links) {
+}
 
 @Controller
 public class MainController {
@@ -32,11 +45,14 @@ public class MainController {
     private final MailFlowService flowService;
     private final NoteService noteService;
     private final EisenhowerClassifier classifier;
+    private final MeetingPrepService meetingPrepService;
 
-    public MainController(MailFlowService flowService, NoteService noteService, EisenhowerClassifier classifier) {
+    public MainController(MailFlowService flowService, NoteService noteService, EisenhowerClassifier classifier,
+            MeetingPrepService meetingPrepService) {
         this.flowService = flowService;
         this.noteService = noteService;
         this.classifier = classifier;
+        this.meetingPrepService = meetingPrepService;
     }
 
     private void addPersonaToModel(Model model) {
@@ -51,11 +67,13 @@ public class MainController {
     public String index(Model model) {
         model.addAttribute("view", "inbox");
         List<Mail> currentMails = flowService.getMails();
-        if (currentMails == null) currentMails = new ArrayList<>();
-        
+        if (currentMails == null)
+            currentMails = new ArrayList<>();
+
         List<Mail> sortedMails = new ArrayList<>(currentMails);
-        if (!sortedMails.isEmpty()) Collections.reverse(sortedMails);
-        
+        if (!sortedMails.isEmpty())
+            Collections.reverse(sortedMails);
+
         model.addAttribute("mails", sortedMails);
         addPersonaToModel(model);
         return "mails";
@@ -64,14 +82,15 @@ public class MainController {
     @GetMapping("/kanban")
     public String kanban(Model model) {
         List<Mail> mails = flowService.getMails();
-        if (mails == null) mails = new ArrayList<>();
-        
+        if (mails == null)
+            mails = new ArrayList<>();
+
         model.addAttribute("todoMails", mails.stream()
-            .filter(m -> m.getAction() == EisenhowerAction.DELEGATE && !"FINALISÉ".equals(m.getStatus())).toList());
-        
+                .filter(m -> m.getAction() == EisenhowerAction.DELEGATE && !"FINALISÉ".equals(m.getStatus())).toList());
+
         model.addAttribute("doneMails", mails.stream()
-            .filter(m -> "FINALISÉ".equals(m.getStatus())).toList());
-        
+                .filter(m -> "FINALISÉ".equals(m.getStatus())).toList());
+
         model.addAttribute("view", "kanban");
         addPersonaToModel(model);
         return "mails";
@@ -84,14 +103,17 @@ public class MainController {
         Collections.reverse(sortedNotes);
         model.addAttribute("notes", sortedNotes);
         addPersonaToModel(model);
-        return "mails"; 
+        return "mails";
     }
 
     @GetMapping("/events")
     public String showEvents(Model model) {
         List<EventItem> events = new ArrayList<>();
         if (flowService.getMails().isEmpty()) {
-            try { flowService.fetchMails(); } catch (Exception e) {}
+            try {
+                flowService.fetchMails();
+            } catch (Exception e) {
+            }
         }
         for (Mail m : flowService.getMails()) {
             if (m.getAction() == EisenhowerAction.DO) {
@@ -119,7 +141,7 @@ public class MainController {
         return "redirect:/kanban";
     }
 
-    @PostMapping("/update-mail-tag") 
+    @PostMapping("/update-mail-tag")
     public String updateMailTag(@RequestParam("messageId") String messageId, @RequestParam("tag") String tag) {
         flowService.updateMailTagById(messageId, tag);
         return "redirect:/";
@@ -131,16 +153,70 @@ public class MainController {
         return "redirect:/kanban";
     }
 
-    @PostMapping("/fetch") public String fetch() throws Exception { flowService.fetchMails(); return "redirect:/"; }
-    @PostMapping("/analyze") public String analyze() { flowService.processPendingMails(PersonaResourceService.loadPersona()); return "redirect:/"; }
-    @PostMapping("/sync") public String sync() { flowService.syncToGmail(); return "redirect:/"; }
-    @PostMapping("/auto-status") public String autoStatus() { flowService.detectStatusWithAI(); return "redirect:/kanban"; }
-    
-    @PostMapping("/persona") 
-    public String persona(@RequestParam("persona") String p) throws Exception { 
-        PersonaResourceService.savePersona(Persona.valueOf(p.toUpperCase())); 
-        return "redirect:/"; 
+    @PostMapping("/fetch")
+    public String fetch() throws Exception {
+        flowService.fetchMails();
+        return "redirect:/";
     }
 
-    @GetMapping("/api") @ResponseBody public RestResponse<String> api() { return new RestResponse<>("API Ready", new HashMap<>()); }
+    @PostMapping("/analyze")
+    public String analyze() {
+        flowService.processPendingMails(PersonaResourceService.loadPersona());
+        return "redirect:/";
+    }
+
+    @PostMapping("/sync")
+    public String sync() {
+        flowService.syncToGmail();
+        return "redirect:/";
+    }
+
+    @PostMapping("/auto-status")
+    public String autoStatus() {
+        flowService.detectStatusWithAI();
+        return "redirect:/kanban";
+    }
+
+    @PostMapping("/persona")
+    public String persona(@RequestParam("persona") String p) throws Exception {
+        PersonaResourceService.savePersona(Persona.valueOf(p.toUpperCase()));
+        return "redirect:/";
+    }
+
+    @PostMapping("/events/prepare")
+    public ResponseEntity<byte[]> prepareMeeting(@RequestParam String messageId) {
+        try {
+            // 1. Génération du texte via l'IA
+            String memoText = meetingPrepService.generateMeetingMemo(messageId);
+
+            // 2. Création du document PDF
+            Document document = new Document();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            PdfWriter.getInstance(document, out);
+
+            document.open();
+            document.add(new Paragraph("====================================="));
+            document.add(new Paragraph("        FICHE DE PREPARATION (IA)    "));
+            document.add(new Paragraph("=====================================\n\n"));
+            document.add(new Paragraph(memoText));
+            document.close();
+
+            // 3. Préparation de la réponse HTTP
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "Fiche_Memo_" + messageId + ".pdf");
+
+            return new ResponseEntity<>(out.toByteArray(), headers, HttpStatus.OK);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/api")
+    @ResponseBody
+    public RestResponse<String> api() {
+        return new RestResponse<>("API Ready", new HashMap<>());
+    }
 }
