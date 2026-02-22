@@ -555,13 +555,14 @@
 
                 <div th:if="${!#lists.isEmpty(events)}">
                     <div th:each="event : ${events}" class="mail-card" style="margin-bottom:15px; cursor:default;">
-                        <div class="status-strip dot-DO"></div>
-                        <div style="color:#2563eb; font-weight:700; margin-bottom:5px;" th:text="${event.dateLieu}">
-                        </div>
+                        
+                        <div th:class="'status-strip dot-' + ${event.type}"></div>
+                        
+                        <div style="color:#2563eb; font-weight:700; margin-bottom:5px;" th:text="${event.dateLieu}"></div>
                         <div th:text="${event.title}" style="font-weight:700; margin-bottom:10px;"></div>
 
                         <div style="display: flex; gap: 10px; align-items: center; margin-top:5px;">
-                            <span class="importance-tag tag-DO">URGENT</span>
+                            <span th:class="'importance-tag tag-' + ${event.type}" th:text="${event.type}"></span>
 
                             <button type="button"
                                 style="padding: 6px 14px; border-radius: 6px; border: 1px solid #2563eb; background: #eff6ff; color: #2563eb; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px;"
@@ -579,9 +580,11 @@
                     style="text-align: center; padding: 50px; color: #6b7280; background: #f9fafb; border-radius: 12px; border: 1px dashed #e5e7eb;">
                     <div style="font-size: 40px; margin-bottom: 10px;">📅</div>
                     <h3 style="margin-bottom: 5px; color: #374151;">Aucun rendez-vous</h3>
-                    <p>Mettez un mail important en "DO" pour le voir apparaître ici.</p>
+                    <p>Mettez un mail important en "DO" ou "PLAN" pour le voir apparaître ici.</p>
                 </div>
             </th:block>
+
+                
 
             <th:block th:if="${view == 'kanban'}">
                 <h1 style="font-size: 32px; font-weight:800; margin-bottom:10px;">Suivi Délégation</h1>

@@ -1,17 +1,26 @@
 package projet.devops.Mail.Controller;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfWriter;
 
 import projet.devops.Mail.Classifier.EisenhowerAction;
 import projet.devops.Mail.Classifier.EisenhowerClassifier;
@@ -23,15 +32,6 @@ import projet.devops.Mail.Service.MailFlowService;
 import projet.devops.Mail.Service.MailFlowService.DelegationData;
 import projet.devops.Mail.Service.MeetingPrepService;
 import projet.devops.Mail.Service.NoteService;
-
-import com.lowagie.text.Document;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.pdf.PdfWriter;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import java.io.ByteArrayOutputStream;
 
 record EventItem(String title, String dateLieu, String type, String sourceId) {
 }
@@ -107,26 +107,36 @@ public class MainController {
     }
 
     @GetMapping("/events")
-    public String showEvents(Model model) {
-        List<EventItem> events = new ArrayList<>();
-        if (flowService.getMails().isEmpty()) {
-            try {
-                flowService.fetchMails();
-            } catch (Exception e) {
+        public String showEvents(Model model) {
+            List<EventItem> events = new ArrayList<>();
+            if (flowService.getMails().isEmpty()) {
+                try {
+                    flowService.fetchMails();
+                } catch (Exception e) {}
             }
-        }
-        for (Mail m : flowService.getMails()) {
-            if (m.getAction() == EisenhowerAction.DO) {
-                String ex = classifier.extractEventDetails(m.getContent());
-                String displayDate = ex.contains("AUCUN") ? "⚠️ À Planifier (Urgent)" : ex;
-                events.add(new EventItem(m.getSubject(), displayDate, "MAIL", m.getMessageId()));
+            
+            for (Mail m : flowService.getMails()) {
+                // 1. Les mails à PLANIFIER (PLAN)
+                if (m.getAction() == EisenhowerAction.PLAN) {
+                    String ex = classifier.extractEventDetails(m.getContent());
+                    String displayDate = ex.contains("AUCUN") ? "⚠️ À Planifier (Urgent)" : ex;
+                    // On passe "PLAN" comme type pour l'interface
+                    events.add(new EventItem(m.getSubject(), displayDate, "PLAN", m.getMessageId()));
+                }
+                // 2. Les mails à FAIRE (DO)
+                else if (m.getAction() == EisenhowerAction.DO) {
+                    String ex = classifier.extractEventDetails(m.getContent());
+                    String displayDate = ex.contains("AUCUN") ? "⚠️ À faire" : ex;
+                    // On passe "DO" comme type pour l'interface
+                    events.add(new EventItem(m.getSubject(), displayDate, "DO", m.getMessageId()));
+                }
             }
-        }
-        Collections.reverse(events);
-        model.addAttribute("view", "events");
-        model.addAttribute("events", events);
-        addPersonaToModel(model);
-        return "mails";
+            
+            Collections.reverse(events);
+            model.addAttribute("view", "events");
+            model.addAttribute("events", events);
+            addPersonaToModel(model);
+            return "mails";
     }
 
     @PostMapping("/delegate-auto")
