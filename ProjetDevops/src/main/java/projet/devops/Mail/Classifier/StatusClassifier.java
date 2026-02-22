@@ -6,8 +6,12 @@ import org.springframework.stereotype.Component;
 public class StatusClassifier {
     private final OllamaClient client;
 
-    public StatusClassifier() {
-        this.client = new OllamaClient("http://localhost:11434");
+    // public StatusClassifier() {
+    //     this.client = new OllamaClient("http://localhost:11434");
+    // }
+
+    public StatusClassifier(OllamaClient client) {
+        this.client = client;
     }
 
     public String classifyStatus(String content) {

@@ -9,8 +9,8 @@ public class OllamaStrategy implements ClassificationStrategy {
 
     private final OllamaClient client;
 
-    public OllamaStrategy() {
-        this.client = new OllamaClient("http://localhost:11434");
+    public OllamaStrategy(OllamaClient client) {
+        this.client = client;
     }
 
     @Override

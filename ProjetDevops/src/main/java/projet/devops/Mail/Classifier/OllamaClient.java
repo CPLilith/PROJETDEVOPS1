@@ -5,24 +5,25 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Component
 public class OllamaClient {
     
-    private final HttpClient httpClient;
-    private final ObjectMapper objectMapper;
-    private final String baseUrl;
-    
-    public OllamaClient() {
-        this("http://localhost:11434");
-    }
-    
-    public OllamaClient(String baseUrl) {
-        this.httpClient = HttpClient.newHttpClient();
-        this.objectMapper = new ObjectMapper();
-        this.baseUrl = baseUrl;
-    }
+        private final HttpClient httpClient;
+        private final ObjectMapper objectMapper;
+        private final String baseUrl;
+        
+        // Spring va injecter l'URL automatiquement
+        public OllamaClient(@Value("${ollama.base-url}") String baseUrl) {
+            this.httpClient = HttpClient.newHttpClient();
+            this.objectMapper = new ObjectMapper();
+            this.baseUrl = baseUrl;
+        }
     
     public String generateResponse(String model, String prompt) throws Exception {
         String jsonBody = String.format(

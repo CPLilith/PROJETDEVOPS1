@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,21 +20,24 @@ import projet.devops.Mail.Model.Note;
 
 @Service
 public class NoteService {
-    private final OllamaClient ollamaClient = new OllamaClient();
+    
+    private final OllamaClient ollamaClient;
+    private final String storagePath;
+    
     private List<Note> notes = new ArrayList<>();
     private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     
-    // CORRECTION : On enregistre à la racine du projet pour que ce soit lu à chaque fois
-    private final String STORAGE_PATH = "storage/notes_history.json";
-
-    /**
-     * CHARGEMENT AUTOMATIQUE : S'exécute dès que l'application démarre.
-     */
+    // Injection de l'IA ET du chemin de fichier (avec une valeur par défaut de sécurité)
+    public NoteService(OllamaClient ollamaClient, 
+                       @Value("${app.storage.notes:storage/notes_history.json}") String storagePath) {
+        this.ollamaClient = ollamaClient;
+        this.storagePath = storagePath;
+    }
 
     @PostConstruct
     public void init() {
         try {
-            File file = new File(STORAGE_PATH);
+            File file = new File(storagePath);
             System.out.println("🔍 [Persistence] Recherche du fichier à : " + file.getAbsolutePath());
 
             if (file.exists() && file.length() > 0) {
@@ -46,42 +50,30 @@ public class NoteService {
             }
         } catch (Exception e) {
             System.err.println("❌ [Persistence] ERREUR DE LECTURE : " + e.getMessage());
-            e.printStackTrace(); // Pour voir l'erreur exacte dans la console
             this.notes = new ArrayList<>();
         }
     }
 
-    /**
-     * DOUBLE ANALYSE IA : Synthèse comparative + Classification Eisenhower.
-     */
     public void generateAiKnowledge(MultipartFile[] files, Persona persona) throws Exception {
-        // 1. Extraction des données des fichiers .md
         String rawContext = extractRawData(files);
         if (rawContext.isEmpty()) return;
 
-        // 2. PREMIER PASSAGE : Synthèse IA
         String synthesisPrompt = "En tant que " + persona.name() + ", fais une synthèse comparative intelligente de ces notes. " +
                                  "Identifie qui a écrit quoi et les points clés :\n" + rawContext;
         String aiSynthesis = ollamaClient.generateResponse("tinyllama", synthesisPrompt);
 
-        // 3. DEUXIÈME PASSAGE : Classification Eisenhower
         String tagPrompt = "Sur la base de cette synthèse, choisis UN SEUL mot parmi : DO, PLAN, DELEGATE, DELETE.\nTexte : " + aiSynthesis;
         String eisenhowerTag = ollamaClient.generateResponse("tinyllama", tagPrompt).trim().toUpperCase();
         
-        // Nettoyage au cas où l'IA ferait une phrase
         if (!Arrays.asList("DO", "PLAN", "DELEGATE", "DELETE").contains(eisenhowerTag)) {
             eisenhowerTag = "PENDING";
         }
 
-        // 4. CRÉATION, AJOUT ET SAUVEGARDE
         Note newNote = new Note("Intelligence Collective (" + persona.name() + ")", aiSynthesis, "AI Orchestrator", eisenhowerTag);
         notes.add(0, newNote); 
         saveNoteToJson();
     }
 
-    /**
-     * SUPPRESSION : Retire une note et met à jour le fichier JSON.
-     */
     public void deleteNote(int index) {
         if (index >= 0 && index < notes.size()) {
             notes.remove(index);
@@ -90,26 +82,18 @@ public class NoteService {
         }
     }
 
-    /**
-     * PERSISTANCE : Écrit la liste complète dans le fichier.
-     */
     private void saveNoteToJson() {
         try {
-            File file = new File(STORAGE_PATH);
+            File file = new File(storagePath);
             if (file.getParentFile() != null) file.getParentFile().mkdirs();
             
-            System.out.println("DEBUG : Tentative d'écriture de " + notes.size() + " notes...");
             mapper.writeValue(file, notes);
             System.out.println("💾 [Persistence] Fichier écrit avec succès à : " + file.getAbsolutePath());
         } catch (Exception e) {
             System.err.println("❌ ERREUR CRITIQUE ÉCRITURE : " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    /**
-     * UTILITAIRE : Lit le contenu des fichiers Markdown.
-     */
     private String extractRawData(MultipartFile[] files) {
         StringBuilder sb = new StringBuilder();
         for (MultipartFile f : files) {
@@ -130,12 +114,11 @@ public class NoteService {
     }
 
     public void updateNoteTag(int index, String newTag) {
-    if (index >= 0 && index < notes.size()) {
-        Note note = notes.get(index);
-        // On met à jour le tag (on s'assure qu'il est en majuscules)
-        note.setAction(newTag.toUpperCase()); 
-        saveNoteToJson(); // Persistance immédiate
-        System.out.println("✅ [Persistence] Tag de la note " + index + " mis à jour en : " + newTag);
+        if (index >= 0 && index < notes.size()) {
+            Note note = notes.get(index);
+            note.setAction(newTag.toUpperCase()); 
+            saveNoteToJson();
+            System.out.println("✅ [Persistence] Tag de la note " + index + " mis à jour en : " + newTag);
+        }
     }
-}
 }

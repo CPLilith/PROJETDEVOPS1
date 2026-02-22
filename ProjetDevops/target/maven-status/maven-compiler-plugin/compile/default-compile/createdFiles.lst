@@ -4,9 +4,9 @@ projet/devops/Mail/Classifier/TextCleaner.class
 projet/devops/Mail/Service/MailFlowService.class
 projet/devops/Mail/Classifier/ClassificationStrategy.class
 projet/devops/Mail/Classifier/PersonaPromptProvider$1.class
+projet/devops/ProjetDevopsApplication.class
 projet/devops/Mail/Controller/RestResponse.class
 projet/devops/Mail/Service/TeamService.class
-projet/devops/ProjetDevopsApplication.class
 projet/devops/Mail/Classifier/PersonaResourceService.class
 projet/devops/Mail/Service/MailService.class
 projet/devops/Mail/Classifier/EisenhowerClassifier.class

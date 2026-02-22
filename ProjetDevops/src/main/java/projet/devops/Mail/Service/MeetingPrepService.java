@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import projet.devops.Mail.Classifier.OllamaClient;
+import projet.devops.Mail.Classifier.TextCleaner;
 import projet.devops.Mail.Mail;
 
 @Service
@@ -14,14 +15,13 @@ public class MeetingPrepService {
     private final MailFlowService mailFlowService;
     private final OllamaClient ollamaClient;
 
-    public MeetingPrepService(MailFlowService mailFlowService) {
+    // Injection par Spring
+    public MeetingPrepService(MailFlowService mailFlowService, OllamaClient ollamaClient) {
         this.mailFlowService = mailFlowService;
-        // On instancie le client Ollama pour interroger l'IA locale
-        this.ollamaClient = new OllamaClient("http://localhost:11434");
+        this.ollamaClient = ollamaClient;
     }
 
     public String generateMeetingMemo(String messageId) {
-        // 1. Récupérer le mail qui a déclenché le RDV
         Mail targetMail = mailFlowService.getMails().stream()
                 .filter(m -> m.getMessageId().equals(messageId))
                 .findFirst()
@@ -31,19 +31,21 @@ public class MeetingPrepService {
             return "Erreur : Impossible de retrouver les détails de ce rendez-vous.";
         }
 
-        // 2. Trouver le contexte : les 5 derniers mails échangés avec le même expéditeur
         String sender = targetMail.getFrom();
         List<Mail> contextMails = mailFlowService.getMails().stream()
                 .filter(m -> m.getFrom().equals(sender))
-                .limit(5) // On limite pour ne pas saturer l'IA (tinyllama)
+                .limit(5)
                 .collect(Collectors.toList());
 
-        // 3. Construire l'historique pour l'IA
         StringBuilder contextText = new StringBuilder();
         for (Mail m : contextMails) {
-            String cleanContent = m.getContent().length() > 200 
-                ? m.getContent().substring(0, 200) + "..." 
-                : m.getContent();
+            // Utilisation du TextCleaner (DRY)
+            String cleanContent = TextCleaner.cleanEmailText(m.getContent(), 200);
+            
+            // On rajoute "..." visuellement si on a tronqué, pour que l'IA comprenne que c'est un extrait
+            if (m.getContent().length() > 200) {
+                cleanContent += "...";
+            }
                 
             contextText.append("- Date: ").append(m.getDate())
                        .append(" | Sujet: ").append(m.getSubject())
@@ -51,7 +53,6 @@ public class MeetingPrepService {
                        .append("\n\n");
         }
 
-        // 4. Créer le Prompt pour générer la Fiche Mémo
         String prompt = String.format("""
             Tu es un assistant de direction expert. Un rendez-vous est prévu concernant le sujet : "%s" avec %s.
             
@@ -65,7 +66,6 @@ public class MeetingPrepService {
             - ⚠️ Points clés à retenir
             """, targetMail.getSubject(), sender, contextText.toString());
 
-        // 5. Appeler l'IA
         try {
             System.out.println("[IA] ⏳ Génération de la fiche mémo en cours...");
             return ollamaClient.generateResponse("tinyllama", prompt);
