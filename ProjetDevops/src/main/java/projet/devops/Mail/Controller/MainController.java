@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.Paragraph;
@@ -139,7 +140,14 @@ public class MainController {
             return "mails";
     }
 
-    @PostMapping("/delegate-auto")
+    @PostMapping("/knowledge/upload")
+        public String uploadNotes(@RequestParam("files") MultipartFile[] files) throws Exception {
+            // On appelle ton service qui fait déjà tout le boulot (Merger + IA)
+            noteService.generateAiKnowledge(files, PersonaResourceService.loadPersona());
+            return "redirect:/knowledge";
+        }
+    
+@PostMapping("/delegate-auto")
     @ResponseBody
     public DelegationData delegateAuto(@RequestParam String messageId) {
         return flowService.processDelegation(messageId);
@@ -228,5 +236,17 @@ public class MainController {
     @ResponseBody
     public RestResponse<String> api() {
         return new RestResponse<>("API Ready", new HashMap<>());
+    }
+
+    @PostMapping("/update-note-tag")
+    public String updateNoteTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
+        noteService.updateNoteTag(index, tag);
+        return "redirect:/knowledge";
+    }
+
+    @PostMapping("/knowledge/delete")
+    public String deleteNote(@RequestParam("index") int index) {
+        noteService.deleteNote(index);
+        return "redirect:/knowledge";
     }
 }
