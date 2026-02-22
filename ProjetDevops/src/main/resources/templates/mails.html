@@ -81,6 +81,24 @@
         .btn-file:hover { background: #f8fafc; }
         #file-input { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
         .btn-delete { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; margin-left: auto; }
+
+        /* --- FILTER BAR --- */
+        .filter-bar { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 6px; flex-wrap: wrap; background: #fff; flex-shrink: 0; }
+        .filter-chip {
+            padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+            cursor: pointer; border: 1px solid var(--border); background: #f8fafc;
+            color: var(--text-sub); transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .filter-chip:hover { background: #f1f5f9; }
+        .filter-chip.active { color: #fff; border-color: transparent; }
+        .filter-chip.active.chip-all      { background: var(--text-main); }
+        .filter-chip.active.chip-DO       { background: var(--do); }
+        .filter-chip.active.chip-PLAN     { background: var(--plan); }
+        .filter-chip.active.chip-DELEGATE { background: var(--delegate); }
+        .filter-chip.active.chip-DELETE   { background: var(--delete); }
+        .filter-chip.active.chip-PENDING  { background: #94a3b8; }
+        .filter-chip.active.chip-custom   { background: var(--do); }
+        .mail-card.hidden { display: none; }
     </style>
 </head>
 
@@ -143,14 +161,34 @@
                 </div>
             </div>
 
+            <!-- FILTER BAR : visible uniquement en inbox -->
+            <div class="filter-bar" th:if="${view == 'inbox'}" id="filter-bar">
+                <span class="filter-chip chip-all active" onclick="setFilter('ALL', this)">Tous</span>
+                <span class="filter-chip chip-DO"      onclick="setFilter('DO', this)">DO</span>
+                <span class="filter-chip chip-PLAN"    onclick="setFilter('PLAN', this)">Plan</span>
+                <span class="filter-chip chip-DELEGATE" onclick="setFilter('DELEGATE', this)">Delegate</span>
+                <span class="filter-chip chip-DELETE"  onclick="setFilter('DELETE', this)">Delete</span>
+                <span class="filter-chip chip-PENDING" onclick="setFilter('PENDING', this)">Sans tag</span>
+                <!-- Tags DO custom injectés dynamiquement par Thymeleaf -->
+                <th:block th:each="ct : ${customDoTags}">
+                    <span class="filter-chip chip-custom"
+                          th:data-tag="${ct}"
+                          th:text="${#strings.replace(ct, 'DO_', 'DO · ').replace('_', ' ')}"
+                          onclick="setFilter(this.getAttribute('data-tag'), this)">
+                    </span>
+                </th:block>
+            </div>
+
             <div class="feed-list">
                 <th:block th:if="${view == 'inbox'}">
                     <div th:each="mail, iter : ${mails}" class="mail-card" 
                          th:id="'card-mail-' + ${iter.index}"
                          th:data-id="${mail.messageId}" th:data-subject="${mail.subject}" th:data-from="${mail.from}" th:data-content="${mail.content}"
+                         th:data-tag="${mail.effectiveTag}"
+                         th:data-custom-tags="${#strings.listJoin(customDoTags, ',')}"
                          onclick="openMail(this)">
                         <div th:class="'status-strip dot-' + ${mail.action}"></div>
-                        <span th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.action}"></span>
+                        <span th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.effectiveTag}"></span>
                         <div class="card-subject" th:text="${mail.subject}"></div>
                     </div>
                 </th:block>
@@ -294,6 +332,38 @@
                     btn.parentNode.replaceChild(a, btn);
                     document.getElementById('loading-overlay').style.display = 'none';
                 });
+        }
+
+        // --- FILTER ---
+        let activeFilter = 'ALL';
+
+        function setFilter(tag, chipEl) {
+            activeFilter = tag;
+
+            // Met à jour les chips actives
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            chipEl.classList.add('active');
+
+            // Filtre les cartes
+            document.querySelectorAll('.feed-list .mail-card').forEach(card => {
+                const cardTag = card.getAttribute('data-tag') || 'PENDING';
+                let show = false;
+
+                if (tag === 'ALL') {
+                    show = true;
+                } else if (tag === 'PENDING') {
+                    // "Sans tag" = PENDING ou tag vide
+                    show = (cardTag === 'PENDING' || cardTag === '' || cardTag === 'null');
+                } else if (tag === 'DO') {
+                    // DO générique uniquement (pas les custom DO_xxx)
+                    show = (cardTag === 'DO');
+                } else {
+                    // Filtre exact (DO_FORMATION, PLAN, etc.)
+                    show = (cardTag === tag);
+                }
+
+                card.classList.toggle('hidden', !show);
+            });
         }
     </script>
 </body>

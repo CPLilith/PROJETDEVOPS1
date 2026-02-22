@@ -12,14 +12,16 @@ projet/devops/Mail/Service/MailService.class
 projet/devops/Mail/Classifier/EisenhowerClassifier.class
 projet/devops/Mail/Gestion/FichierTemp.class
 projet/devops/Mail/Classifier/EisenhowerAction.class
+projet/devops/Mail/Service/CustomDoTagService.class
 projet/devops/Mail/Classifier/Persona.class
 projet/devops/Mail/Classifier/OllamaClient.class
 projet/devops/Mail/Model/Note.class
 projet/devops/Mail/Service/MailFlowService$DelegationData.class
 projet/devops/Mail/Classifier/OllamaStrategy.class
-projet/devops/Mail/Classifier/PersonaPromptProvider.class
 projet/devops/Mail/Classifier/StatusClassifier.class
+projet/devops/Mail/Classifier/PersonaPromptProvider.class
 projet/devops/Mail/Service/NoteService.class
 projet/devops/Mail/Controller/MainController.class
 projet/devops/Mail/Mail.class
 projet/devops/Mail/Controller/EventItem.class
+projet/devops/Mail/Service/CustomDoTagService$1.class

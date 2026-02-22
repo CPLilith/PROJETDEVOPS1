@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,16 +30,14 @@ import projet.devops.Mail.Classifier.Persona;
 import projet.devops.Mail.Classifier.PersonaResourceService;
 import projet.devops.Mail.Mail;
 import projet.devops.Mail.Model.Note;
+import projet.devops.Mail.Service.CustomDoTagService;
 import projet.devops.Mail.Service.MailFlowService;
 import projet.devops.Mail.Service.MailFlowService.DelegationData;
 import projet.devops.Mail.Service.MeetingPrepService;
 import projet.devops.Mail.Service.NoteService;
 
-record EventItem(String title, String dateLieu, String type, String sourceId) {
-}
-
-record RestResponse<T>(T data, Map<String, String> _links) {
-}
+record EventItem(String title, String dateLieu, String type, String sourceId) {}
+record RestResponse<T>(T data, Map<String, String> _links) {}
 
 @Controller
 public class MainController {
@@ -47,13 +46,16 @@ public class MainController {
     private final NoteService noteService;
     private final EisenhowerClassifier classifier;
     private final MeetingPrepService meetingPrepService;
+    private final CustomDoTagService customDoTagService;
 
-    public MainController(MailFlowService flowService, NoteService noteService, EisenhowerClassifier classifier,
-            MeetingPrepService meetingPrepService) {
+    public MainController(MailFlowService flowService, NoteService noteService,
+            EisenhowerClassifier classifier, MeetingPrepService meetingPrepService,
+            CustomDoTagService customDoTagService) {
         this.flowService = flowService;
         this.noteService = noteService;
         this.classifier = classifier;
         this.meetingPrepService = meetingPrepService;
+        this.customDoTagService = customDoTagService;
     }
 
     private void addPersonaToModel(Model model) {
@@ -64,36 +66,36 @@ public class MainController {
         }
     }
 
+    /** Injecte dans le modèle les tags custom DO */
+    private void addTagsToModel(Model model) {
+        List<String> customTags = customDoTagService.getCustomTags();
+        model.addAttribute("customDoTags", customTags);
+    }
+
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("view", "inbox");
         List<Mail> currentMails = flowService.getMails();
-        if (currentMails == null)
-            currentMails = new ArrayList<>();
-
+        if (currentMails == null) currentMails = new ArrayList<>();
         List<Mail> sortedMails = new ArrayList<>(currentMails);
-        if (!sortedMails.isEmpty())
-            Collections.reverse(sortedMails);
-
+        if (!sortedMails.isEmpty()) Collections.reverse(sortedMails);
         model.addAttribute("mails", sortedMails);
         addPersonaToModel(model);
+        addTagsToModel(model);
         return "mails";
     }
 
     @GetMapping("/kanban")
     public String kanban(Model model) {
         List<Mail> mails = flowService.getMails();
-        if (mails == null)
-            mails = new ArrayList<>();
-
+        if (mails == null) mails = new ArrayList<>();
         model.addAttribute("todoMails", mails.stream()
                 .filter(m -> m.getAction() == EisenhowerAction.DELEGATE && !"FINALISÉ".equals(m.getStatus())).toList());
-
         model.addAttribute("doneMails", mails.stream()
                 .filter(m -> "FINALISÉ".equals(m.getStatus())).toList());
-
         model.addAttribute("view", "kanban");
         addPersonaToModel(model);
+        addTagsToModel(model);
         return "mails";
     }
 
@@ -104,50 +106,116 @@ public class MainController {
         Collections.reverse(sortedNotes);
         model.addAttribute("notes", sortedNotes);
         addPersonaToModel(model);
+        addTagsToModel(model);
         return "mails";
     }
 
     @GetMapping("/events")
-        public String showEvents(Model model) {
-            List<EventItem> events = new ArrayList<>();
-            if (flowService.getMails().isEmpty()) {
-                try {
-                    flowService.fetchMails();
-                } catch (Exception e) {}
+    public String showEvents(Model model) {
+        List<EventItem> events = new ArrayList<>();
+        if (flowService.getMails().isEmpty()) {
+            try { flowService.fetchMails(); } catch (Exception e) {}
+        }
+        for (Mail m : flowService.getMails()) {
+            if (m.getAction() == EisenhowerAction.PLAN) {
+                String ex = classifier.extractEventDetails(m.getContent());
+                String displayDate = ex.contains("AUCUN") ? "⚠️ À Planifier (Urgent)" : ex;
+                events.add(new EventItem(m.getSubject(), displayDate, "PLAN", m.getMessageId()));
+            } else if (m.getAction().isDo()) {
+                String ex = classifier.extractEventDetails(m.getContent());
+                String displayDate = ex.contains("AUCUN") ? "⚠️ À faire" : ex;
+                events.add(new EventItem(m.getSubject(), displayDate, m.getEffectiveTag(), m.getMessageId()));
             }
-            
-            for (Mail m : flowService.getMails()) {
-                // 1. Les mails à PLANIFIER (PLAN)
-                if (m.getAction() == EisenhowerAction.PLAN) {
-                    String ex = classifier.extractEventDetails(m.getContent());
-                    String displayDate = ex.contains("AUCUN") ? "⚠️ À Planifier (Urgent)" : ex;
-                    // On passe "PLAN" comme type pour l'interface
-                    events.add(new EventItem(m.getSubject(), displayDate, "PLAN", m.getMessageId()));
-                }
-                // 2. Les mails à FAIRE (DO)
-                else if (m.getAction() == EisenhowerAction.DO) {
-                    String ex = classifier.extractEventDetails(m.getContent());
-                    String displayDate = ex.contains("AUCUN") ? "⚠️ À faire" : ex;
-                    // On passe "DO" comme type pour l'interface
-                    events.add(new EventItem(m.getSubject(), displayDate, "DO", m.getMessageId()));
-                }
-            }
-            
-            Collections.reverse(events);
-            model.addAttribute("view", "events");
-            model.addAttribute("events", events);
-            addPersonaToModel(model);
-            return "mails";
+        }
+        Collections.reverse(events);
+        model.addAttribute("view", "events");
+        model.addAttribute("events", events);
+        addPersonaToModel(model);
+        addTagsToModel(model);
+        return "mails";
     }
 
-    @PostMapping("/knowledge/upload")
-        public String uploadNotes(@RequestParam("files") MultipartFile[] files) throws Exception {
-            // On appelle ton service qui fait déjà tout le boulot (Merger + IA)
-            noteService.generateAiKnowledge(files, PersonaResourceService.loadPersona());
-            return "redirect:/knowledge";
+    // =========================================================
+    //  GESTION DES TAGS DO PERSONNALISÉS
+    // =========================================================
+
+    /**
+     * Affiche la page de gestion des tags personnalisés.
+     */
+    @GetMapping("/tags")
+    public String tagsPage(Model model) {
+        model.addAttribute("view", "tags");
+        addTagsToModel(model);
+        addPersonaToModel(model);
+        return "mails";
+    }
+
+    /**
+     * Crée un nouveau tag DO personnalisé.
+     * POST /tags/create  body: label=Formation RH
+     */
+    @PostMapping("/tags/create")
+    public String createTag(@RequestParam("label") String label, Model model) {
+        String created = customDoTagService.createTag(label);
+        if (created == null) {
+            model.addAttribute("tagError", "Ce tag existe déjà ou le nom est invalide.");
+        } else {
+            model.addAttribute("tagSuccess", "Tag créé : " + CustomDoTagService.toLabel(created));
         }
-    
-@PostMapping("/delegate-auto")
+        model.addAttribute("view", "tags");
+        addTagsToModel(model);
+        addPersonaToModel(model);
+        return "mails";
+    }
+
+    /**
+     * Supprime un tag DO personnalisé.
+     * POST /tags/delete  body: tagName=DO_FORMATION
+     */
+    @PostMapping("/tags/delete")
+    public String deleteTag(@RequestParam("tagName") String tagName) {
+        customDoTagService.deleteTag(tagName);
+        return "redirect:/tags";
+    }
+
+    /**
+     * API REST : retourne tous les tags DO (builtin + custom) en JSON.
+     * GET /api/tags
+     */
+    @GetMapping("/api/tags")
+    @ResponseBody
+    public List<Map<String, String>> apiGetTags() {
+        return customDoTagService.getCustomTags().stream()
+                .map(t -> Map.of("name", t, "label", CustomDoTagService.toLabel(t)))
+                .toList();
+    }
+
+    /**
+     * Création AJAX d'un tag DO custom depuis le reader.
+     * POST /tags/create-ajax  body: label=Formation RH
+     * Retourne { "tag": "DO_FORMATION_RH" } ou { "error": "..." }
+     */
+    @PostMapping("/tags/create-ajax")
+    @ResponseBody
+    public Map<String, String> createTagAjax(@RequestParam("label") String label) {
+        String created = customDoTagService.createTag(label);
+        if (created == null) {
+            return Map.of("error", "Tag déjà existant ou nom invalide.");
+        }
+        return Map.of("tag", created, "label", CustomDoTagService.toLabel(created));
+    }
+
+    // =========================================================
+    //  ROUTES EXISTANTES (inchangées)
+    // =========================================================
+
+    @PostMapping("/knowledge/upload")
+    public String uploadNotes(@RequestParam("files") MultipartFile[] files) throws Exception {
+        noteService.generateAiKnowledge(files, PersonaResourceService.loadPersona());
+        return "redirect:/knowledge";
+    }
+
+    @PostMapping("/delegate-auto")
     @ResponseBody
     public DelegationData delegateAuto(@RequestParam String messageId) {
         return flowService.processDelegation(messageId);
@@ -204,28 +272,20 @@ public class MainController {
     @PostMapping("/events/prepare")
     public ResponseEntity<byte[]> prepareMeeting(@RequestParam String messageId) {
         try {
-            // 1. Génération du texte via l'IA
             String memoText = meetingPrepService.generateMeetingMemo(messageId);
-
-            // 2. Création du document PDF
             Document document = new Document();
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             PdfWriter.getInstance(document, out);
-
             document.open();
             document.add(new Paragraph("====================================="));
             document.add(new Paragraph("        FICHE DE PREPARATION (IA)    "));
             document.add(new Paragraph("=====================================\n\n"));
             document.add(new Paragraph(memoText));
             document.close();
-
-            // 3. Préparation de la réponse HTTP
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
             headers.setContentDispositionFormData("attachment", "Fiche_Memo_" + messageId + ".pdf");
-
             return new ResponseEntity<>(out.toByteArray(), headers, HttpStatus.OK);
-
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
