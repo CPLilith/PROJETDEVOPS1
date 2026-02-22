@@ -56,6 +56,7 @@
         .tag-PLAN { background: #dbeafe; color: var(--plan); border: 1px solid #93c5fd; }
         .tag-DELEGATE { background: #fef3c7; color: var(--delegate); border: 1px solid #f59e0b; }
         .tag-DELETE { background: #f1f5f9; color: var(--delete); border: 1px solid #cbd5e1; }
+        .tag-PENDING { background: #f1f5f9; color: var(--delete); border: 1px solid #cbd5e1; }
 
         .action-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
         button { padding: 10px 15px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: white; }
@@ -67,28 +68,21 @@
         .loader-bar { width: 160px; height: 3px; background: #f1f5f9; position: relative; overflow: hidden; }
         .loader-bar::after { content: ''; width: 60px; height: 3px; background: var(--accent); position: absolute; animation: load 1.4s infinite ease-in-out; }
         @keyframes load { from { left: -60px; } to { left: 160px; } }
+        
         .content-view, .view-wrapper { padding: 60px; overflow-y: auto; height: 100vh; box-sizing: border-box; }
         .mail-title { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; }
         .kanban-container { display: flex; gap: 24px; }
         .kanban-col { flex: 1; background: #f8fafc; border-radius: 20px; padding: 25px; min-height: 600px; border: 1px solid var(--border); }
 
-        /* Style pour cacher l'input moche et styliser le label comme un bouton */
         .file-upload-wrapper { position: relative; display: inline-block; }
-        .btn-file { 
-            background: #fff; border: 1px solid var(--border); padding: 10px 15px; 
-            border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-block;
-        }
+        .btn-file { background: #fff; border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-block; }
         .btn-file:hover { background: #f8fafc; }
         #file-input { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-        .btn-delete { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; margin-left: auto; }
+        .btn-delete { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; margin-left: auto; padding: 8px 12px;}
 
         /* --- FILTER BAR --- */
         .filter-bar { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 6px; flex-wrap: wrap; background: #fff; flex-shrink: 0; }
-        .filter-chip {
-            padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
-            cursor: pointer; border: 1px solid var(--border); background: #f8fafc;
-            color: var(--text-sub); transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
-        }
+        .filter-chip { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: #f8fafc; color: var(--text-sub); transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
         .filter-chip:hover { background: #f1f5f9; }
         .filter-chip.active { color: #fff; border-color: transparent; }
         .filter-chip.active.chip-all      { background: var(--text-main); }
@@ -98,7 +92,8 @@
         .filter-chip.active.chip-DELETE   { background: var(--delete); }
         .filter-chip.active.chip-PENDING  { background: #94a3b8; }
         .filter-chip.active.chip-custom   { background: var(--do); }
-        .mail-card.hidden { display: none; }
+        
+        .mail-card.hidden { display: none !important; }
     </style>
 </head>
 
@@ -109,7 +104,7 @@
         <p id="loader-message" style="font-size: 11px; font-weight: 700; margin-top: 24px; text-transform: uppercase; letter-spacing: 2px;">Traitement...</p>
     </div>
 
-    <div class="app-container" th:classappend="${view == 'events' or view == 'kanban' ? 'full-view' : ''}">
+    <div class="app-container" th:classappend="${view == 'events' or view == 'kanban' or view == 'tags' ? 'full-view' : ''}">
         
         <aside class="sidebar">
             <div class="logo">EisenFlow.</div>
@@ -119,20 +114,21 @@
                 <a href="/knowledge" th:class="${view == 'knowledge' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-brain"></i> Knowledge Base</a>
                 <a href="/events" th:class="${view == 'events' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-calendar-alt"></i> Agenda / RDV</a>
                 <a href="/kanban" th:class="${view == 'kanban' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-columns"></i> Suivi Kanban</a>
+                <a href="/tags" th:class="${view == 'tags' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-tags"></i> Tags Custom</a>
             </nav>
 
             <div class="persona-box">
                 <div class="nav-label">Active Profile</div>
                 <form action="/persona" method="post" id="personaForm">
                     <input type="hidden" name="persona" id="selectedPersona">
-                    <button type="button" class="persona-btn" th:classappend="${currentPersona.name() == 'ETUDIANT' ? 'active' : ''}" onclick="switchPersona('ETUDIANT')">🎓 Student</button>
-                    <button type="button" class="persona-btn" th:classappend="${currentPersona.name() == 'DEVELOPPEUR' ? 'active' : ''}" onclick="switchPersona('DEVELOPPEUR')">💻 Developer</button>
-                    <button type="button" class="persona-btn" th:classappend="${currentPersona.name() == 'PROFESSEUR' ? 'active' : ''}" onclick="switchPersona('PROFESSEUR')">👨‍🏫 Teacher</button>
+                    <button type="button" class="persona-btn" th:classappend="${currentPersona != null and currentPersona.name() == 'ETUDIANT' ? 'active' : ''}" onclick="switchPersona('ETUDIANT')">🎓 Student</button>
+                    <button type="button" class="persona-btn" th:classappend="${currentPersona != null and currentPersona.name() == 'DEVELOPPEUR' ? 'active' : ''}" onclick="switchPersona('DEVELOPPEUR')">💻 Developer</button>
+                    <button type="button" class="persona-btn" th:classappend="${currentPersona != null and currentPersona.name() == 'PROFESSEUR' ? 'active' : ''}" onclick="switchPersona('PROFESSEUR')">👨‍🏫 Teacher</button>
                 </form>
             </div>
         </aside>
 
-        <main class="feed-container" th:if="${view != 'events' and view != 'kanban'}">
+        <main class="feed-container" th:if="${view != 'events' and view != 'kanban' and view != 'tags'}">
             <div class="feed-header">
                 <h2 th:text="${view == 'inbox' ? 'Flux Gmail' : 'Vault Obsidian'}"></h2>
                 
@@ -145,14 +141,10 @@
 
                     <th:block th:if="${view == 'knowledge'}">
                         <form action="/knowledge/upload" method="post" enctype="multipart/form-data" onsubmit="showLoader('Fusion IA...')" style="display:flex; gap:10px; align-items:center;">
-                            <div style="position: relative; display: inline-block;">
-                                <div class="btn-file" style="background: #fff; border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;">
-                                    <i class="fas fa-file-alt"></i> Sélectionner .md
-                                </div>
-                                <input type="file" name="files" multiple accept=".md" required 
-                                    style="position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;">
+                            <div class="file-upload-wrapper">
+                                <div class="btn-file"><i class="fas fa-file-alt"></i> Sélectionner .md</div>
+                                <input type="file" id="file-input" name="files" multiple accept=".md" required>
                             </div>
-
                             <button type="submit" style="background: var(--note); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600;">
                                 <i class="fas fa-layer-group"></i> Merger & Apprendre
                             </button>
@@ -161,145 +153,274 @@
                 </div>
             </div>
 
-            <!-- FILTER BAR : visible uniquement en inbox -->
             <div class="filter-bar" th:if="${view == 'inbox'}" id="filter-bar">
                 <span class="filter-chip chip-all active" onclick="setFilter('ALL', this)">Tous</span>
-                <span class="filter-chip chip-DO"      onclick="setFilter('DO', this)">DO</span>
-                <span class="filter-chip chip-PLAN"    onclick="setFilter('PLAN', this)">Plan</span>
+                <span class="filter-chip chip-DO" onclick="setFilter('DO', this)">DO</span>
+                <span class="filter-chip chip-PLAN" onclick="setFilter('PLAN', this)">Plan</span>
                 <span class="filter-chip chip-DELEGATE" onclick="setFilter('DELEGATE', this)">Delegate</span>
-                <span class="filter-chip chip-DELETE"  onclick="setFilter('DELETE', this)">Delete</span>
+                <span class="filter-chip chip-DELETE" onclick="setFilter('DELETE', this)">Delete</span>
                 <span class="filter-chip chip-PENDING" onclick="setFilter('PENDING', this)">Sans tag</span>
-                <!-- Tags DO custom injectés dynamiquement par Thymeleaf -->
-                <th:block th:each="ct : ${customDoTags}">
-                    <span class="filter-chip chip-custom"
-                          th:data-tag="${ct}"
-                          th:text="${#strings.replace(ct, 'DO_', 'DO · ').replace('_', ' ')}"
-                          onclick="setFilter(this.getAttribute('data-tag'), this)">
-                    </span>
+                
+                <th:block th:if="${customDoTags != null}">
+                    <th:block th:each="ct : ${customDoTags}">
+                        <span class="filter-chip chip-custom"
+                              th:data-tag="${ct}"
+                              th:text="${#strings.replace(ct, 'DO_', 'DO · ').replace('_', ' ')}"
+                              onclick="setFilter(this.getAttribute('data-tag'), this)">
+                        </span>
+                    </th:block>
                 </th:block>
             </div>
 
             <div class="feed-list">
-                <th:block th:if="${view == 'inbox'}">
+                <th:block th:if="${view == 'inbox' and mails != null}">
                     <div th:each="mail, iter : ${mails}" class="mail-card" 
                          th:id="'card-mail-' + ${iter.index}"
-                         th:data-id="${mail.messageId}" th:data-subject="${mail.subject}" th:data-from="${mail.from}" th:data-content="${mail.content}"
-                         th:data-tag="${mail.effectiveTag}"
-                         th:data-custom-tags="${#strings.listJoin(customDoTags, ',')}"
-                         onclick="openMail(this)">
+                         th:data-id="${mail.messageId}" 
+                         th:data-subject="${mail.subject}" 
+                         th:data-from="${mail.from}" 
+                         th:data-tag="${mail.effectiveTag}">
+                        
                         <div th:class="'status-strip dot-' + ${mail.action}"></div>
                         <span th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.effectiveTag}"></span>
-                        <div class="card-subject" th:text="${mail.subject}"></div>
+                        <div class="card-subject" th:text="${mail.subject}" style="font-weight: 600; margin-bottom: 8px;"></div>
+                        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;" th:text="${mail.from}"></div>
+                        
+                        <textarea th:id="'content-' + ${mail.messageId}" style="display:none;" th:text="${mail.content}"></textarea>
+                        
+                        <button onclick="openMail(this.parentElement, event)" style="margin-top: 10px; padding: 5px 10px; font-size: 11px;">Ouvrir</button>
                     </div>
                 </th:block>
 
-                <th:block th:if="${view == 'knowledge'}">
+                <th:block th:if="${view == 'knowledge' and notes != null}">
                     <div th:each="note, iter : ${notes}" class="mail-card" 
-                         th:data-id="${iter.index}" th:data-subject="${note.title}" th:data-from="${note.author}" th:data-content="${note.content}"
-                         onclick="openNote(this)">
+                         th:id="'card-note-' + ${iter.index}"
+                         th:data-id="${iter.index}" 
+                         th:data-subject="${note.title}" 
+                         th:data-from="${note.author}">
+                        
                         <div th:class="'status-strip dot-' + ${note.action}"></div>
                         <span th:class="'importance-tag tag-' + ${note.action}" th:text="${note.action}"></span>
-                        <div class="card-subject" th:text="${note.title}"></div>
+                        <div class="card-subject" th:text="${note.title}" style="font-weight: 600; margin-bottom: 8px;"></div>
+                        
+                        <textarea th:id="'note-content-' + ${iter.index}" style="display:none;" th:text="${note.content}"></textarea>
+                        
+                        <button onclick="openNote(this.parentElement, event)" style="margin-top: 10px; padding: 5px 10px; font-size: 11px;">Ouvrir</button>
                     </div>
                 </th:block>
             </div>
         </main>
 
-        <section th:class="${view == 'events' or view == 'kanban' ? 'view-wrapper' : 'content-view'}" id="main-reader">
+        <section th:class="${view == 'events' or view == 'kanban' or view == 'tags' ? 'view-wrapper' : 'content-view'}" id="main-reader">
             
             <th:block th:if="${view == 'events'}">
                 <h1 class="mail-title">Agenda IA</h1>
-                <div th:if="${!#lists.isEmpty(events)}">
-                    <div th:each="event : ${events}" class="mail-card" style="margin-bottom:15px;">
-                        <div th:class="'status-strip dot-' + ${event.type}"></div>
-                        <div style="color:var(--accent); font-weight:700;" th:text="${event.dateLieu}"></div>
-                        <div th:text="${event.title}" style="font-weight:700; margin: 10px 0;"></div>
-                        <button th:data-id="${event.sourceId}" onclick="generateMemo(this.getAttribute('data-id'), this)">Générer Mémo PDF</button>
+                <div th:if="${events != null and !#lists.isEmpty(events)}">
+                    <div th:each="event : ${events}" class="mail-card" style="margin-bottom:15px; border-left: 4px solid var(--plan);">
+                        <div style="color:var(--accent); font-weight:700; font-size: 14px;" th:text="${event.dateLieu}"></div>
+                        <div th:text="${event.title}" style="font-weight:700; font-size: 18px; margin: 10px 0;"></div>
+                        <span class="importance-tag" th:classappend="'tag-' + ${event.type}" th:text="${event.type}"></span>
+                        <div style="margin-top: 15px;">
+                            <button th:data-id="${event.sourceId}" onclick="generateMemo(this.getAttribute('data-id'), this)" style="background: var(--text-main); color: white; border: none;">
+                                <i class="fas fa-file-pdf"></i> Générer Mémo PDF
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div th:if="${#lists.isEmpty(events)}" style="text-align:center; padding:50px; opacity:0.5;">Aucun événement.</div>
+                <div th:if="${events == null or #lists.isEmpty(events)}" style="text-align:center; padding:50px; color: var(--text-sub);">
+                    <i class="fas fa-calendar-times fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                    <p>Aucun événement détecté par l'IA.</p>
+                </div>
             </th:block>
 
             <th:block th:if="${view == 'kanban'}">
-                <h1 class="mail-title">Suivi Kanban</h1>
-                <div class="kanban-container">
+                <h1 class="mail-title">Suivi Kanban (Délégations)</h1>
+                <div class="kanban-container" style="margin-top: 30px;">
                     <div class="kanban-col">
-                        <h3>🚀 À SUIVRE</h3>
-                        <div th:each="mail : ${todoMails}" class="mail-card" style="margin-bottom:10px;">
-                            <div class="status-strip dot-DELEGATE"></div>
-                            <small th:text="${mail.status}"></small>
-                            <div th:text="${mail.subject}" style="font-weight:700;"></div>
-                            <form action="/update-status" method="post" style="margin-top:10px;">
+                        <h3><i class="fas fa-rocket" style="color: var(--delegate);"></i> EN ATTENTE (DELEGATE)</h3>
+                        <div th:each="mail : ${todoMails}" class="mail-card" style="margin-bottom:15px; border-left: 4px solid var(--delegate);">
+                            <div style="font-size: 11px; font-weight: 700; color: #d97706; margin-bottom: 8px; text-transform: uppercase;">
+                                <i class="fas fa-user-clock"></i> <span th:text="${mail.status}"></span>
+                            </div>
+                            <div th:text="${mail.subject}" style="font-weight:700; font-size: 14px; margin-bottom: 15px;"></div>
+                            <form action="/update-status" method="post">
                                 <input type="hidden" name="messageId" th:value="${mail.messageId}">
-                                <button type="submit" name="status" value="FINALISÉ" style="width:100%; font-size:11px;">Terminer</button>
+                                <button type="submit" name="status" value="FINALISÉ" style="width:100%; background:#dcfce7; color:#166534; border: 1px solid #bbf7d0;">
+                                    <i class="fas fa-check"></i> Marquer comme terminé
+                                </button>
                             </form>
                         </div>
+                        <div th:if="${#lists.isEmpty(todoMails)}" style="text-align: center; color: var(--text-sub); padding: 20px; font-size: 13px;">Aucune tâche en attente.</div>
                     </div>
+                    
                     <div class="kanban-col">
-                        <h3>✅ TERMINÉ</h3>
-                        <div th:each="mail : ${doneMails}" class="mail-card" style="opacity:0.6;">
-                            <div class="status-strip dot-DO" style="background:#22c55e;"></div>
-                            <strike th:text="${mail.subject}"></strike>
+                        <h3><i class="fas fa-check-circle" style="color: #22c55e;"></i> FINALISÉ</h3>
+                        <div th:each="mail : ${doneMails}" class="mail-card" style="margin-bottom:15px; opacity:0.7; border-left: 4px solid #22c55e;">
+                            <div th:text="${mail.subject}" style="font-weight:600; font-size: 13px; text-decoration: line-through; color: var(--text-sub);"></div>
                         </div>
                     </div>
                 </div>
             </th:block>
 
-            <div th:if="${view == 'inbox' or view == 'knowledge'}" style="text-align:center; margin-top:150px; opacity:0.3;">
-                <i class="fas fa-hand-pointer fa-4x"></i><p>Sélectionnez un élément</p>
+            <th:block th:if="${view == 'tags'}">
+                <h1 class="mail-title">Gestion des Tags</h1>
+                <p style="color: var(--text-sub); margin-bottom: 30px;">Créez des sous-catégories pour organiser vos tâches DO.</p>
+                
+                <div style="background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 30px; max-width: 500px;">
+                    <h3 style="margin-top: 0; font-size: 15px;">Créer un nouveau tag</h3>
+                    
+                    <div th:if="${tagError}" style="background: #fee2e2; color: #ef4444; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; border: 1px solid #fca5a5;" th:text="${tagError}"></div>
+                    <div th:if="${tagSuccess}" style="background: #dcfce7; color: #16a34a; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; border: 1px solid #bbf7d0;" th:text="${tagSuccess}"></div>
+                    
+                    <form action="/tags/create" method="post" style="display: flex; gap: 10px;">
+                        <input type="text" name="label" placeholder="Ex: Formation, Urgence Client..." required 
+                               style="flex: 1; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); font-family: 'Inter';">
+                        <button type="submit" class="btn-primary">Ajouter</button>
+                    </form>
+                </div>
+
+                <h3 style="font-size: 15px; margin-bottom: 15px;">Tags personnalisés existants</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px; max-width: 500px;">
+                    <div th:each="ct : ${customDoTags}" style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                        <span class="importance-tag tag-DO" style="margin: 0; font-size: 12px;" th:text="${#strings.replace(ct, 'DO_', 'DO · ').replace('_', ' ')}"></span>
+                        <form action="/tags/delete" method="post" style="margin: 0;" onsubmit="return confirm('Supprimer ce tag ?');">
+                            <input type="hidden" name="tagName" th:value="${ct}">
+                            <button type="submit" class="btn-delete" style="padding: 6px 10px; font-size: 11px;"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
+                    <div th:if="${#lists.isEmpty(customDoTags)}" style="color: var(--text-sub); font-size: 13px; padding: 20px; text-align: center; background: white; border-radius: 12px; border: 1px dashed var(--border);">
+                        Aucun tag personnalisé créé.
+                    </div>
+                </div>
+            </th:block>
+
+            <div th:if="${view == 'inbox' or view == 'knowledge'}" id="default-placeholder" style="text-align:center; margin-top:200px; color: var(--text-sub);">
+                <i class="fas fa-envelope-open-text fa-4x" style="opacity: 0.2; margin-bottom: 20px;"></i>
+                <h2 style="font-weight: 500; font-size: 20px;">Sélectionnez un élément pour le lire</h2>
             </div>
         </section>
     </div>
 
-    <script>
-        function showLoader(msg) { document.getElementById('loader-message').innerText = msg; document.getElementById('loading-overlay').style.display = 'flex'; }
-        function switchPersona(p) { document.getElementById('selectedPersona').value = p; showLoader("Profil..."); document.getElementById('personaForm').submit(); }
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const jsCustomTags = /*[[${customDoTags}]]*/ [];
+        /*]]>*/
+    </script>
 
-        function openMail(el) {
-            document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            renderReader(el.getAttribute('data-subject'), "De : " + el.getAttribute('data-from'), el.getAttribute('data-content'), el.getAttribute('data-id'), false);
+    <script>
+        function showLoader(msg) { 
+            document.getElementById('loader-message').innerText = msg; 
+            document.getElementById('loading-overlay').style.display = 'flex'; 
+        }
+        
+        function switchPersona(p) { 
+            document.getElementById('selectedPersona').value = p; 
+            showLoader("Changement de profil..."); 
+            document.getElementById('personaForm').submit(); 
         }
 
-        function openNote(el) {
+        function openMail(cardEl, event) {
+            if(event) event.stopPropagation();
+            
             document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            renderReader(el.getAttribute('data-subject'), "Par : " + el.getAttribute('data-from'), el.getAttribute('data-content'), el.getAttribute('data-id'), true);
+            cardEl.classList.add('active');
+            
+            const id = cardEl.getAttribute('data-id');
+            const subject = cardEl.getAttribute('data-subject');
+            const from = cardEl.getAttribute('data-from');
+            const content = document.getElementById('content-' + id).value; // Récupère le texte brut du textarea caché
+            
+            renderReader(subject, "De : " + from, content, id, false);
+        }
+
+        function openNote(cardEl, event) {
+            if(event) event.stopPropagation();
+            
+            document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
+            cardEl.classList.add('active');
+            
+            const id = cardEl.getAttribute('data-id');
+            const subject = cardEl.getAttribute('data-subject');
+            const from = cardEl.getAttribute('data-from');
+            const content = document.getElementById('note-content-' + id).value;
+            
+            renderReader(subject, "Auteur IA : " + from, content, id, true);
         }
 
         function renderReader(title, sub, content, id, isNote) {
-            // Bouton rouge pour supprimer physiquement la note du JSON
-            const deleteFileBtn = isNote ? `<button onclick="deleteNote('${id}')" class="btn-delete"><i class="fas fa-trash"></i> Supprimer Résumé</button>` : '';
+            document.getElementById('default-placeholder')?.remove();
+            
+            const deleteFileBtn = isNote ? `<button onclick="deleteNote('${id}')" class="btn-delete"><i class="fas fa-trash"></i> Supprimer Note</button>` : '';
+
+            // Construction des boutons DO personnalisés
+            let customTagsButtons = '';
+            if (!isNote && jsCustomTags && jsCustomTags.length > 0) {
+                customTagsButtons = '<div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px dashed var(--border);">';
+                jsCustomTags.forEach(tag => {
+                    const displayLabel = tag.replace('DO_', '').replace('_', ' ');
+                    customTagsButtons += `<button onclick="upd('${id}', '${tag}', false)" class="tag-DO" style="opacity: 0.8;">DO · ${displayLabel}</button>`;
+                });
+                customTagsButtons += '</div>';
+            }
 
             document.getElementById('main-reader').innerHTML = `
-                <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px;">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:25px;">
                     <div>
                         <h1 class="mail-title">${title}</h1>
-                        <p style="color:var(--text-sub);">${sub}</p>
+                        <p style="color:var(--text-sub); font-size: 15px; margin: 0;">${sub}</p>
                     </div>
                     ${deleteFileBtn}
                 </div>
 
-                <div class="action-bar" style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid var(--border);">
-                    <span style="font-size:11px; font-weight:800; color:var(--text-sub); display:block; width:100%; margin-bottom:10px;">CLASSIFICATION :</span>
+                <div class="action-bar" style="background:#f8fafc; padding:20px; border-radius:16px; border:1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size:11px; font-weight:800; color:var(--text-sub); letter-spacing: 0.5px;">ACTIONS EISENHOWER :</span>
+                        
+                        ${!isNote ? `
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" id="quick-tag-input-${id}" placeholder="Nouveau sous-tag DO..." style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 11px;">
+                            <button onclick="createQuickTag('${id}')" style="padding: 6px 10px; font-size: 11px; background: white;"><i class="fas fa-plus"></i></button>
+                        </div>
+                        ` : ''}
+                    </div>
                     
-                    <button onclick="upd('${id}', 'DO', ${isNote})" class="tag-DO">DO</button>
-                    <button onclick="upd('${id}', 'PLAN', ${isNote})" class="tag-PLAN">PLAN</button>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="upd('${id}', 'DO', ${isNote})" class="tag-DO">DO (Générique)</button>
+                        <button onclick="upd('${id}', 'PLAN', ${isNote})" class="tag-PLAN">PLAN</button>
+                        ${!isNote ? `<button onclick="startDelegation('${id}')" class="tag-DELEGATE"><i class="fas fa-robot"></i> IA DELEGATE</button>` : ''}
+                        <button onclick="upd('${id}', 'DELETE', ${isNote})" class="tag-DELETE">DELETE</button>
+                    </div>
                     
-                    ${!isNote ? `<button onclick="autoDel('${id}')" class="tag-DELEGATE">DÉLÉGUER IA</button>` : ''}
-                    
-                    <button onclick="upd('${id}', 'DELETE', ${isNote})" class="tag-DELETE">DELETE</button>
+                    ${customTagsButtons}
                 </div>
 
-                <div id="delRes-${id}" style="margin-top:15px;"></div>
-                <div style="margin-top:30px; line-height:1.8; white-space:pre-wrap; font-size:15px; color:#334155;">${content}</div>
+                <div id="delegation-result-${id}" style="display:none; background: #fff; border: 1px solid var(--delegate); border-radius: 16px; padding: 20px; margin-top: 20px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);">
+                    <div style="font-size:11px; color:#b45309; font-weight:800; margin-bottom:10px; text-transform: uppercase;">
+                        🤖 Suggestion IA pour <span id="del-who-${id}">...</span>
+                    </div>
+                    <textarea id="del-draft-${id}" style="width:100%; height:120px; padding:15px; border:1px solid #cbd5e1; border-radius:10px; font-family:'Inter'; font-size:14px; color:#334155; line-height:1.6; resize:vertical; box-sizing:border-box;"></textarea>
+                    
+                    <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; color:var(--text-sub); font-family:monospace; background:#f1f5f9; padding:6px 10px; border-radius:6px; border: 1px solid var(--border);">Ref: <span id="del-id-${id}">...</span></span>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="document.getElementById('delegation-result-${id}').style.display='none'" style="background: white; color: var(--text-sub);">Annuler</button>
+                            <button id="btn-confirm-${id}" style="display:none; background:#16a34a; color:white; border:none; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600;">
+                                <i class="fas fa-paper-plane"></i> Valider & Créer Brouillon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top:40px; line-height:1.8; white-space:pre-wrap; font-size:15px; color:#334155; background: #fbfcfd; padding: 30px; border-radius: 16px; border: 1px solid var(--border);">${content}</div>
             `;
         }
 
-        // Nouvelle fonction pour appeler la suppression
+        // --- GESTION DES ACTIONS ---
+
         function deleteNote(index) {
-            if(confirm("Supprimer définitivement ce résumé ?")) {
-                showLoader("Suppression...");
+            if(confirm("Supprimer définitivement ce résumé de la base de connaissances ?")) {
+                showLoader("Suppression en cours...");
                 const f = document.createElement('form');
                 f.method = 'POST'; f.action = '/knowledge/delete';
                 f.innerHTML = `<input type="hidden" name="index" value="${index}">`;
@@ -308,43 +429,113 @@
         }
 
         function upd(id, tag, isNote) {
-            showLoader("MàJ...");
+            showLoader("Mise à jour du tag...");
             const f = document.createElement('form');
             f.method = 'POST'; f.action = isNote ? '/update-note-tag' : '/update-mail-tag';
             f.innerHTML = `<input type="hidden" name="${isNote ? 'index' : 'messageId'}" value="${id}"><input type="hidden" name="tag" value="${tag}">`;
             document.body.appendChild(f); f.submit();
         }
 
-        function autoDel(id) {
-            const res = document.getElementById('delRes-' + id);
-            res.innerHTML = "🤖 Analyse...";
-            fetch('/delegate-auto?messageId=' + encodeURIComponent(id), { method: 'POST' })
-                .then(r => r.json())
-                .then(d => { res.innerHTML = `<div style="background:#fef3c7; padding:15px; border-radius:10px;">🚀 Expert : ${d.assignee}<br><small>${d.draftBody}</small></div>`; });
+        function createQuickTag(messageId) {
+            const input = document.getElementById('quick-tag-input-' + messageId);
+            const label = input.value.trim();
+            if(!label) return;
+            
+            input.disabled = true;
+            input.value = "Création...";
+            
+            fetch('/tags/create-ajax', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'label=' + encodeURIComponent(label)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.error) {
+                    alert(data.error);
+                    input.disabled = false;
+                    input.value = label;
+                } else {
+                    // Si succès, on met directement à jour le mail avec le nouveau tag
+                    upd(messageId, data.tag, false);
+                }
+            })
+            .catch(err => {
+                alert("Erreur de connexion");
+                input.disabled = false;
+            });
         }
 
+        // --- DELEGATION 2-STEPS ---
+
+        function startDelegation(messageId) {
+            const resultDiv = document.getElementById('delegation-result-' + messageId);
+            resultDiv.style.display = 'block';
+            document.getElementById('del-who-' + messageId).innerText = "Recherche dans l'équipe...";
+            document.getElementById('del-draft-' + messageId).value = "Analyse en cours...";
+
+            fetch('/delegate-auto', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'messageId=' + encodeURIComponent(messageId)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('del-who-' + messageId).innerText = data.assignee;
+                document.getElementById('del-draft-' + messageId).value = data.draftBody;
+                document.getElementById('del-id-' + messageId).innerText = data.trackingId;
+                
+                const btnConfirm = document.getElementById('btn-confirm-' + messageId);
+                btnConfirm.style.display = 'block';
+                
+                btnConfirm.onclick = function() {
+                    const finalDraft = document.getElementById('del-draft-' + messageId).value;
+                    confirmDelegationAction(messageId, data.assignee, finalDraft);
+                };
+            })
+            .catch(err => {
+                document.getElementById('del-draft-' + messageId).value = "Erreur lors de la communication avec l'IA.";
+            });
+        }
+
+        function confirmDelegationAction(messageId, assignee, draftBody) {
+            showLoader("Création du brouillon côté serveur...");
+            fetch('/delegate-confirm', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'messageId=' + encodeURIComponent(messageId) + '&assignee=' + encodeURIComponent(assignee) + '&draftBody=' + encodeURIComponent(draftBody)
+            })
+            .then(res => res.json())
+            .then(data => {
+                // On recharge pour mettre à jour la liste et le Kanban
+                window.location.href = "/kanban"; 
+            });
+        }
+
+        // --- GENERATION PDF ---
+
         function generateMemo(id, btn) {
-            showLoader("PDF...");
+            showLoader("Génération du rapport PDF via IA...");
             fetch('/events/prepare', { method: 'POST', body: new URLSearchParams({'messageId': id}) })
                 .then(r => r.blob()).then(blob => {
-                    const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = "Memo.pdf";
-                    a.className = "btn-primary"; a.innerHTML = "Télécharger PDF";
+                    const a = document.createElement('a'); 
+                    a.href = window.URL.createObjectURL(blob); 
+                    a.download = "Fiche_Preparation.pdf";
+                    a.className = "btn-primary"; 
+                    a.innerHTML = "<i class='fas fa-download'></i> Télécharger PDF";
+                    a.style.display = "inline-block";
+                    a.style.textDecoration = "none";
                     btn.parentNode.replaceChild(a, btn);
                     document.getElementById('loading-overlay').style.display = 'none';
                 });
         }
 
-        // --- FILTER ---
-        let activeFilter = 'ALL';
+        // --- FILTRES INBOX ---
 
         function setFilter(tag, chipEl) {
-            activeFilter = tag;
-
-            // Met à jour les chips actives
             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
             chipEl.classList.add('active');
 
-            // Filtre les cartes
             document.querySelectorAll('.feed-list .mail-card').forEach(card => {
                 const cardTag = card.getAttribute('data-tag') || 'PENDING';
                 let show = false;
@@ -352,17 +543,18 @@
                 if (tag === 'ALL') {
                     show = true;
                 } else if (tag === 'PENDING') {
-                    // "Sans tag" = PENDING ou tag vide
                     show = (cardTag === 'PENDING' || cardTag === '' || cardTag === 'null');
                 } else if (tag === 'DO') {
-                    // DO générique uniquement (pas les custom DO_xxx)
                     show = (cardTag === 'DO');
                 } else {
-                    // Filtre exact (DO_FORMATION, PLAN, etc.)
                     show = (cardTag === tag);
                 }
 
-                card.classList.toggle('hidden', !show);
+                if(show) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
             });
         }
     </script>

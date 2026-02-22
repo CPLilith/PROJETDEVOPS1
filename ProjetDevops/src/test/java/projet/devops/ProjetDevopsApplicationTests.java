@@ -25,10 +25,14 @@ class ProjetDevopsApplicationTests {
         service.getMails().add(testMail); 
 
         // 2. On exécute la mise à jour manuelle
-        service.updateMailTag(0, "DO");
+        service.updateMailTagById("ID1", "DO");
 
         // 3. On vérifie que le tag a bien changé en DO
-        assertEquals(EisenhowerAction.DO, service.getMails().get(0).getAction());
+        Mail updated = service.getMails().stream()
+                .filter(m -> "ID1".equals(m.getMessageId()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(EisenhowerAction.DO, updated.getAction());
     }
 
     @Test

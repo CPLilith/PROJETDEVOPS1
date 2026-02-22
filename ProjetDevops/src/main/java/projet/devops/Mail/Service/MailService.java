@@ -9,14 +9,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.BodyPart;
+import jakarta.mail.Flags;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
+import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.search.MessageIDTerm;
-import projet.devops.Mail.Classifier.EisenhowerAction;
 import projet.devops.Mail.Mail;
 
 @Service
@@ -29,62 +33,66 @@ public class MailService {
     @Value("${mail.imap.password}")
     private String password;
 
-    /**
-     * Récupère les mails (Version stable pour compilation)
-     */
     public List<Mail> fetchAllMails() {
-        List<Mail> mails = new ArrayList<>();
+        List<Mail> mailList = new ArrayList<>();
+        Store store = null;
+        Folder inbox = null;
         try {
-            Store store = connect();
-            Folder inbox = store.getFolder("INBOX");
+            store = connect();
+            inbox = store.getFolder("INBOX");
             inbox.open(Folder.READ_ONLY);
+            
+            int totalMessages = inbox.getMessageCount();
+            int limite = 30; 
+            int start = Math.max(1, totalMessages - limite + 1);
 
-            int count = inbox.getMessageCount();
-            int start = Math.max(1, count - 10);
-            Message[] messages = inbox.getMessages(start, count);
-
-            for (Message msg : messages) {
-                // Utilisation des méthodes utilitaires sécurisées
-                String messageId = getMessageId(msg);
-                String subject = msg.getSubject() != null ? msg.getSubject() : "(Sans sujet)";
-                String from = msg.getFrom()[0].toString();
-                String date = msg.getSentDate() != null ? msg.getSentDate().toString() : "";
-                String content = getTextFromMessage(msg);
-
-                Mail mail = new Mail(messageId, date, subject, from, content);
-                
-                // Pour éviter l'erreur de compilation sur les Labels Gmail complexes,
-                // on initialise par défaut en PENDING.
-                // La récupération des labels Gmail spécifiques nécessite une config Maven plus avancée.
-                mail.setAction(EisenhowerAction.PENDING);
-
-                mails.add(mail);
+            Message[] messages = inbox.getMessages(start, totalMessages);
+            
+            for (int i = messages.length - 1; i >= 0; i--) {
+                Message msg = messages[i];
+                mailList.add(new Mail(
+                    getMessageId(msg),
+                    msg.getSentDate() != null ? msg.getSentDate().toString() : "Date inconnue",
+                    msg.getSubject(),
+                    msg.getFrom()[0].toString(),
+                    getTextFromMessage(msg)
+                ));
             }
-
-            inbox.close(false);
-            store.close();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try { if (inbox != null) inbox.close(false); if (store != null) store.close(); } catch (Exception e) {}
         }
-        return mails;
+        return mailList;
     }
 
-    /**
-     * Version simplifiée pour éviter l'erreur "incompatible types"
-     */
-    public List<String> getLabelsForMessage(String messageId) {
-        // Retourne une liste vide pour permettre la compilation immédiate.
-        // L'implémentation complète des extensions Gmail IMAP (X-GM-LABELS)
-        // est désactivée temporairement pour résoudre le BUILD FAILURE.
-        return new ArrayList<>();
+    // --- ENVOI RÉEL (SMTP) ---
+    public void sendEmail(String toEmail, String subject, String body) throws Exception {
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+
+        Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(username));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+        message.setSubject(subject);
+        message.setText(body);
+
+        Transport.send(message);
+        System.out.println("✈️ Mail envoyé à : " + toEmail);
     }
 
-    /**
-     * Applique un label (Tag) sur un mail dans Gmail
-     */
+    // --- SYNCHRONISATION DES LABELS ---
     public void applyLabelToMail(String messageId, String labelName) {
-        try {
-            Store store = connect();
+        try (Store store = connect()) {
             Folder inbox = store.getFolder("INBOX");
             inbox.open(Folder.READ_WRITE);
 
@@ -93,21 +101,37 @@ public class MailService {
                 Folder labelFolder = store.getFolder(labelName);
                 if (!labelFolder.exists()) labelFolder.create(Folder.HOLDS_MESSAGES);
                 inbox.copyMessages(messages, labelFolder);
-                System.out.println("✅ Sync Gmail : Label " + labelName + " appliqué.");
+                System.out.println("✅ Label [" + labelName + "] appliqué sur Gmail.");
             }
             inbox.close(false);
-            store.close();
         } catch (Exception e) {
-            System.err.println("❌ Erreur sync Gmail: " + e.getMessage());
+            System.err.println("❌ Erreur applyLabel : " + e.getMessage());
         }
     }
 
-    // --- Méthodes Utilitaires Privées ---
+    public void createDraft(String toEmail, String subject, String body) throws Exception {
+        try (Store store = connect()) {
+            Folder draftsFolder = store.getFolder("[Gmail]/Brouillons"); 
+            if (!draftsFolder.exists()) {
+                draftsFolder = store.getFolder("Drafts");
+                if (!draftsFolder.exists()) draftsFolder.create(Folder.HOLDS_MESSAGES);
+            }
+            draftsFolder.open(Folder.READ_WRITE);
+
+            Message message = new MimeMessage(Session.getInstance(new Properties()));
+            message.setFrom(new InternetAddress(username));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            message.setSubject(subject);
+            message.setText(body);
+            message.setFlag(Flags.Flag.DRAFT, true);
+
+            draftsFolder.appendMessages(new Message[] { message });
+        }
+    }
 
     private Store connect() throws Exception {
         Properties props = new Properties();
         props.put("mail.store.protocol", "imaps");
-        props.put("mail.imap.ssl.enable", "true");
         Session session = Session.getInstance(props);
         Store store = session.getStore("imaps");
         store.connect(host, username, password);
@@ -115,13 +139,8 @@ public class MailService {
     }
 
     private String getMessageId(Message msg) {
-        try {
-            // Tentative sécurisée de récupération d'ID
-            if (msg instanceof jakarta.mail.internet.MimeMessage) {
-                 return ((jakarta.mail.internet.MimeMessage) msg).getMessageID();
-            }
-            return "";
-        } catch (Exception e) { return ""; }
+        try { return (msg instanceof MimeMessage) ? ((MimeMessage) msg).getMessageID() : "id-" + msg.getMessageNumber(); } 
+        catch (Exception e) { return ""; }
     }
 
     private String getTextFromMessage(Message message) throws MessagingException, IOException {

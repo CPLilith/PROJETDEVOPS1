@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -218,7 +217,16 @@ public class MainController {
     @PostMapping("/delegate-auto")
     @ResponseBody
     public DelegationData delegateAuto(@RequestParam String messageId) {
-        return flowService.processDelegation(messageId);
+        // Étape 1 : On renvoie juste la suggestion
+        return flowService.suggestDelegation(messageId);
+    }
+
+    @PostMapping("/delegate-confirm")
+    @ResponseBody
+    public Map<String, String> delegateConfirm(@RequestParam String messageId, @RequestParam String assignee, @RequestParam String draftBody) {
+        // Étape 2 : On confirme la création
+        flowService.confirmDelegation(messageId, assignee, draftBody);
+        return Map.of("status", "success");
     }
 
     @PostMapping("/delegate-manual")

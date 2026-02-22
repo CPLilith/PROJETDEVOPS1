@@ -1,7 +1,8 @@
 package projet.devops.Mail.Service;
 
-import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
@@ -13,71 +14,106 @@ public class TeamService {
 
     private final OllamaClient ollamaClient;
 
-    private final Map<String, String> teamDirectory = Map.of(
-        "BACKEND", "Thomas (thomas.dev@company.com) - Expert Java, Spring, Base de données",
-        "FRONTEND", "Sophie (sophie.ui@company.com) - Expert CSS, Thymeleaf, JS",
-        "OPS", "Marc (marc.ops@company.com) - Serveurs, Docker, Sécurité, Réseau",
-        "MANAGER", "Julie (julie.boss@company.com) - Budget, Planning, RH, Validation"
-    );
-
-    // Injection par Spring
     public TeamService(OllamaClient ollamaClient) {
         this.ollamaClient = ollamaClient;
     }
 
-    public String suggestAssignee(String emailContent) {
+    public String suggestAssignee(String emailContent, Map<String, String> contactsMap) {
+        if (contactsMap == null || contactsMap.isEmpty()) return "equipe@defaut.com";
+
+        String lowerContent = emailContent.toLowerCase();
+
+        // --- ÉTAPE 1 : RECHERCHE PRIORITAIRE PAR MOTS-CLÉS (SÉCURITÉ) ---
+        // On scanne le mail pour voir s'il contient des mots techniques correspondant aux rôles
+        for (Map.Entry<String, String> entry : contactsMap.entrySet()) {
+            String email = entry.getKey();
+            String roleDescription = entry.getValue().toLowerCase();
+
+            // Match DevOps
+            if ((lowerContent.contains("docker") || lowerContent.contains("git") || lowerContent.contains("serveur") || lowerContent.contains("infra")) 
+                && roleDescription.contains("devops")) {
+                System.out.println("✅ Match Mot-clé : DevOps identifié (" + email + ")");
+                return email;
+            }
+            // Match Backend / IA
+            if ((lowerContent.contains("ia") || lowerContent.contains("backend") || lowerContent.contains("api") || lowerContent.contains("ollama")) 
+                && roleDescription.contains("backend")) {
+                System.out.println("✅ Match Mot-clé : Backend identifié (" + email + ")");
+                return email;
+            }
+            // Match Frontend
+            if ((lowerContent.contains("css") || lowerContent.contains("interface") || lowerContent.contains("ui") || lowerContent.contains("visuel")) 
+                && roleDescription.contains("frontend")) {
+                System.out.println("✅ Match Mot-clé : Frontend identifié (" + email + ")");
+                return email;
+            }
+            // Match BDD / QA
+            if ((lowerContent.contains("sql") || lowerContent.contains("base de données") || lowerContent.contains("bug") || lowerContent.contains("test")) 
+                && roleDescription.contains("bdd")) {
+                System.out.println("✅ Match Mot-clé : BDD/QA identifié (" + email + ")");
+                return email;
+            }
+        }
+
+        // --- ÉTAPE 2 : APPEL IA (TINYLLAMA) EN DERNIER RECOURS ---
         try {
-            // Utilisation du TextCleaner (DRY)
-            String cleanContent = TextCleaner.cleanEmailText(emailContent, 400);
+            System.out.println("🧠 Mots-clés non trouvés, consultation de l'IA...");
+            String cleanContent = TextCleaner.cleanEmailText(emailContent, 250);
+            
+            StringBuilder contactsList = new StringBuilder();
+            for (Map.Entry<String, String> entry : contactsMap.entrySet()) {
+                contactsList.append("- ").append(entry.getKey()).append(" : ").append(entry.getValue()).append("\n");
+            }
 
             String prompt = String.format("""
-                TÂCHE : Choisis le responsable idéal pour ce mail.
+                Tu es un routeur de mails technique. Choisis l'email le plus adapté dans la liste.
                 
-                MEMBRES DE L'ÉQUIPE :
-                - Thomas (Expert Technique, Serveurs, Bugs)
-                - Sophie (Design, Frontend, Marketing)
-                - Marc (Commercial, Client, Devis)
-                - Julie (RH, Administratif, Factures)
+                ÉQUIPE DISPONIBLE:
+                %s
 
-                MAIL : "%s"
+                MAIL À ANALYSER:
+                "%s"
 
-                RÈGLE : Réponds UNIQUEMENT avec le PRÉNOM. Pas de phrase. 
-                Si tu hésites, réponds "Thomas".
-                """, cleanContent);
+                RÈGLE: Réponds UNIQUEMENT avec l'email choisi.
+                EMAIL DU RESPONSABLE:
+                """, contactsList.toString(), cleanContent);
 
-            String response = ollamaClient.generateResponse("tinyllama", prompt);
+            String response = ollamaClient.generateResponse("tinyllama", prompt).trim();
+
+            // Validation de la réponse de l'IA par Regex
+            Pattern emailPattern = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}");
+            Matcher matcher = emailPattern.matcher(response);
             
-            String cleaned = response.replaceAll("[^a-zA-Z]", " ").trim().split("\\s+")[0];
-            
-            List<String> team = List.of("Thomas", "Sophie", "Marc", "Julie");
-            return team.stream()
-                       .filter(name -> name.equalsIgnoreCase(cleaned))
-                       .findFirst()
-                       .orElse("Thomas");
-
+            if (matcher.find()) {
+                String foundEmail = matcher.group();
+                // On vérifie que l'email extrait existe bien dans notre dictionnaire
+                if (contactsMap.containsKey(foundEmail)) {
+                    System.out.println("🤖 IA Success : " + foundEmail);
+                    return foundEmail;
+                }
+            }
         } catch (Exception e) {
-            return "Thomas";
+            System.err.println("❌ Erreur TeamService (IA)");
         }
+
+        // --- ÉTAPE 3 : RETOUR PAR DÉFAUT ---
+        // Si rien n'a matché, on prend le premier du dictionnaire
+        System.out.println("⚠️ Aucune détection précise, retour au premier contact du JSON.");
+        return contactsMap.keySet().iterator().next();
     }
 
+    /**
+     * Génère un brouillon propre et structuré sans utiliser l'IA 
+     * pour éviter les hallucinations dans le corps du mail.
+     */
     public String generateDelegationDraft(String originalSender, String assignee, String content, String trackingId) {
-        try {
-            // Utilisation du TextCleaner (DRY)
-            String cleanContent = TextCleaner.cleanEmailText(content, 300);
-            
-            String prompt = String.format("""
-                Rédige un mail de délégation court et professionnel pour %s.
-                Contexte : Je transmets un mail reçu de %s qui parle de : "%s".
-                
-                Consignes :
-                1. Sois direct et poli.
-                2. Inclus IMPÉRATIVEMENT cet ID de suivi dans le texte : [Ref: %s].
-                3. Ne mets pas d'objet, juste le corps du message.
-                """, assignee, originalSender, cleanContent, trackingId);
-
-            return ollamaClient.generateResponse("tinyllama", prompt);
-        } catch (Exception e) {
-            return "Bonjour " + assignee + ",\nPeux-tu regarder ça ?\n\n[Ref: " + trackingId + "]";
-        }
+        String cleanContent = TextCleaner.cleanEmailText(content, 200);
+        
+        return String.format(
+            "Bonjour,\n\nPeux-tu traiter la demande de %s qui dit :\n\"%s\"\n\nMerci.\n\n[Ref: %s]",
+            originalSender, 
+            cleanContent, 
+            trackingId
+        );
     }
 }
