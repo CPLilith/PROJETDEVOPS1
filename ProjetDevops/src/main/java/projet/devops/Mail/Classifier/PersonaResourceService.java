@@ -10,8 +10,7 @@ public final class PersonaResourceService {
     private static final Persona DEFAULT_PERSONA = Persona.NEUTRE;
 
     // Chemin PHYSIQUE vers resources (DEV uniquement)
-    private static final Path PERSONA_FILE =
-            Path.of("src", "main", "resources", "persona.txt");
+    private static final Path PERSONA_FILE = Path.of("src", "main", "resources", "persona.txt");
 
     private PersonaResourceService() {
     }
@@ -39,7 +38,6 @@ public final class PersonaResourceService {
         Files.writeString(
                 PERSONA_FILE,
                 persona.name(),
-                StandardCharsets.UTF_8
-        );
+                StandardCharsets.UTF_8);
     }
 }

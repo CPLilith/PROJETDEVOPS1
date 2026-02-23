@@ -26,17 +26,49 @@ public class Mail {
         this.action = EisenhowerAction.PENDING;
     }
 
-    public String getMessageId() { return messageId; }
-    public void setMessageId(String messageId) { this.messageId = messageId; }
-    public String getDate() { return date; }
-    public void setDate(String date) { this.date = date; }
-    public String getSubject() { return subject; }
-    public void setSubject(String subject) { this.subject = subject; }
-    public String getFrom() { return from; }
-    public void setFrom(String from) { this.from = from; }
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-    public EisenhowerAction getAction() { return action; }
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public EisenhowerAction getAction() {
+        return action;
+    }
 
     /**
      * Setter String : si le tag est inconnu de l'enum (= custom DO),
@@ -63,18 +95,32 @@ public class Mail {
         this.customDoTag = null;
     }
 
-    public String getCustomDoTag() { return customDoTag; }
-    public void setCustomDoTag(String customDoTag) { this.customDoTag = customDoTag; }
+    public String getCustomDoTag() {
+        return customDoTag;
+    }
+
+    public void setCustomDoTag(String customDoTag) {
+        this.customDoTag = customDoTag;
+    }
 
     /**
      * Tag effectif à afficher dans l'UI : custom si présent, sinon nom de l'action.
      */
     public String getEffectiveTag() {
-        if (customDoTag != null && !customDoTag.isBlank()) return customDoTag;
+        if (customDoTag != null && !customDoTag.isBlank())
+            return customDoTag;
         return action != null ? action.name() : "PENDING";
     }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-    public String status() { return status; }
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String status() {
+        return status;
+    }
 }

@@ -20,16 +20,17 @@ import projet.devops.Mail.Model.Note;
 
 @Service
 public class NoteService {
-    
+
     private final OllamaClient ollamaClient;
     private final String storagePath;
-    
+
     private List<Note> notes = new ArrayList<>();
     private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-    
-    // Injection de l'IA ET du chemin de fichier (avec une valeur par défaut de sécurité)
-    public NoteService(OllamaClient ollamaClient, 
-                       @Value("${app.storage.notes:storage/notes_history.json}") String storagePath) {
+
+    // Injection de l'IA ET du chemin de fichier (avec une valeur par défaut de
+    // sécurité)
+    public NoteService(OllamaClient ollamaClient,
+            @Value("${app.storage.notes:storage/notes_history.json}") String storagePath) {
         this.ollamaClient = ollamaClient;
         this.storagePath = storagePath;
     }
@@ -56,28 +57,32 @@ public class NoteService {
 
     public void generateAiKnowledge(MultipartFile[] files, Persona persona) throws Exception {
         String rawContext = extractRawData(files);
-        if (rawContext.isEmpty()) return;
+        if (rawContext.isEmpty())
+            return;
 
-        String synthesisPrompt = "En tant que " + persona.name() + ", fais une synthèse comparative intelligente de ces notes. " +
-                                 "Identifie qui a écrit quoi et les points clés :\n" + rawContext;
+        String synthesisPrompt = "En tant que " + persona.name()
+                + ", fais une synthèse comparative intelligente de ces notes. " +
+                "Identifie qui a écrit quoi et les points clés :\n" + rawContext;
         String aiSynthesis = ollamaClient.generateResponse("tinyllama", synthesisPrompt);
 
-        String tagPrompt = "Sur la base de cette synthèse, choisis UN SEUL mot parmi : DO, PLAN, DELEGATE, DELETE.\nTexte : " + aiSynthesis;
+        String tagPrompt = "Sur la base de cette synthèse, choisis UN SEUL mot parmi : DO, PLAN, DELEGATE, DELETE.\nTexte : "
+                + aiSynthesis;
         String eisenhowerTag = ollamaClient.generateResponse("tinyllama", tagPrompt).trim().toUpperCase();
-        
+
         if (!Arrays.asList("DO", "PLAN", "DELEGATE", "DELETE").contains(eisenhowerTag)) {
             eisenhowerTag = "PENDING";
         }
 
-        Note newNote = new Note("Intelligence Collective (" + persona.name() + ")", aiSynthesis, "AI Orchestrator", eisenhowerTag);
-        notes.add(0, newNote); 
+        Note newNote = new Note("Intelligence Collective (" + persona.name() + ")", aiSynthesis, "AI Orchestrator",
+                eisenhowerTag);
+        notes.add(0, newNote);
         saveNoteToJson();
     }
 
     public void deleteNote(int index) {
         if (index >= 0 && index < notes.size()) {
             notes.remove(index);
-            saveNoteToJson(); 
+            saveNoteToJson();
             System.out.println("🗑️ [Persistence] Note supprimée et historique mis à jour.");
         }
     }
@@ -85,8 +90,9 @@ public class NoteService {
     private void saveNoteToJson() {
         try {
             File file = new File(storagePath);
-            if (file.getParentFile() != null) file.getParentFile().mkdirs();
-            
+            if (file.getParentFile() != null)
+                file.getParentFile().mkdirs();
+
             mapper.writeValue(file, notes);
             System.out.println("💾 [Persistence] Fichier écrit avec succès à : " + file.getAbsolutePath());
         } catch (Exception e) {
@@ -116,7 +122,7 @@ public class NoteService {
     public void updateNoteTag(int index, String newTag) {
         if (index >= 0 && index < notes.size()) {
             Note note = notes.get(index);
-            note.setAction(newTag.toUpperCase()); 
+            note.setAction(newTag.toUpperCase());
             saveNoteToJson();
             System.out.println("✅ [Persistence] Tag de la note " + index + " mis à jour en : " + newTag);
         }

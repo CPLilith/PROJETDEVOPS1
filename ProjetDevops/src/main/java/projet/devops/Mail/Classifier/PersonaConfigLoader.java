@@ -23,8 +23,7 @@ public final class PersonaConfigLoader {
                 return DEFAULT_PERSONA;
             }
 
-            try (BufferedReader reader =
-                     new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
 
                 String line = reader.readLine();
 

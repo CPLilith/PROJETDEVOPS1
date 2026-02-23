@@ -35,8 +35,11 @@ import projet.devops.Mail.Service.MailFlowService.DelegationData;
 import projet.devops.Mail.Service.MeetingPrepService;
 import projet.devops.Mail.Service.NoteService;
 
-record EventItem(String title, String dateLieu, String type, String sourceId) {}
-record RestResponse<T>(T data, Map<String, String> _links) {}
+record EventItem(String title, String dateLieu, String type, String sourceId) {
+}
+
+record RestResponse<T>(T data, Map<String, String> _links) {
+}
 
 @Controller
 public class MainController {
@@ -75,9 +78,11 @@ public class MainController {
     public String index(Model model) {
         model.addAttribute("view", "inbox");
         List<Mail> currentMails = flowService.getMails();
-        if (currentMails == null) currentMails = new ArrayList<>();
+        if (currentMails == null)
+            currentMails = new ArrayList<>();
         List<Mail> sortedMails = new ArrayList<>(currentMails);
-        if (!sortedMails.isEmpty()) Collections.reverse(sortedMails);
+        if (!sortedMails.isEmpty())
+            Collections.reverse(sortedMails);
         model.addAttribute("mails", sortedMails);
         addPersonaToModel(model);
         addTagsToModel(model);
@@ -87,7 +92,8 @@ public class MainController {
     @GetMapping("/kanban")
     public String kanban(Model model) {
         List<Mail> mails = flowService.getMails();
-        if (mails == null) mails = new ArrayList<>();
+        if (mails == null)
+            mails = new ArrayList<>();
         model.addAttribute("todoMails", mails.stream()
                 .filter(m -> m.getAction() == EisenhowerAction.DELEGATE && !"FINALISÉ".equals(m.getStatus())).toList());
         model.addAttribute("doneMails", mails.stream()
@@ -113,7 +119,10 @@ public class MainController {
     public String showEvents(Model model) {
         List<EventItem> events = new ArrayList<>();
         if (flowService.getMails().isEmpty()) {
-            try { flowService.fetchMails(); } catch (Exception e) {}
+            try {
+                flowService.fetchMails();
+            } catch (Exception e) {
+            }
         }
         for (Mail m : flowService.getMails()) {
             if (m.getAction() == EisenhowerAction.PLAN) {
@@ -135,7 +144,7 @@ public class MainController {
     }
 
     // =========================================================
-    //  GESTION DES TAGS DO PERSONNALISÉS
+    // GESTION DES TAGS DO PERSONNALISÉS
     // =========================================================
 
     /**
@@ -151,7 +160,7 @@ public class MainController {
 
     /**
      * Crée un nouveau tag DO personnalisé.
-     * POST /tags/create  body: label=Formation RH
+     * POST /tags/create body: label=Formation RH
      */
     @PostMapping("/tags/create")
     public String createTag(@RequestParam("label") String label, Model model) {
@@ -169,7 +178,7 @@ public class MainController {
 
     /**
      * Supprime un tag DO personnalisé.
-     * POST /tags/delete  body: tagName=DO_FORMATION
+     * POST /tags/delete body: tagName=DO_FORMATION
      */
     @PostMapping("/tags/delete")
     public String deleteTag(@RequestParam("tagName") String tagName) {
@@ -191,7 +200,7 @@ public class MainController {
 
     /**
      * Création AJAX d'un tag DO custom depuis le reader.
-     * POST /tags/create-ajax  body: label=Formation RH
+     * POST /tags/create-ajax body: label=Formation RH
      * Retourne { "tag": "DO_FORMATION_RH" } ou { "error": "..." }
      */
     @PostMapping("/tags/create-ajax")
@@ -205,7 +214,7 @@ public class MainController {
     }
 
     // =========================================================
-    //  ROUTES EXISTANTES (inchangées)
+    // ROUTES EXISTANTES (inchangées)
     // =========================================================
 
     @PostMapping("/knowledge/upload")
@@ -223,7 +232,8 @@ public class MainController {
 
     @PostMapping("/delegate-confirm")
     @ResponseBody
-    public Map<String, String> delegateConfirm(@RequestParam String messageId, @RequestParam String assignee, @RequestParam String draftBody) {
+    public Map<String, String> delegateConfirm(@RequestParam String messageId, @RequestParam String assignee,
+            @RequestParam String draftBody) {
         // Étape 2 : On confirme la création
         flowService.confirmDelegation(messageId, assignee, draftBody);
         return Map.of("status", "success");

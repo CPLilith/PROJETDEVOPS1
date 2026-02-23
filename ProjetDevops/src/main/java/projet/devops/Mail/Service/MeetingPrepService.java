@@ -41,30 +41,31 @@ public class MeetingPrepService {
         for (Mail m : contextMails) {
             // Utilisation du TextCleaner (DRY)
             String cleanContent = TextCleaner.cleanEmailText(m.getContent(), 200);
-            
-            // On rajoute "..." visuellement si on a tronqué, pour que l'IA comprenne que c'est un extrait
+
+            // On rajoute "..." visuellement si on a tronqué, pour que l'IA comprenne que
+            // c'est un extrait
             if (m.getContent().length() > 200) {
                 cleanContent += "...";
             }
-                
+
             contextText.append("- Date: ").append(m.getDate())
-                       .append(" | Sujet: ").append(m.getSubject())
-                       .append("\n  Extrait: ").append(cleanContent)
-                       .append("\n\n");
+                    .append(" | Sujet: ").append(m.getSubject())
+                    .append("\n  Extrait: ").append(cleanContent)
+                    .append("\n\n");
         }
 
         String prompt = String.format("""
-            Tu es un assistant de direction expert. Un rendez-vous est prévu concernant le sujet : "%s" avec %s.
-            
-            Voici l'historique de nos derniers échanges :
-            %s
-            
-            Génère une brève "Fiche Mémo" pour préparer cette réunion. 
-            Réponds de manière professionnelle et structure ta réponse ainsi :
-            - 🎯 Objectif supposé du RDV
-            - 📝 Synthèse des derniers échanges
-            - ⚠️ Points clés à retenir
-            """, targetMail.getSubject(), sender, contextText.toString());
+                Tu es un assistant de direction expert. Un rendez-vous est prévu concernant le sujet : "%s" avec %s.
+
+                Voici l'historique de nos derniers échanges :
+                %s
+
+                Génère une brève "Fiche Mémo" pour préparer cette réunion.
+                Réponds de manière professionnelle et structure ta réponse ainsi :
+                - 🎯 Objectif supposé du RDV
+                - 📝 Synthèse des derniers échanges
+                - ⚠️ Points clés à retenir
+                """, targetMail.getSubject(), sender, contextText.toString());
 
         try {
             System.out.println("[IA] ⏳ Génération de la fiche mémo en cours...");

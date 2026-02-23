@@ -31,7 +31,8 @@ public class CustomDoTagService {
         try {
             File file = new File(storagePath);
             if (file.exists() && file.length() > 0) {
-                customTags = mapper.readValue(file, new TypeReference<List<String>>() {});
+                customTags = mapper.readValue(file, new TypeReference<List<String>>() {
+                });
                 System.out.println("✅ [CustomTags] " + customTags.size() + " tags chargés.");
             }
         } catch (Exception e) {
@@ -47,10 +48,12 @@ public class CustomDoTagService {
 
     /**
      * Crée un tag custom. "Formation RH" → "DO_FORMATION_RH"
+     * 
      * @return le nom normalisé, ou null si doublon/invalide
      */
     public String createTag(String label) {
-        if (label == null || label.isBlank()) return null;
+        if (label == null || label.isBlank())
+            return null;
 
         String normalized = "DO_" + label.trim()
                 .toUpperCase()
@@ -58,7 +61,8 @@ public class CustomDoTagService {
                 .replaceAll("_+", "_")
                 .replaceAll("^_|_$", "");
 
-        if (customTags.contains(normalized)) return null;
+        if (customTags.contains(normalized))
+            return null;
 
         customTags.add(normalized);
         persist();
@@ -68,7 +72,8 @@ public class CustomDoTagService {
     /** Supprime un tag custom */
     public boolean deleteTag(String tagName) {
         boolean removed = customTags.remove(tagName);
-        if (removed) persist();
+        if (removed)
+            persist();
         return removed;
     }
 
@@ -76,14 +81,17 @@ public class CustomDoTagService {
      * Label lisible : "DO_FORMATION_RH" → "DO · Formation Rh"
      */
     public static String toLabel(String tagName) {
-        if (tagName == null) return "";
-        if (tagName.equals("DO")) return "DO";
+        if (tagName == null)
+            return "";
+        if (tagName.equals("DO"))
+            return "DO";
         String suffix = tagName.startsWith("DO_") ? tagName.substring(3) : tagName;
         StringBuilder sb = new StringBuilder("DO · ");
         for (String w : suffix.split("_")) {
             if (!w.isEmpty()) {
                 sb.append(Character.toUpperCase(w.charAt(0)));
-                if (w.length() > 1) sb.append(w.substring(1).toLowerCase());
+                if (w.length() > 1)
+                    sb.append(w.substring(1).toLowerCase());
                 sb.append(" ");
             }
         }
@@ -93,7 +101,8 @@ public class CustomDoTagService {
     private void persist() {
         try {
             File file = new File(storagePath);
-            if (file.getParentFile() != null) file.getParentFile().mkdirs();
+            if (file.getParentFile() != null)
+                file.getParentFile().mkdirs();
             mapper.writeValue(file, customTags);
         } catch (Exception e) {
             System.err.println("❌ [CustomTags] Erreur écriture : " + e.getMessage());

@@ -41,27 +41,32 @@ public class MailService {
             store = connect();
             inbox = store.getFolder("INBOX");
             inbox.open(Folder.READ_ONLY);
-            
+
             int totalMessages = inbox.getMessageCount();
-            int limite = 30; 
+            int limite = 30;
             int start = Math.max(1, totalMessages - limite + 1);
 
             Message[] messages = inbox.getMessages(start, totalMessages);
-            
+
             for (int i = messages.length - 1; i >= 0; i--) {
                 Message msg = messages[i];
                 mailList.add(new Mail(
-                    getMessageId(msg),
-                    msg.getSentDate() != null ? msg.getSentDate().toString() : "Date inconnue",
-                    msg.getSubject(),
-                    msg.getFrom()[0].toString(),
-                    getTextFromMessage(msg)
-                ));
+                        getMessageId(msg),
+                        msg.getSentDate() != null ? msg.getSentDate().toString() : "Date inconnue",
+                        msg.getSubject(),
+                        msg.getFrom()[0].toString(),
+                        getTextFromMessage(msg)));
             }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            try { if (inbox != null) inbox.close(false); if (store != null) store.close(); } catch (Exception e) {}
+            try {
+                if (inbox != null)
+                    inbox.close(false);
+                if (store != null)
+                    store.close();
+            } catch (Exception e) {
+            }
         }
         return mailList;
     }
@@ -99,7 +104,8 @@ public class MailService {
             Message[] messages = inbox.search(new MessageIDTerm(messageId));
             if (messages.length > 0) {
                 Folder labelFolder = store.getFolder(labelName);
-                if (!labelFolder.exists()) labelFolder.create(Folder.HOLDS_MESSAGES);
+                if (!labelFolder.exists())
+                    labelFolder.create(Folder.HOLDS_MESSAGES);
                 inbox.copyMessages(messages, labelFolder);
                 System.out.println("✅ Label [" + labelName + "] appliqué sur Gmail.");
             }
@@ -111,10 +117,11 @@ public class MailService {
 
     public void createDraft(String toEmail, String subject, String body) throws Exception {
         try (Store store = connect()) {
-            Folder draftsFolder = store.getFolder("[Gmail]/Brouillons"); 
+            Folder draftsFolder = store.getFolder("[Gmail]/Brouillons");
             if (!draftsFolder.exists()) {
                 draftsFolder = store.getFolder("Drafts");
-                if (!draftsFolder.exists()) draftsFolder.create(Folder.HOLDS_MESSAGES);
+                if (!draftsFolder.exists())
+                    draftsFolder.create(Folder.HOLDS_MESSAGES);
             }
             draftsFolder.open(Folder.READ_WRITE);
 
@@ -139,13 +146,18 @@ public class MailService {
     }
 
     private String getMessageId(Message msg) {
-        try { return (msg instanceof MimeMessage) ? ((MimeMessage) msg).getMessageID() : "id-" + msg.getMessageNumber(); } 
-        catch (Exception e) { return ""; }
+        try {
+            return (msg instanceof MimeMessage) ? ((MimeMessage) msg).getMessageID() : "id-" + msg.getMessageNumber();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     private String getTextFromMessage(Message message) throws MessagingException, IOException {
-        if (message.isMimeType("text/plain")) return message.getContent().toString();
-        if (message.isMimeType("multipart/*")) return getTextFromMimeMultipart((MimeMultipart) message.getContent());
+        if (message.isMimeType("text/plain"))
+            return message.getContent().toString();
+        if (message.isMimeType("multipart/*"))
+            return getTextFromMimeMultipart((MimeMultipart) message.getContent());
         return "";
     }
 
@@ -153,8 +165,9 @@ public class MailService {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < mimeMultipart.getCount(); i++) {
             BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-            if (bodyPart.isMimeType("text/plain")) return bodyPart.getContent().toString();
-            else if (bodyPart.getContent() instanceof MimeMultipart) 
+            if (bodyPart.isMimeType("text/plain"))
+                return bodyPart.getContent().toString();
+            else if (bodyPart.getContent() instanceof MimeMultipart)
                 result.append(getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent()));
         }
         return result.toString();

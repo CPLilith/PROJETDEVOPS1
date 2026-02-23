@@ -25,12 +25,12 @@ public class MailFlowService {
     private final TeamService teamService;
     private final FichierTemp fichierTemp;
     private final ContactService contactService;
-    
+
     private List<Mail> cachedMails = new ArrayList<>();
 
     public MailFlowService(MailService imapService, EisenhowerClassifier classifier,
-                           StatusClassifier statusClassifier, TeamService teamService,
-                           FichierTemp fichierTemp, ContactService contactService) {
+            StatusClassifier statusClassifier, TeamService teamService,
+            FichierTemp fichierTemp, ContactService contactService) {
         this.imapService = imapService;
         this.classifier = classifier;
         this.statusClassifier = statusClassifier;
@@ -40,7 +40,9 @@ public class MailFlowService {
     }
 
     @PostConstruct
-    public void init() { loadCache(); }
+    public void init() {
+        loadCache();
+    }
 
     // --- PERSISTANCE ---
     private void saveCache() {
@@ -58,7 +60,8 @@ public class MailFlowService {
                 dataToSave.add(map);
             }
             fichierTemp.sauvegarderMails(dataToSave);
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     private void loadCache() {
@@ -67,13 +70,15 @@ public class MailFlowService {
             if (loadedData != null && !loadedData.isEmpty()) {
                 this.cachedMails = new ArrayList<>();
                 for (Map<String, String> map : loadedData) {
-                    Mail m = new Mail(map.get("messageId"), map.get("date"), map.get("subject"), map.get("from"), map.get("content"));
+                    Mail m = new Mail(map.get("messageId"), map.get("date"), map.get("subject"), map.get("from"),
+                            map.get("content"));
                     m.setAction(map.get("action"));
                     m.setStatus(map.get("status"));
                     this.cachedMails.add(m);
                 }
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     // --- RÉCUPÉRATION ---
@@ -91,10 +96,11 @@ public class MailFlowService {
             if (currentMail.getMessageId().equals(messageId)) {
                 String trackingId = "DEL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
                 Map<String, String> availableContacts = contactService.getAllContacts();
-                
+
                 String assigneeEmail = teamService.suggestAssignee(currentMail.getContent(), availableContacts);
-                String draft = teamService.generateDelegationDraft(currentMail.getFrom(), assigneeEmail, currentMail.getContent(), trackingId);
-                
+                String draft = teamService.generateDelegationDraft(currentMail.getFrom(), assigneeEmail,
+                        currentMail.getContent(), trackingId);
+
                 return new DelegationData(assigneeEmail, draft, trackingId);
             }
         }
@@ -133,12 +139,12 @@ public class MailFlowService {
     }
 
     public void syncToGmail() {
-    System.out.println("🔄 Synchronisation des labels vers Gmail...");
-    for (Mail mail : cachedMails) {
-        // On ne synchronise que si le mail n'est plus en attente (PENDING)
-        if (mail.getAction() != EisenhowerAction.PENDING) {
-            String tag = mail.getEffectiveTag(); 
-            
+        System.out.println("🔄 Synchronisation des labels vers Gmail...");
+        for (Mail mail : cachedMails) {
+            // On ne synchronise que si le mail n'est plus en attente (PENDING)
+            if (mail.getAction() != EisenhowerAction.PENDING) {
+                String tag = mail.getEffectiveTag();
+
                 // On vérifie que le tag n'est pas nul avant d'appeler le service
                 if (tag != null && !tag.isEmpty()) {
                     imapService.applyLabelToMail(mail.getMessageId(), tag);
@@ -189,7 +195,10 @@ public class MailFlowService {
         }
     }
 
-    public List<Mail> getMails() { return cachedMails; }
+    public List<Mail> getMails() {
+        return cachedMails;
+    }
 
-    public record DelegationData(String assignee, String draftBody, String trackingId) {}
+    public record DelegationData(String assignee, String draftBody, String trackingId) {
+    }
 }

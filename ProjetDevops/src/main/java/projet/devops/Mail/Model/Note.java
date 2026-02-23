@@ -12,11 +12,12 @@ public class Note {
     private String id;
     private String title;
     private String author;
-    
-    // On s'assure que Jackson map bien le champ "content" du JSON vers cette variable
-    @JsonProperty("content") 
+
+    // On s'assure que Jackson map bien le champ "content" du JSON vers cette
+    // variable
+    @JsonProperty("content")
     private String content;
-    
+
     private String action;
 
     // Constructeur vide OBLIGATOIRE pour Jackson (lecture du JSON)
@@ -37,20 +38,44 @@ public class Note {
     // --- Getters & Setters ---
     public String getId() {
         // Sécurité : si l'ID est null (vieux JSON), on en donne un
-        if (id == null) id = UUID.randomUUID().toString();
+        if (id == null)
+            id = UUID.randomUUID().toString();
         return id;
     }
-    public void setId(String id) { this.id = id; }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public String getAuthor() { return author; }
-    public void setAuthor(String author) { this.author = author; }
+    public String getTitle() {
+        return title;
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public String getAction() { return action; }
-    public void setAction(String action) { this.action = action; }
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
 }
