@@ -22,6 +22,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.search.MessageIDTerm;
 import projet.devops.Mail.Mail;
+import projet.devops.Mail.Classifier.EisenhowerAction;
 
 @Service
 public class MailService {
@@ -50,12 +51,35 @@ public class MailService {
 
             for (int i = messages.length - 1; i >= 0; i--) {
                 Message msg = messages[i];
-                mailList.add(new Mail(
+
+                Mail mail = new Mail(
                         getMessageId(msg),
                         msg.getSentDate() != null ? msg.getSentDate().toString() : "Date inconnue",
                         msg.getSubject(),
-                        msg.getFrom()[0].toString(),
-                        getTextFromMessage(msg)));
+                        msg.getFrom() != null && msg.getFrom().length > 0 ? msg.getFrom()[0].toString() : "Inconnu",
+                        getTextFromMessage(msg));
+
+                try {
+                    java.lang.reflect.Method getLabelsMethod = msg.getClass().getMethod("getLabels");
+                    String[] labels = (String[]) getLabelsMethod.invoke(msg);
+
+                    if (labels != null) {
+                        for (String label : labels) {
+                            try {
+                                String cleanLabel = label.replace("\"", "").replace("\\", "").trim().toUpperCase();
+                                EisenhowerAction action = EisenhowerAction
+                                        .valueOf(cleanLabel);
+                                mail.setAction(action);
+                                break;
+                            } catch (IllegalArgumentException e) {
+                            }
+                        }
+                    }
+                } catch (NoSuchMethodException e) {
+                } catch (Exception e) {
+                    System.err.println("Erreur mineure lors de la lecture des libellés : " + e.getMessage());
+                }
+                mailList.add(mail);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -103,15 +127,27 @@ public class MailService {
 
             Message[] messages = inbox.search(new MessageIDTerm(messageId));
             if (messages.length > 0) {
+                if ("DELETE".equalsIgnoreCase(labelName)) {
+                    Folder trash = store.getFolder("[Gmail]/Corbeille");
+                    if (!trash.exists()) {
+                        trash = store.getFolder("[Gmail]/Trash"); 
+                    }
+                    if (trash.exists()) {
+                        inbox.copyMessages(messages, trash);
+                    }
+                    for (Message msg : messages) {
+                        msg.setFlag(Flags.Flag.DELETED, true); 
+                    }
+                }
+                else{
                 Folder labelFolder = store.getFolder(labelName);
                 if (!labelFolder.exists())
                     labelFolder.create(Folder.HOLDS_MESSAGES);
                 inbox.copyMessages(messages, labelFolder);
-                System.out.println("✅ Label [" + labelName + "] appliqué sur Gmail.");
+                }
             }
             inbox.close(false);
         } catch (Exception e) {
-            System.err.println("❌ Erreur applyLabel : " + e.getMessage());
         }
     }
 
@@ -138,9 +174,9 @@ public class MailService {
 
     private Store connect() throws Exception {
         Properties props = new Properties();
-        props.put("mail.store.protocol", "imaps");
+        props.put("mail.store.protocol", "gimap");
         Session session = Session.getInstance(props);
-        Store store = session.getStore("imaps");
+        Store store = session.getStore("gimap");
         store.connect(host, username, password);
         return store;
     }

@@ -270,8 +270,9 @@ public class MainController {
     }
 
     @PostMapping("/sync")
-    public String sync() {
+    public String sync() throws Exception{
         flowService.syncToGmail();
+        flowService.fetchMails();
         return "redirect:/";
     }
 

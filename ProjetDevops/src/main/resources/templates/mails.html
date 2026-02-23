@@ -517,6 +517,10 @@
                             </button>
                         </form>
                     </th:block>
+                    <div th:if="${view == 'inbox' and mails != null}" style="width: 100%; text-align: right; color: #64748b; font-size: 13px; margin-top: 8px; font-weight: 500;">
+                        <i class="fas fa-inbox" style="margin-right: 4px;"></i>
+                        <span th:text="${#lists.size(mails)} + ' mail(s) chargé(s)'"></span>
+                    </div>
                 </div>
             </div>
 
