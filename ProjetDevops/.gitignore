@@ -43,6 +43,6 @@ src/main/java/projet/devops/Mail/Gestion/mails_temp.txttarget/
 */.DS_Store
 
 ##Fichier des tags customs 
-
+storage/custom_do_tags.json
 
 target/
