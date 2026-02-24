@@ -465,7 +465,7 @@
                     Boîte Mail</a>
                 <a href="/knowledge" th:class="${view == 'knowledge' ? 'nav-item active' : 'nav-item'}"><i
                         class="fas fa-brain"></i> Knowledge Base</a>
-                <a href="/events" th:class="${view == 'events' ? 'nav-item active' : 'nav-item'}"><i
+                <a href="/events" th:class="${view == 'events' ? 'nav-item active' : 'nav-item'}" onclick="showLoader('Chargement de l\'agenda...')"><i
                         class="fas fa-calendar-alt"></i> Agenda / RDV</a>
                 <a href="/kanban" th:class="${view == 'kanban' ? 'nav-item active' : 'nav-item'}"><i
                         class="fas fa-columns"></i> Suivi Kanban</a>
@@ -496,11 +496,11 @@
 
                 <div class="action-bar">
                     <th:block th:if="${view == 'inbox'}">
-                        <form action="/fetch" method="post" onsubmit="showLoader('Chargement...')"><button
+                        <form action="/fetch" method="post" onsubmit="showLoader('Chargement des mails...')"><button
                                 type="submit">Charger</button></form>
-                        <form action="/analyze" method="post" onsubmit="showLoader('IA...')"><button type="submit"
+                        <form action="/analyze" method="post" onsubmit="showLoader('Analyse des mails par l\'IA...')"><button type="submit"
                                 class="btn-primary">Analyser IA</button></form>
-                        <form action="/sync" method="post" onsubmit="showLoader('Synchro...')"><button type="submit"
+                        <form action="/sync" method="post" onsubmit="showLoader('Synchronisation vers la boîte mail...')"><button type="submit"
                                 class="btn-sync">Sync Gmail</button></form>
                     </th:block>
 
@@ -517,7 +517,8 @@
                             </button>
                         </form>
                     </th:block>
-                    <div th:if="${view == 'inbox' and mails != null}" style="width: 100%; text-align: right; color: #64748b; font-size: 13px; margin-top: 8px; font-weight: 500;">
+                    <div th:if="${view == 'inbox' and mails != null}"
+                        style="width: 100%; text-align: right; color: #64748b; font-size: 13px; margin-top: 8px; font-weight: 500;">
                         <i class="fas fa-inbox" style="margin-right: 4px;"></i>
                         <span th:text="${#lists.size(mails)} + ' mail(s) chargé(s)'"></span>
                     </div>
@@ -546,8 +547,7 @@
                 <th:block th:if="${view == 'inbox' and mails != null}">
                     <div th:each="mail, iter : ${mails}" class="mail-card" th:id="'card-mail-' + ${iter.index}"
                         th:data-id="${mail.messageId}" th:data-subject="${mail.subject}" th:data-from="${mail.from}"
-                        th:data-tag="${mail.effectiveTag}"
-                        onclick="openMail(this, event)">
+                        th:data-tag="${mail.effectiveTag}" onclick="openMail(this, event)">
 
                         <div th:class="'status-strip dot-' + ${mail.action}"></div>
                         <span th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.effectiveTag}"></span>
@@ -723,7 +723,7 @@
             const id = cardEl.getAttribute('data-id');
             const subject = cardEl.getAttribute('data-subject');
             const from = cardEl.getAttribute('data-from');
-            const content = document.getElementById('content-' + id).value; 
+            const content = document.getElementById('content-' + id).value;
 
             renderReader(subject, "De : " + from, content, id, false);
         }
@@ -908,9 +908,23 @@
                     a.href = window.URL.createObjectURL(blob);
                     a.download = "Fiche_Preparation.pdf";
                     a.className = "btn-primary";
-                    a.innerHTML = "<i class='fas fa-download'></i> Télécharger PDF";
-                    a.style.display = "inline-block";
-                    a.style.textDecoration = "none";
+                    a.innerHTML = "<i class='fas fa-file-pdf'></i> Télécharger PDF";
+                    a.style.cssText = `
+                display: inline-flex; 
+                align-items: center; 
+                justify-content: center; 
+                gap: 8px; 
+                padding: 10px 20px; 
+                border-radius: 8px; 
+                text-decoration: none; 
+                font-weight: 600; 
+                font-size: 14px;
+                background: var(--text-main);
+                color: white;
+                border: none;
+                cursor: pointer;
+                transition: background 0.2s;
+            `;
                     btn.parentNode.replaceChild(a, btn);
                     document.getElementById('loading-overlay').style.display = 'none';
                 });
