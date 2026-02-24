@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable; 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -68,7 +69,6 @@ public class MainController {
         }
     }
 
-    /** Injecte dans le modèle les tags custom DO */
     private void addTagsToModel(Model model) {
         List<String> customTags = customDoTagService.getCustomTags();
         model.addAttribute("customDoTags", customTags);
@@ -143,13 +143,6 @@ public class MainController {
         return "mails";
     }
 
-    // =========================================================
-    // GESTION DES TAGS DO PERSONNALISÉS
-    // =========================================================
-
-    /**
-     * Affiche la page de gestion des tags personnalisés.
-     */
     @GetMapping("/tags")
     public String tagsPage(Model model) {
         model.addAttribute("view", "tags");
@@ -158,10 +151,6 @@ public class MainController {
         return "mails";
     }
 
-    /**
-     * Crée un nouveau tag DO personnalisé.
-     * POST /tags/create body: label=Formation RH
-     */
     @PostMapping("/tags/create")
     public String createTag(@RequestParam("label") String label, Model model) {
         String created = customDoTagService.createTag(label);
@@ -176,20 +165,12 @@ public class MainController {
         return "mails";
     }
 
-    /**
-     * Supprime un tag DO personnalisé.
-     * POST /tags/delete body: tagName=DO_FORMATION
-     */
     @PostMapping("/tags/delete")
     public String deleteTag(@RequestParam("tagName") String tagName) {
         customDoTagService.deleteTag(tagName);
         return "redirect:/tags";
     }
 
-    /**
-     * API REST : retourne tous les tags DO (builtin + custom) en JSON.
-     * GET /api/tags
-     */
     @GetMapping("/api/tags")
     @ResponseBody
     public List<Map<String, String>> apiGetTags() {
@@ -198,11 +179,6 @@ public class MainController {
                 .toList();
     }
 
-    /**
-     * Création AJAX d'un tag DO custom depuis le reader.
-     * POST /tags/create-ajax body: label=Formation RH
-     * Retourne { "tag": "DO_FORMATION_RH" } ou { "error": "..." }
-     */
     @PostMapping("/tags/create-ajax")
     @ResponseBody
     public Map<String, String> createTagAjax(@RequestParam("label") String label) {
@@ -213,10 +189,6 @@ public class MainController {
         return Map.of("tag", created, "label", CustomDoTagService.toLabel(created));
     }
 
-    // =========================================================
-    // ROUTES EXISTANTES (inchangées)
-    // =========================================================
-
     @PostMapping("/knowledge/upload")
     public String uploadNotes(@RequestParam("files") MultipartFile[] files) throws Exception {
         noteService.generateAiKnowledge(files, PersonaResourceService.loadPersona());
@@ -226,7 +198,6 @@ public class MainController {
     @PostMapping("/delegate-auto")
     @ResponseBody
     public DelegationData delegateAuto(@RequestParam String messageId) {
-        // Étape 1 : On renvoie juste la suggestion
         return flowService.suggestDelegation(messageId);
     }
 
@@ -234,7 +205,6 @@ public class MainController {
     @ResponseBody
     public Map<String, String> delegateConfirm(@RequestParam String messageId, @RequestParam String assignee,
             @RequestParam String draftBody) {
-        // Étape 2 : On confirme la création
         flowService.confirmDelegation(messageId, assignee, draftBody);
         return Map.of("status", "success");
     }
@@ -311,12 +281,6 @@ public class MainController {
         }
     }
 
-    @GetMapping("/api")
-    @ResponseBody
-    public RestResponse<String> api() {
-        return new RestResponse<>("API Ready", new HashMap<>());
-    }
-
     @PostMapping("/update-note-tag")
     public String updateNoteTag(@RequestParam("index") int index, @RequestParam("tag") String tag) {
         noteService.updateNoteTag(index, tag);
@@ -327,5 +291,80 @@ public class MainController {
     public String deleteNote(@RequestParam("index") int index) {
         noteService.deleteNote(index);
         return "redirect:/knowledge";
+    }
+
+    // =========================================================
+    // API REST NIVEAU 3 (HATEOAS)
+    // =========================================================
+
+    /**
+     * Endpoint racine de l'API (Collection de ressources)
+     * Renvoye la liste de tous les mails avec des liens dynamiques
+     */
+    @GetMapping("/api/mails")
+    @ResponseBody
+    public RestResponse<List<RestResponse<Mail>>> apiGetAllMails() {
+        List<Mail> mails = flowService.getMails();
+        if (mails == null) mails = new ArrayList<>();
+
+        List<RestResponse<Mail>> mailResponses = new ArrayList<>();
+        
+        for (Mail mail : mails) {
+            Map<String, String> links = new HashMap<>();
+            
+            // Liens universels pour cette ressource (Niveau 3)
+            links.put("self", "/api/mails/" + mail.getMessageId());
+            links.put("update-status", "/update-status?messageId=" + mail.getMessageId());
+            
+            // Liens contextuels (Le cœur du niveau 3 HATEOAS)
+            if (mail.getAction() == EisenhowerAction.DELEGATE) {
+                links.put("delegate-auto", "/delegate-auto?messageId=" + mail.getMessageId());
+            } else if (mail.getAction() == EisenhowerAction.PLAN) {
+                links.put("prepare-meeting", "/events/prepare?messageId=" + mail.getMessageId());
+            } else if (mail.getAction() == EisenhowerAction.PENDING) {
+                links.put("analyze", "/analyze");
+            }
+
+            mailResponses.add(new RestResponse<>(mail, links));
+        }
+
+        // Liens globaux pour l'API
+        Map<String, String> globalLinks = new HashMap<>();
+        globalLinks.put("self", "/api/mails");
+        globalLinks.put("fetch", "/fetch");
+        globalLinks.put("sync", "/sync");
+
+        return new RestResponse<>(mailResponses, globalLinks);
+    }
+
+    /**
+     * Endpoint d'une ressource unique
+     */
+    @GetMapping("/api/mails/{id}")
+    @ResponseBody
+    public ResponseEntity<RestResponse<Mail>> apiGetMailById(@PathVariable("id") String id) {
+        Mail foundMail = flowService.getMails().stream()
+                .filter(m -> m.getMessageId().equals(id))
+                .findFirst()
+                .orElse(null);
+
+        if (foundMail == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Map<String, String> links = new HashMap<>();
+        links.put("self", "/api/mails/" + id);
+        links.put("collection", "/api/mails");
+        links.put("update-status", "/update-status?messageId=" + id);
+
+        // HATEOAS : on ne propose la génération de PDF que si le mail est tagué PLAN
+        if (foundMail.getAction() == EisenhowerAction.PLAN) {
+            links.put("prepare-meeting", "/events/prepare?messageId=" + id);
+        }
+        if (foundMail.getAction() == EisenhowerAction.DELEGATE) {
+            links.put("delegate-auto", "/delegate-auto?messageId=" + id);
+        }
+
+        return ResponseEntity.ok(new RestResponse<>(foundMail, links));
     }
 }

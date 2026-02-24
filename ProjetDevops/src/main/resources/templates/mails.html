@@ -546,7 +546,8 @@
                 <th:block th:if="${view == 'inbox' and mails != null}">
                     <div th:each="mail, iter : ${mails}" class="mail-card" th:id="'card-mail-' + ${iter.index}"
                         th:data-id="${mail.messageId}" th:data-subject="${mail.subject}" th:data-from="${mail.from}"
-                        th:data-tag="${mail.effectiveTag}">
+                        th:data-tag="${mail.effectiveTag}"
+                        onclick="openMail(this, event)">
 
                         <div th:class="'status-strip dot-' + ${mail.action}"></div>
                         <span th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.effectiveTag}"></span>
@@ -557,15 +558,13 @@
 
                         <textarea th:id="'content-' + ${mail.messageId}" style="display:none;"
                             th:text="${mail.content}"></textarea>
-
-                        <button onclick="openMail(this.parentElement, event)"
-                            style="margin-top: 10px; padding: 5px 10px; font-size: 11px;">Ouvrir</button>
                     </div>
                 </th:block>
 
                 <th:block th:if="${view == 'knowledge' and notes != null}">
                     <div th:each="note, iter : ${notes}" class="mail-card" th:id="'card-note-' + ${iter.index}"
-                        th:data-id="${iter.index}" th:data-subject="${note.title}" th:data-from="${note.author}">
+                        th:data-id="${iter.index}" th:data-subject="${note.title}" th:data-from="${note.author}"
+                        onclick="openNote(this, event)">
 
                         <div th:class="'status-strip dot-' + ${note.action}"></div>
                         <span th:class="'importance-tag tag-' + ${note.action}" th:text="${note.action}"></span>
@@ -574,9 +573,6 @@
 
                         <textarea th:id="'note-content-' + ${iter.index}" style="display:none;"
                             th:text="${note.content}"></textarea>
-
-                        <button onclick="openNote(this.parentElement, event)"
-                            style="margin-top: 10px; padding: 5px 10px; font-size: 11px;">Ouvrir</button>
                     </div>
                 </th:block>
             </div>
@@ -727,7 +723,7 @@
             const id = cardEl.getAttribute('data-id');
             const subject = cardEl.getAttribute('data-subject');
             const from = cardEl.getAttribute('data-from');
-            const content = document.getElementById('content-' + id).value; // Récupère le texte brut du textarea caché
+            const content = document.getElementById('content-' + id).value; 
 
             renderReader(subject, "De : " + from, content, id, false);
         }
@@ -751,7 +747,6 @@
 
             const deleteFileBtn = isNote ? `<button onclick="deleteNote('${id}')" class="btn-delete"><i class="fas fa-trash"></i> Supprimer Note</button>` : '';
 
-            // Construction des boutons DO personnalisés
             let customTagsButtons = '';
             if (!isNote && jsCustomTags && jsCustomTags.length > 0) {
                 customTagsButtons = '<div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px dashed var(--border);">';
@@ -815,8 +810,6 @@
             `;
         }
 
-        // --- GESTION DES ACTIONS ---
-
         function deleteNote(index) {
             if (confirm("Supprimer définitivement ce résumé de la base de connaissances ?")) {
                 showLoader("Suppression en cours...");
@@ -855,7 +848,6 @@
                         input.disabled = false;
                         input.value = label;
                     } else {
-                        // Si succès, on met directement à jour le mail avec le nouveau tag
                         upd(messageId, data.tag, false);
                     }
                 })
@@ -864,8 +856,6 @@
                     input.disabled = false;
                 });
         }
-
-        // --- DELEGATION 2-STEPS ---
 
         function startDelegation(messageId) {
             const resultDiv = document.getElementById('delegation-result-' + messageId);
@@ -906,12 +896,9 @@
             })
                 .then(res => res.json())
                 .then(data => {
-                    // On recharge pour mettre à jour la liste et le Kanban
                     window.location.href = "/kanban";
                 });
         }
-
-        // --- GENERATION PDF ---
 
         function generateMemo(id, btn) {
             showLoader("Génération du rapport PDF via IA...");
@@ -928,8 +915,6 @@
                     document.getElementById('loading-overlay').style.display = 'none';
                 });
         }
-
-        // --- FILTRES INBOX ---
 
         function setFilter(tag, chipEl) {
             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
