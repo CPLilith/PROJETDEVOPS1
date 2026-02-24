@@ -1,0 +1,43 @@
+name: CI - Couverture (JaCoCo Maven)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  coverage-check:
+    name: Génération du rapport de couverture
+    runs-on: ubuntu-latest
+    
+    # Tes vraies variables d'environnement
+    env:
+      MAIL_IMAP_USERNAME: ${{ secrets.MAIL_IMAP_USERNAME }}
+      MAIL_IMAP_PASSWORD: ${{ secrets.MAIL_IMAP_PASSWORD }}
+      OLLAMA_BASE_URL: "http://localhost:11434"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Droit d'exécution pour Maven
+        run: chmod +x mvnw
+
+      - name: Lancer les tests et générer le rapport JaCoCo
+        # Utilisation de Maven au lieu de Gradle
+        run: ./mvnw test jacoco:report
+        
+      - name: Sauvegarder le rapport (Artifact)
+        # Permet de télécharger la page HTML du rapport depuis GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: target/site/jacoco/
