@@ -1,4 +1,5 @@
 [![Tests OK](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/maven.yml/badge.svg)](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/maven.yml)
+[![CI - Couverture (JaCoCo Maven)](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/Couverture.yml/badge.svg)](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/Couverture.yml)
 
 # PROJETDEVOPS1
 Github du projet DevOps M1 MIAGE APP
