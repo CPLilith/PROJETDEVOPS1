@@ -1,7 +1,7 @@
 ---
 title: "EisenFlow : Gestion Intelligente d'Emails"
 subtitle: "Projet DevOps 1 - Documentation Technique"
-author: [Ton Nom / Ton Équipe]
+author: [NOus]
 date: "Février 2026"
 lang: fr-FR
 toc: true
