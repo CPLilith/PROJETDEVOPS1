@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::mainContent})}">
+<th:block th:fragment="mainContent">
+
+    <section class="view-wrapper" id="main-reader">
+        <h1 class="mail-title">Gestion des Tags</h1>
+        <p style="color: var(--text-sub); margin-bottom: 30px;">Créez des sous-catégories pour organiser vos tâches DO.
+        </p>
+
+        <div
+            style="background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 30px; max-width: 500px;">
+            <h3 style="margin-top: 0; font-size: 15px;">Créer un nouveau tag</h3>
+            <div th:if="${tagError}"
+                style="background: #fee2e2; color: #ef4444; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; border: 1px solid #fca5a5;"
+                th:text="${tagError}"></div>
+            <div th:if="${tagSuccess}"
+                style="background: #dcfce7; color: #16a34a; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; border: 1px solid #bbf7d0;"
+                th:text="${tagSuccess}"></div>
+
+            <form action="/tags/create" method="post" style="display: flex; gap: 10px;">
+                <input type="text" name="label" placeholder="Ex: Formation, Urgence Client..." required
+                    style="flex: 1; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); font-family: 'Inter';">
+                <button type="submit" class="btn-primary">Ajouter</button>
+            </form>
+        </div>
+
+        <h3 style="font-size: 15px; margin-bottom: 15px;">Tags personnalisés existants</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px; max-width: 500px;">
+            <div th:each="ct : ${customDoTags}"
+                style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                <span class="importance-tag tag-DO" style="margin: 0; font-size: 12px;"
+                    th:text="${#strings.replace(ct, 'DO_', 'DO · ').replace('_', ' ')}"></span>
+                <button type="button" class="btn-delete" th:onclick="openDeleteModal([[${ct}]])"
+                    style="padding: 6px 10px; font-size: 11px; cursor: pointer;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div th:if="${#lists.isEmpty(customDoTags)}"
+                style="color: var(--text-sub); font-size: 13px; padding: 20px; text-align: center; background: white; border-radius: 12px; border: 1px dashed var(--border);">
+                Aucun tag personnalisé créé.
+            </div>
+        </div>
+
+        <div id="delete-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 24px;"></i>
+                    <h3>Supprimer le tag ?</h3>
+                </div>
+                <p>Êtes-vous sûr de vouloir supprimer ce tag ? Cette action est définitive.</p>
+                <div class="modal-actions">
+                    <button onclick="closeDeleteModal()" class="btn-cancel">Annuler</button>
+                    <form id="confirm-delete-form" action="/tags/delete" method="post" style="margin: 0;">
+                        <input type="hidden" name="tagName" id="modal-tag-name">
+                        <button type="submit" class="btn-confirm-delete">Supprimer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</th:block>
+
+</html>

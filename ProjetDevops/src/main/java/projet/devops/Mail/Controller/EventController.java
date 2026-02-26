@@ -65,7 +65,7 @@ public class EventController {
         Collections.reverse(events);
         model.addAttribute("view", "events");
         model.addAttribute("events", events);
-        return "mails";
+        return "events";
     }
 
     @PostMapping("/events/prepare")

@@ -1,0 +1,32 @@
+<aside th:fragment="sidebar" class="sidebar">
+    <div class="logo">EisenFlow.</div>
+    <nav class="nav-group">
+        <div class="nav-label">Workspace</div>
+        <a href="/" th:class="${view == 'inbox' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-inbox"></i> Boîte
+            Mail</a>
+        <a href="/knowledge" th:class="${view == 'knowledge' ? 'nav-item active' : 'nav-item'}"><i
+                class="fas fa-brain"></i> Knowledge Base</a>
+        <a href="/events" th:class="${view == 'events' ? 'nav-item active' : 'nav-item'}"
+            onclick="showLoader('Chargement de l\'agenda...')"><i class="fas fa-calendar-alt"></i> Agenda / RDV</a>
+        <a href="/kanban" th:class="${view == 'kanban' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-columns"></i>
+            Suivi Kanban</a>
+        <a href="/tags" th:class="${view == 'tags' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-tags"></i> Tags
+            Custom</a>
+    </nav>
+
+    <div class="persona-box">
+        <div class="nav-label">Active Profile</div>
+        <form action="/persona" method="post" id="personaForm">
+            <input type="hidden" name="persona" id="selectedPersona">
+            <button type="button" class="persona-btn"
+                th:classappend="${currentPersona != null and currentPersona.name() == 'ETUDIANT' ? 'active' : ''}"
+                onclick="switchPersona('ETUDIANT')">🎓 Student</button>
+            <button type="button" class="persona-btn"
+                th:classappend="${currentPersona != null and currentPersona.name() == 'DEVELOPPEUR' ? 'active' : ''}"
+                onclick="switchPersona('DEVELOPPEUR')">💻 Developer</button>
+            <button type="button" class="persona-btn"
+                th:classappend="${currentPersona != null and currentPersona.name() == 'PROFESSEUR' ? 'active' : ''}"
+                onclick="switchPersona('PROFESSEUR')">👨‍🏫 Teacher</button>
+        </form>
+    </div>
+</aside>

@@ -1,56 +1,34 @@
 package projet.devops.Mail.Service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import projet.devops.Mail.Classifier.OllamaClient;
 import projet.devops.Mail.Classifier.TextCleaner;
 import projet.devops.Mail.Mail;
+import projet.devops.Mail.Repository.ContactRepository;
 
-import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import jakarta.annotation.PostConstruct;
 
 @Service
 public class ContactService {
 
     private final OllamaClient ollamaClient;
-    private final ObjectMapper objectMapper;
-    private final String FILE_PATH = "storage/contacts.json";
-    private Map<String, String> contactsCache = new HashMap<>();
+    private final ContactRepository contactRepository; // DIP : On dépend de l'interface
 
-    public ContactService(OllamaClient ollamaClient) {
+    private Map<String, String> contactsCache;
+
+    public ContactService(OllamaClient ollamaClient, ContactRepository contactRepository) {
         this.ollamaClient = ollamaClient;
-        this.objectMapper = new ObjectMapper();
-
-        File directory = new File("storage");
-        if (!directory.exists()) {
-            directory.mkdir();
-        }
-        loadContacts();
+        this.contactRepository = contactRepository;
     }
 
-    private void loadContacts() {
-        try {
-            File file = new File(FILE_PATH);
-            if (file.exists()) {
-                contactsCache = objectMapper.readValue(file, new TypeReference<Map<String, String>>() {
-                });
-                System.out.println("✅ [Contacts] " + contactsCache.size() + " profils chargés.");
-            }
-        } catch (Exception e) {
-            contactsCache = new HashMap<>();
-        }
-    }
-
-    private void saveContacts() {
-        try {
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(FILE_PATH), contactsCache);
-        } catch (Exception e) {
-            System.err.println("❌ Erreur sauvegarde contacts.json");
-        }
+    @PostConstruct
+    public void init() {
+        // Le chargement est délégué au repository au démarrage
+        this.contactsCache = contactRepository.loadContacts();
     }
 
     public void analyzeAndSaveNewContacts(List<Mail> recentMails) {
@@ -63,8 +41,7 @@ public class ContactService {
             Mail mail = recentMails.get(i);
             String emailAddress = extractEmail(mail.getFrom());
 
-            // 🛡️ Filtre : on n'analyse que les vrais humains (ex: Nanterre ou format
-            // prenom.nom)
+            // 🛡️ Filtre : on n'analyse que les vrais humains
             if (emailAddress.isEmpty() || !isRealHumanContact(emailAddress)) {
                 continue;
             }
@@ -79,7 +56,7 @@ public class ContactService {
         }
 
         if (isUpdated) {
-            saveContacts();
+            contactRepository.saveContacts(contactsCache); // Délégation de la sauvegarde
             System.out.println("💾 [Contacts] Dictionnaire mis à jour.");
         }
     }
@@ -87,8 +64,7 @@ public class ContactService {
     private String guessExpertise(String content) {
         String lowerContent = content.toLowerCase();
 
-        // --- SÉCURITÉ 1 : LE PLAN B (Mots-clés prioritaires) ---
-        // Si ces mots sont dans le mail, on ne fait même pas confiance à l'IA
+        // --- SÉCURITÉ 1 : Mots-clés prioritaires ---
         if (lowerContent.contains("docker") || lowerContent.contains("ci/cd") || lowerContent.contains("git")) {
             return "Expert DevOps / Infrastructure";
         }
@@ -103,25 +79,22 @@ public class ContactService {
             return "Expert BDD / QA";
         }
 
-        // --- SÉCURITÉ 2 : L'APPEL IA (Si aucun mot-clé n'a matché) ---
+        // --- SÉCURITÉ 2 : L'APPEL IA ---
         try {
             String cleanContent = TextCleaner.cleanEmailText(content, 200);
-
-            // Prompt simplifié à l'extrême pour éviter que l'IA ne recopie les exemples
             String prompt = "Analyse ce mail et donne le métier de l'expéditeur en 3 mots.\n" +
                     "Mail : " + cleanContent + "\n" +
                     "Métier :";
 
             String response = ollamaClient.generateResponse("tinyllama", prompt).trim();
 
-            // Si l'IA recopie encore "Exemples attendus" ou est vide
             if (response.length() < 3 || response.contains("Exemple") || response.contains("Attendu")) {
                 return "Membre équipe projet";
             }
 
-            // On ne garde que la première ligne
-            if (response.contains("\n"))
+            if (response.contains("\n")) {
                 response = response.split("\n")[0];
+            }
 
             return response.replace("\"", "").trim();
 
@@ -133,9 +106,8 @@ public class ContactService {
     private boolean isRealHumanContact(String email) {
         if (email == null || email.isEmpty())
             return false;
-        String lowerEmail = email.toLowerCase();
 
-        // Liste noire des domaines et mots-clés de robots/newsletters
+        String lowerEmail = email.toLowerCase();
         String[] spamKeywords = {
                 "no-reply", "noreply", "newsletter", "info@", "contact@",
                 "marketing", "hello@", "support@", "stories", "posts",
@@ -147,8 +119,6 @@ public class ContactService {
                 return false;
         }
 
-        // Priorité aux emails de l'université ou aux formats nominatifs (contenant un
-        // point)
         return lowerEmail.endsWith("@parisnanterre.fr") || lowerEmail.contains(".");
     }
 

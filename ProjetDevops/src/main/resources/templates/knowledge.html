@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::mainContent})}">
+<th:block th:fragment="mainContent">
+
+    <main class="feed-container">
+        <div class="feed-header">
+            <h2>Vault Obsidian</h2>
+            <div class="action-bar">
+                <form action="/knowledge/upload" method="post" enctype="multipart/form-data"
+                    onsubmit="showLoader('Fusion IA...')" style="display:flex; gap:10px; align-items:center;">
+                    <div class="file-upload-wrapper">
+                        <div class="btn-file"><i class="fas fa-file-alt"></i> Sélectionner .md</div>
+                        <input type="file" id="file-input" name="files" multiple accept=".md" required>
+                    </div>
+                    <button type="submit"
+                        style="background: var(--note); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600;">
+                        <i class="fas fa-layer-group"></i> Merger & Apprendre
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="feed-list">
+            <th:block th:if="${notes != null}">
+                <div th:each="note, iter : ${notes}" class="mail-card" th:id="'card-note-' + ${iter.index}"
+                    th:data-id="${iter.index}" th:data-subject="${note.title}" th:data-from="${note.author}"
+                    onclick="openNote(this, event)">
+                    <div th:class="'status-strip dot-' + ${note.action}"></div>
+                    <span th:class="'importance-tag tag-' + ${note.action}" th:text="${note.action}"></span>
+                    <div class="card-subject" th:text="${note.title}" style="font-weight: 600; margin-bottom: 8px;">
+                    </div>
+                    <textarea th:id="'note-content-' + ${iter.index}" style="display:none;"
+                        th:text="${note.content}"></textarea>
+                </div>
+            </th:block>
+        </div>
+    </main>
+
+    <section class="content-view" id="main-reader">
+        <div id="default-placeholder" style="text-align:center; margin-top:200px; color: var(--text-sub);">
+            <i class="fas fa-envelope-open-text fa-4x" style="opacity: 0.2; margin-bottom: 20px;"></i>
+            <h2 style="font-weight: 500; font-size: 20px;">Sélectionnez une note pour la lire</h2>
+        </div>
+    </section>
+
+</th:block>
+
+</html>

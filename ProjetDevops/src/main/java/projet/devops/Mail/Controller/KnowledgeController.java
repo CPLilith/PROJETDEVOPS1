@@ -30,7 +30,7 @@ public class KnowledgeController {
         List<Note> sortedNotes = new ArrayList<>(noteService.getNotes());
         Collections.reverse(sortedNotes);
         model.addAttribute("notes", sortedNotes);
-        return "mails";
+        return "knowledge";
     }
 
     @PostMapping("/knowledge/upload")

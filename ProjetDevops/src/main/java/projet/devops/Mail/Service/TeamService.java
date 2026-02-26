@@ -12,71 +12,110 @@ import projet.devops.Mail.Classifier.TextCleaner;
 @Service
 public class TeamService {
 
+    // --- CONSTANTES DRY ---
+    private static final String DEFAULT_EMAIL = "equipe@defaut.com";
+    private static final String AI_MODEL = "tinyllama";
+    private static final int MAX_CONTENT_LENGTH_AI = 250;
+    private static final int MAX_CONTENT_LENGTH_DRAFT = 200;
+
+    // Le Pattern Regex compilé une seule fois pour toute la classe (Optimisation)
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}");
+
     private final OllamaClient ollamaClient;
 
     public TeamService(OllamaClient ollamaClient) {
         this.ollamaClient = ollamaClient;
     }
 
+    // SRP : La méthode principale devient un chef d'orchestre ultra lisible
     public String suggestAssignee(String emailContent, Map<String, String> contactsMap) {
-        if (contactsMap == null || contactsMap.isEmpty())
-            return "equipe@defaut.com";
+        if (contactsMap == null || contactsMap.isEmpty()) {
+            return DEFAULT_EMAIL;
+        }
 
         String lowerContent = emailContent.toLowerCase();
 
-        // --- ÉTAPE 1 : RECHERCHE PRIORITAIRE PAR MOTS-CLÉS (SÉCURITÉ) ---
-        // On scanne le mail pour voir s'il contient des mots techniques correspondant
-        // aux rôles
+        // Étape 1 : Recherche prioritaire par mots-clés
+        String assignee = findAssigneeByKeywords(lowerContent, contactsMap);
+        if (assignee != null)
+            return assignee;
+
+        // Étape 2 : Appel IA en secours
+        assignee = findAssigneeByAI(emailContent, contactsMap);
+        if (assignee != null)
+            return assignee;
+
+        // Étape 3 : Retour par défaut
+        System.out.println("⚠️ Aucune détection précise, retour au premier contact du JSON.");
+        return contactsMap.keySet().iterator().next();
+    }
+
+    public String generateDelegationDraft(String originalSender, String assignee, String content, String trackingId) {
+        String cleanContent = TextCleaner.cleanEmailText(content, MAX_CONTENT_LENGTH_DRAFT);
+        return String.format(
+                "Bonjour,\n\nPeux-tu traiter la demande de %s qui dit :\n\"%s\"\n\nMerci.\n\n[Ref: %s]",
+                originalSender, cleanContent, trackingId);
+    }
+
+    // =========================================================
+    // SOUS-MÉTHODES PRIVÉES (SRP & DRY)
+    // =========================================================
+
+    private String findAssigneeByKeywords(String lowerContent, Map<String, String> contactsMap) {
         for (Map.Entry<String, String> entry : contactsMap.entrySet()) {
             String email = entry.getKey();
-            String roleDescription = entry.getValue().toLowerCase();
+            String roleDesc = entry.getValue().toLowerCase();
 
-            // Match DevOps
-            if ((lowerContent.contains("docker") || lowerContent.contains("git") || lowerContent.contains("serveur")
-                    || lowerContent.contains("infra"))
-                    && roleDescription.contains("devops")) {
+            // DRY : L'utilisation de notre helper rend la lecture et l'ajout de rôles
+            // incroyablement simples
+            if (matchesRole(lowerContent, roleDesc, "devops", "docker", "git", "serveur", "infra")) {
                 System.out.println("✅ Match Mot-clé : DevOps identifié (" + email + ")");
                 return email;
             }
-            // Match Backend / IA
-            if ((lowerContent.contains("ia") || lowerContent.contains("backend") || lowerContent.contains("api")
-                    || lowerContent.contains("ollama"))
-                    && roleDescription.contains("backend")) {
+            if (matchesRole(lowerContent, roleDesc, "backend", "ia", "backend", "api", "ollama")) {
                 System.out.println("✅ Match Mot-clé : Backend identifié (" + email + ")");
                 return email;
             }
-            // Match Frontend
-            if ((lowerContent.contains("css") || lowerContent.contains("interface") || lowerContent.contains("ui")
-                    || lowerContent.contains("visuel"))
-                    && roleDescription.contains("frontend")) {
+            if (matchesRole(lowerContent, roleDesc, "frontend", "css", "interface", "ui", "visuel")) {
                 System.out.println("✅ Match Mot-clé : Frontend identifié (" + email + ")");
                 return email;
             }
-            // Match BDD / QA
-            if ((lowerContent.contains("sql") || lowerContent.contains("base de données")
-                    || lowerContent.contains("bug") || lowerContent.contains("test"))
-                    && roleDescription.contains("bdd")) {
+            if (matchesRole(lowerContent, roleDesc, "bdd", "sql", "base de données", "bug", "test")) {
                 System.out.println("✅ Match Mot-clé : BDD/QA identifié (" + email + ")");
                 return email;
             }
         }
+        return null; // Aucun match trouvé
+    }
 
-        // --- ÉTAPE 2 : APPEL IA (TINYLLAMA) EN DERNIER RECOURS ---
+    /**
+     * Helper DRY : Vérifie si le rôle correspond ET si au moins un des mots-clés
+     * est présent.
+     */
+    private boolean matchesRole(String content, String actualRole, String targetRole, String... keywords) {
+        if (!actualRole.contains(targetRole))
+            return false;
+
+        for (String kw : keywords) {
+            if (content.contains(kw))
+                return true;
+        }
+        return false;
+    }
+
+    private String findAssigneeByAI(String emailContent, Map<String, String> contactsMap) {
         try {
             System.out.println("🧠 Mots-clés non trouvés, consultation de l'IA...");
-            String cleanContent = TextCleaner.cleanEmailText(emailContent, 250);
+            String cleanContent = TextCleaner.cleanEmailText(emailContent, MAX_CONTENT_LENGTH_AI);
 
             StringBuilder contactsList = new StringBuilder();
-            for (Map.Entry<String, String> entry : contactsMap.entrySet()) {
-                contactsList.append("- ").append(entry.getKey()).append(" : ").append(entry.getValue()).append("\n");
-            }
+            contactsMap.forEach((email, role) -> contactsList.append(String.format("- %s : %s\n", email, role)));
 
             String prompt = String.format("""
                     Tu es un routeur de mails technique. Choisis l'email le plus adapté dans la liste.
 
                     ÉQUIPE DISPONIBLE:
                     %s
-
                     MAIL À ANALYSER:
                     "%s"
 
@@ -84,41 +123,19 @@ public class TeamService {
                     EMAIL DU RESPONSABLE:
                     """, contactsList.toString(), cleanContent);
 
-            String response = ollamaClient.generateResponse("tinyllama", prompt).trim();
-
-            // Validation de la réponse de l'IA par Regex
-            Pattern emailPattern = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}");
-            Matcher matcher = emailPattern.matcher(response);
+            String response = ollamaClient.generateResponse(AI_MODEL, prompt).trim();
+            Matcher matcher = EMAIL_PATTERN.matcher(response);
 
             if (matcher.find()) {
                 String foundEmail = matcher.group();
-                // On vérifie que l'email extrait existe bien dans notre dictionnaire
                 if (contactsMap.containsKey(foundEmail)) {
                     System.out.println("🤖 IA Success : " + foundEmail);
                     return foundEmail;
                 }
             }
         } catch (Exception e) {
-            System.err.println("❌ Erreur TeamService (IA)");
+            System.err.println("❌ Erreur TeamService (IA) : " + e.getMessage());
         }
-
-        // --- ÉTAPE 3 : RETOUR PAR DÉFAUT ---
-        // Si rien n'a matché, on prend le premier du dictionnaire
-        System.out.println("⚠️ Aucune détection précise, retour au premier contact du JSON.");
-        return contactsMap.keySet().iterator().next();
-    }
-
-    /**
-     * Génère un brouillon propre et structuré sans utiliser l'IA
-     * pour éviter les hallucinations dans le corps du mail.
-     */
-    public String generateDelegationDraft(String originalSender, String assignee, String content, String trackingId) {
-        String cleanContent = TextCleaner.cleanEmailText(content, 200);
-
-        return String.format(
-                "Bonjour,\n\nPeux-tu traiter la demande de %s qui dit :\n\"%s\"\n\nMerci.\n\n[Ref: %s]",
-                originalSender,
-                cleanContent,
-                trackingId);
+        return null;
     }
 }

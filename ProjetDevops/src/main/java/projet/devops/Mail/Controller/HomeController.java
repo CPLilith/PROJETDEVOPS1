@@ -32,7 +32,7 @@ public class HomeController {
             Collections.reverse(sortedMails);
 
         model.addAttribute("mails", sortedMails);
-        return "mails";
+        return "index";
     }
 
     @GetMapping("/kanban")
@@ -46,12 +46,12 @@ public class HomeController {
         model.addAttribute("doneMails", mails.stream()
                 .filter(m -> "FINALISÉ".equals(m.getStatus())).toList());
         model.addAttribute("view", "kanban");
-        return "mails";
+        return "kanban";
     }
 
     @GetMapping("/tags")
     public String tagsPage(Model model) {
         model.addAttribute("view", "tags");
-        return "mails";
+        return "tags";
     }
 }

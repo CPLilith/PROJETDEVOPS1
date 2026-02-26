@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::mainContent})}">
+<th:block th:fragment="mainContent">
+
+    <section class="view-wrapper" id="main-reader">
+        <h1 class="mail-title">Agenda IA</h1>
+        <div th:if="${events != null and !#lists.isEmpty(events)}">
+            <div th:each="event : ${events}" class="mail-card"
+                style="margin-bottom:15px; border-left: 4px solid var(--plan);">
+                <div style="color:var(--accent); font-weight:700; font-size: 14px;" th:text="${event.dateLieu}"></div>
+                <div th:text="${event.title}" style="font-weight:700; font-size: 18px; margin: 10px 0;"></div>
+                <span class="importance-tag" th:classappend="'tag-' + ${event.type}" th:text="${event.type}"></span>
+                <div style="margin-top: 15px;">
+                    <button th:data-id="${event.sourceId}" onclick="generateMemo(this.getAttribute('data-id'), this)"
+                        style="background: var(--text-main); color: white; border: none;">
+                        <i class="fas fa-file-pdf"></i> Générer Mémo PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div th:if="${events == null or #lists.isEmpty(events)}"
+            style="text-align:center; padding:50px; color: var(--text-sub);">
+            <i class="fas fa-calendar-times fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+            <p>Aucun événement détecté par l'IA.</p>
+        </div>
+    </section>
+
+</th:block>
+
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::mainContent})}">
+<th:block th:fragment="mainContent">
+
+    <section class="view-wrapper" id="main-reader">
+        <h1 class="mail-title">Suivi Kanban (Délégations)</h1>
+        <div class="kanban-container" style="margin-top: 30px;">
+            <div class="kanban-col">
+                <h3><i class="fas fa-rocket" style="color: var(--delegate);"></i> EN ATTENTE (DELEGATE)</h3>
+                <div th:each="mail : ${todoMails}" class="mail-card"
+                    style="margin-bottom:15px; border-left: 4px solid var(--delegate);">
+                    <div
+                        style="font-size: 11px; font-weight: 700; color: #d97706; margin-bottom: 8px; text-transform: uppercase;">
+                        <i class="fas fa-user-clock"></i> <span th:text="${mail.status}"></span>
+                    </div>
+                    <div th:text="${mail.subject}" style="font-weight:700; font-size: 14px; margin-bottom: 15px;"></div>
+                    <form action="/update-status" method="post">
+                        <input type="hidden" name="messageId" th:value="${mail.messageId}">
+                        <button type="submit" name="status" value="FINALISÉ"
+                            style="width:100%; background:#dcfce7; color:#166534; border: 1px solid #bbf7d0;">
+                            <i class="fas fa-check"></i> Marquer comme terminé
+                        </button>
+                    </form>
+                </div>
+                <div th:if="${#lists.isEmpty(todoMails)}"
+                    style="text-align: center; color: var(--text-sub); padding: 20px; font-size: 13px;">Aucune tâche en
+                    attente.</div>
+            </div>
+
+            <div class="kanban-col">
+                <h3><i class="fas fa-check-circle" style="color: #22c55e;"></i> FINALISÉ</h3>
+                <div th:each="mail : ${doneMails}" class="mail-card"
+                    style="margin-bottom:15px; opacity:0.7; border-left: 4px solid #22c55e;">
+                    <div th:text="${mail.subject}"
+                        style="font-weight:600; font-size: 13px; text-decoration: line-through; color: var(--text-sub);">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</th:block>
+
+</html>

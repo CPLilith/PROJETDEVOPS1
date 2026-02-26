@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::mainContent})}">
+<th:block th:fragment="mainContent">
+
+    <main class="feed-container">
+        <div class="feed-header">
+            <h2>Flux Gmail</h2>
+            <div class="action-bar">
+                <form action="/fetch" method="post" onsubmit="showLoader('Chargement des mails...')"><button
+                        type="submit">Charger</button></form>
+                <form action="/analyze" method="post" onsubmit="showLoader('Analyse des mails par l\'IA...')"><button
+                        type="submit" class="btn-primary">Analyser IA</button></form>
+                <form action="/sync" method="post" onsubmit="showLoader('Synchronisation vers la boîte mail...')">
+                    <button type="submit" class="btn-sync">Sync Gmail</button>
+                </form>
+                <div th:if="${mails != null}"
+                    style="width: 100%; text-align: right; color: #64748b; font-size: 13px; margin-top: 8px; font-weight: 500;">
+                    <i class="fas fa-inbox" style="margin-right: 4px;"></i> <span
+                        th:text="${#lists.size(mails)} + ' mail(s) chargé(s)'"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-bar" id="filter-bar">
+            <span class="filter-chip chip-all active" onclick="setFilter('ALL', this)">Tous</span>
+            <span class="filter-chip chip-DO" onclick="setFilter('DO', this)">DO</span>
+            <span class="filter-chip chip-PLAN" onclick="setFilter('PLAN', this)">Plan</span>
+            <span class="filter-chip chip-DELEGATE" onclick="setFilter('DELEGATE', this)">Delegate</span>
+            <span class="filter-chip chip-DELETE" onclick="setFilter('DELETE', this)">Delete</span>
+            <span class="filter-chip chip-PENDING" onclick="setFilter('PENDING', this)">Sans tag</span>
+            <th:block th:if="${customDoTags != null}">
+                <span th:each="ct : ${customDoTags}" class="filter-chip"
+                    th:classappend="${#strings.startsWith(ct, 'DO_') ? 'chip-DO' : 'chip-custom'}" th:data-tag="${ct}"
+                    th:text="${#strings.replace(ct, 'DO_', 'DO · ').replace('_', ' ')}"
+                    onclick="setFilter(this.getAttribute('data-tag'), this)">
+                </span>
+            </th:block>
+        </div>
+
+        <div class="feed-list">
+            <th:block th:if="${mails != null}">
+                <div th:each="mail, iter : ${mails}" class="mail-card" th:id="'card-mail-' + ${iter.index}"
+                    th:data-id="${mail.messageId}" th:data-subject="${mail.subject}" th:data-from="${mail.from}"
+                    th:data-tag="${mail.effectiveTag}" onclick="openMail(this, event)">
+                    <div th:class="'status-strip dot-' + ${mail.action}"></div>
+                    <span th:class="'importance-tag tag-' + ${mail.action}" th:text="${mail.effectiveTag}"></span>
+                    <div class="card-subject" th:text="${mail.subject}" style="font-weight: 600; margin-bottom: 8px;">
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;" th:text="${mail.from}">
+                    </div>
+                    <textarea th:id="'content-' + ${mail.messageId}" style="display:none;"
+                        th:text="${mail.content}"></textarea>
+                </div>
+            </th:block>
+        </div>
+    </main>
+
+    <section class="content-view" id="main-reader">
+        <div id="default-placeholder" style="text-align:center; margin-top:200px; color: var(--text-sub);">
+            <i class="fas fa-envelope-open-text fa-4x" style="opacity: 0.2; margin-bottom: 20px;"></i>
+            <h2 style="font-weight: 500; font-size: 20px;">Sélectionnez un mail pour le lire</h2>
+        </div>
+    </section>
+
+</th:block>
+
+</html>
