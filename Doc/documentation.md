@@ -1,6 +1,6 @@
 ---
 title: "EisenFlow : Gestion Intelligente d'Emails"
-subtitle: "Projet DevOps 1 - Documentation"
+subtitle: "Projet DevOps 1 - Documentation Technique"
 author: 
   - Alex BRINDUSOIU
   - Arthur CHAUVEAU
@@ -51,58 +51,56 @@ Il y a aussi les applications de gestion de projet comme Jira qui proposent des 
 
 > **Note sur la confidentialité :** Contrairement à SuperHuman, EisenFlow privilégie une **IA locale** pour protéger la vie privée des utilisateurs.
 
-## 5. Éléments de gestion de projet
-Dans le cadre de ce projet DevOps, nous avons structuré notre cycle de développement autour des pratiques agiles et des outils suivants :
-* **Organisation & Suivi :** Méthodologie Agile avec suivi des tickets via un tableau Kanban.
-* **Versionning & CI/CD :** Git avec hébergement sur GitHub. Mise en place de pipelines GitHub Actions pour l'intégration continue et la génération automatique de la documentation technique (via Pandoc/LaTeX).
-* **Architecture :** Conteneurisation de l'application via **Docker**.
+## 5. Éléments de gestion de projet et Architecture technique
+
+Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe stricte (réunions hebdomadaires, répartition claire des rôles : Backend, UI, QA) et une approche DevOps robuste :
+
+* **Backend & IA Locale :** Le cœur de l'application repose sur **Java 21** et **Spring Boot 3.x**. L'extraction et la relève sécurisée des mails se font via **Jakarta Mail**. L'IA, garantissant 100% de confidentialité, est propulsée localement par **Ollama** (modèle *TinyLlama*).
+* **Collaboration & DevOps :** Nous utilisons la méthodologie Agile (Kanban) avec **GitHub** (Issues, PRs). L'intégration continue (CI/CD) est gérée par GitHub Actions pour automatiser la compilation et les tests. Le suivi strict de la qualité du code et des vulnérabilités est assuré par **SonarCloud**, **Jacoco**, et **JUnit 5**.
+* **Architecture & Patterns :** Afin de garantir un découplage strict et une flexibilité maximale (par exemple pour changer de modèle d'IA facilement), nous avons implémenté une architecture **MVC** soutenue par les design patterns **Strategy**, **Facade**, et **Registry**.
 
 ## 6. Diagramme de classes
 
 ![Diagramme de classes](https://github.com/user-attachments/assets/110fe765-abd3-4907-8ba1-9916bc011874){width=100%}
 
-### 6.1 But des features (Release 1)
+### 6.1 But des features
 
-Pour notre première version (MVP), nous nous concentrons sur 6 petites features à forte valeur ajoutée :
+* **F1 : Synchronisation Emails**
+  *Objectif :* Maintenir le Zéro Inbox et lire les messages de façon sécurisée.
+  *Implémentation :* Utilisation de `jakarta.mail` (IMAP/SMTP) pour la lecture, la création de labels et le déplacement de mails (parsing MimeMultipart).
+* **F2 : Tri Intelligent (IA)**
+  *Objectif :* Automatiser la priorisation selon la matrice d'Eisenhower.
+  *Implémentation :* Analyse sémantique via IA locale (Ollama) prenant en compte le Persona de l'utilisateur. Utilisation du Pattern *Strategy*.
+* **F3 : Tags Personnalisés**
+  *Objectif :* Adapter l'outil aux processus spécifiques de l'utilisateur.
+  *Implémentation :* Création/suppression de tags sur-mesure validés par contrôles Regex et sauvegardés en JSON via la librairie *Jackson*.
+* **F4 : Délégation Assistée**
+  *Objectif :* Faciliter le transfert des tâches à l'expert adéquat.
+  *Implémentation :* Routage hybride (mots-clés + IA locale) pour générer un brouillon automatique. Utilisation du Pattern *Adapter*.
+* **F5 : Préparation Réunions**
+  *Objectif :* Fournir un contexte immédiat avant un rendez-vous.
+  *Implémentation :* Synthèse de l'historique des échanges par l'IA et génération d'un mémo au format PDF à l'aide de flux binaires et de la librairie *OpenPDF*.
+* **F6 : Agenda & Rendez-vous**
+  *Objectif :* Extraire et planifier automatiquement les événements.
+  *Implémentation :* Détection de dates et lieux via IA locale (NER - *Named Entity Recognition*) et parsing de dates par Regex pour proposer une insertion dans l'agenda.
 
-* **F1 : Interface de lecture unifiée**
-  Interface permettant de lire les mails et les notes au même endroit, avec des sélecteurs de priorité manuels (DO, PLAN, DELEGATE, DELETE).
-* **F2 : Bascule de Persona IA**
-  Système permettant de changer de profil (Étudiant, Développeur, Professeur). Cela modifie les prompts et le comportement de l'IA locale lors de l'analyse automatique.
-* **F3 : Actions rapides Gmail**
-  Boutons d'action intégrés sur le Kanban pour "Archiver", "Supprimer" ou "Marquer comme lu", synchronisés en direct avec la boîte Gmail.
-* **F4 : Indicateurs visuels d'échéance**
-  Affichage de badges de couleur (vert, orange, rouge) sur les cartes du Kanban pour identifier rapidement l'urgence des tâches.
-* **F5 : Recherche et filtrage en temps réel**
-  Barre de recherche pour filtrer instantanément les cartes du Kanban par expéditeur, mots-clés ou par date.
-* **F6 : Export local sécurisé**
-  Possibilité d'exporter l'état actuel de son tableau (tâches et notes) au format CSV ou Markdown pour garder une trace locale sans passer par le cloud.
+### 6.2 Scénarios
 
-### 6.2 Scénarios Utilisateur
-
-* **Scénario 1 (Persona & Tri Automatique) :** L'utilisateur sélectionne le persona "Étudiant". Lorsqu'il synchronise sa boîte mail, l'IA locale comprend que les messages de l'administration scolaire sont urgents et les tag automatiquement en "DO", tandis que les offres d'emploi étudiant vont dans "PLAN".
-* **Scénario 2 (Interface unifiée & Actions rapides) :** L'utilisateur lit un mail depuis l'interface unifiée. Il décide que c'est une tâche inutile, clique sur le sélecteur "DELETE", puis utilise le bouton d'action rapide pour l'archiver directement sur son vrai compte Gmail.
-* **Scénario 3 (Recherche & Export) :** En fin de semaine, l'utilisateur utilise la barre de recherche pour filtrer toutes les tâches liées au mot "Projet". Il clique ensuite sur le bouton d'export pour récupérer ces informations dans un fichier Markdown local.
+* **Scénario F1 & F2 (Synchronisation et Tri) :** L'utilisateur connecte son compte. Le backend relève les mails via Jakarta Mail. L'IA Ollama analyse sémantiquement chaque message en fonction du persona choisi et les répartit dans les colonnes du Kanban (DO, PLAN, etc.).
+* **Scénario F4 (Délégation) :** L'utilisateur reçoit une demande technique qu'il ne peut pas traiter. L'application utilise le routage hybride pour identifier l'expert concerné, prépare un brouillon de réponse expliquant le contexte, prêt à être envoyé.
+* **Scénario F5 & F6 (Réunion et Agenda) :** Un fil de mails contient une invitation pour un point de synchronisation vendredi à 10h. L'IA (via NER) extrait la date, propose d'ajouter le rendez-vous à l'agenda (F6) et génère simultanément un PDF via OpenPDF résumant les échanges précédents pour préparer la réunion (F5).
 
 ### 6.3 Wireframe et screenshots
 *(À compléter)*
 
 ## 7. Résumé des features
-
-L'application centralise et automatise la gestion des tâches via 6 fonctionnalités clés de la Release 1 :
-
-* **Interface unifiée :** Mails et notes regroupés avec assignation manuelle ou automatique.
-* **Persona IA :** Adaptation du tri automatique au profil de l'utilisateur (Étudiant, Dev, etc.).
-* **Actions directes :** Contrôle de la boîte Gmail (Archiver/Supprimer) depuis le Kanban.
-* **Badges d'urgence :** Repères visuels pour ne rater aucune échéance.
-* **Filtres temps réel :** Retrouver instantanément une information ciblée.
-* **Export local :** Sauvegarde des données en un clic (CSV/MD) pour une maîtrise totale de ses données.
+L'application repose sur un cœur Java/Spring Boot solide orchestrant 6 fonctionnalités principales :
+1. **Synchronisation :** Relève sécurisée (IMAP/SMTP) pour tendre vers le Zéro Inbox.
+2. **Tri IA :** Classification Eisenhower sémantique gérée localement par TinyLlama.
+3. **Tags personnalisés :** Flexibilité du système gérée via JSON.
+4. **Délégation :** Routage et brouillons assistés par IA et mots-clés.
+5. **Préparation :** Mémos PDF générés automatiquement.
+6. **Agenda :** Détection d'entités (NER) pour planifier les évènements.
 
 ## 8. Annexe API REST
-
-| Endpoint | Méthode | Description |
-| :--- | :---: | :--- |
-| `/api/v1/emails/sync` | `POST` | Déclenche la synchronisation avec l'API Gmail de l'utilisateur. |
-| `/api/v1/emails/classify` | `POST` | Lance l'analyse par l'IA locale (selon le Persona actif). |
-| `/api/v1/tasks/` | `GET` | Récupère la liste des tâches triées pour affichage dans le Kanban. |
-| `/api/v1/export/` | `GET` | Génère le fichier d'export du Kanban (Feature F6). |
+*(Détails des endpoints du backend Spring Boot ici)*
