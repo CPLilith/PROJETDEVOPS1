@@ -28,8 +28,8 @@ jobs:
         run: |
           for file in Doc/*.md; do
             filename=$(basename "$file" .md)
-            # On utilise xelatex pour une meilleure gestion des polices et accents
-            pandoc "$file" -o "Doc/${filename}.pdf" --pdf-engine=xelatex
+            # On ajoute --extract-media pour gérer les images
+            pandoc "$file" -o "Doc/${filename}.pdf" --pdf-engine=xelatex --extract-media=.
           done
 
       - name: Sauvegarder et Push le PDF
