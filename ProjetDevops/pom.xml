@@ -32,7 +32,7 @@
         
         <sonar.organization>VOTRE_ORGANISATION_ICI</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.projectKey>VOTRE_CLE_DE_PROJET_ICI</sonar.projectKey>
+        <sonar.projectKey>5635507eac86a3098517c5014da2b85fc13616c8</sonar.projectKey>
     </properties>
     
     <dependencies>

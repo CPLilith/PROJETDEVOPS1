@@ -5,7 +5,6 @@ projet/devops/Mail/Service/MailSenderService$1.class
 projet/devops/Mail/Classifier/TextCleaner.class
 projet/devops/Mail/Controller/TagApiController.class
 projet/devops/Mail/Classifier/PersonaPromptProvider$1.class
-projet/devops/Mail/.DS_Store
 projet/devops/Mail/Controller/KnowledgeController.class
 projet/devops/Mail/Service/MailSenderService.class
 projet/devops/ProjetDevopsApplication.class
@@ -35,11 +34,9 @@ projet/devops/Mail/Classifier/ClassificationStrategy.class
 projet/devops/Mail/Controller/EventController.class
 projet/devops/Mail/Service/MailMapper.class
 projet/devops/Mail/Repository/MailCacheRepository.class
-projet/devops/Features.md
 projet/devops/Mail/Service/TeamService.class
 projet/devops/Mail/Classifier/PersonaResourceService.class
 projet/devops/Mail/Service/MailService.class
-projet/devops/Mail/Gestion/mails_temp.txt
 projet/devops/Mail/Classifier/EisenhowerAction.class
 projet/devops/Mail/Classifier/Persona.class
 projet/devops/Mail/Repository/NoteRepository.class
