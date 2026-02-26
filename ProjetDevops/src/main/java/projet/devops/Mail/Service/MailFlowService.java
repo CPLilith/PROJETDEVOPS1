@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Service;
@@ -21,6 +25,9 @@ import projet.devops.Mail.Repository.PersonaRepository;
 @Service
 public class MailFlowService {
 
+    // Nombre de threads parallèles — 5 appels IA simultanés
+    private static final int THREAD_POOL_SIZE = 5;
+
     private final MailService imapService;
     private final EisenhowerClassifier classifier;
     private final StatusClassifier statusClassifier;
@@ -28,8 +35,8 @@ public class MailFlowService {
     private final ContactService contactService;
     private final MailSenderService mailSenderService;
     private final MailCacheRepository cacheRepository;
-    private final MailEventPublisher eventPublisher;   
-    private final PersonaRepository personaRepository; 
+    private final MailEventPublisher eventPublisher;
+    private final PersonaRepository personaRepository;
 
     private List<Mail> cachedMails = new ArrayList<>();
 
@@ -74,18 +81,63 @@ public class MailFlowService {
         return this.cachedMails;
     }
 
+    // --- CLASSIFICATION PARALLÈLE ---
     public void processPendingMails(Persona currentPersona) {
-        for (Mail mail : cachedMails) {
-            if (mail.getAction() == EisenhowerAction.PENDING) {
-                String tag = classifier.classifyAsString(mail, currentPersona);
-                mail.setAction(tag);
+        // On filtre uniquement les mails à traiter
+        List<Mail> pendingMails = cachedMails.stream()
+                .filter(m -> m.getAction() == EisenhowerAction.PENDING)
+                .toList();
 
-                eventPublisher.publish(new MailClassifiedEvent(mail));
-            }
+        if (pendingMails.isEmpty()) {
+            System.out.println("✅ Aucun mail PENDING à analyser.");
+            return;
         }
+
+        System.out.println("🚀 Analyse parallèle de " + pendingMails.size() + " mail(s) avec "
+                + THREAD_POOL_SIZE + " threads...");
+
+        // Pool de threads fixe — évite de surcharger Ollama
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+        List<Future<?>> futures = new ArrayList<>();
+
+        for (Mail mail : pendingMails) {
+            Future<?> future = executor.submit(() -> {
+                try {
+                    String tag = classifier.classifyAsString(mail, currentPersona);
+                    // synchronized pour éviter les race conditions sur le mail
+                    synchronized (mail) {
+                        mail.setAction(tag);
+                    }
+                    // Notification Observer
+                    eventPublisher.publish(new MailClassifiedEvent(mail));
+                    System.out.println("✔ [" + Thread.currentThread().getName() + "] "
+                            + mail.getSubject() + " → " + tag);
+                } catch (Exception e) {
+                    System.err.println("❌ Erreur classification : " + mail.getSubject()
+                            + " — " + e.getMessage());
+                }
+            });
+            futures.add(future);
+        }
+
+        // Attendre que tous les threads finissent (max 3 minutes)
+        executor.shutdown();
+        try {
+            boolean finished = executor.awaitTermination(10, TimeUnit.MINUTES);
+            if (!finished) {
+                System.err.println("⚠️ Timeout : certains mails n'ont pas été analysés.");
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            executor.shutdownNow();
+        }
+
+        System.out.println("✅ Analyse terminée. Sauvegarde en cours...");
         saveCache();
     }
 
+    // --- DÉLÉGATION IA ---
     public DelegationData suggestDelegation(String messageId) {
         Mail mail = findMailById(messageId);
         if (mail == null) return null;
@@ -107,7 +159,7 @@ public class MailFlowService {
         try {
             mailSenderService.sendEmail(assigneeEmail, "Fwd: " + mail.getSubject(), finalDraft);
         } catch (Exception e) {
-            System.err.println("Erreur SMTP : " + e.getMessage());
+            System.err.println("❌ Erreur SMTP : " + e.getMessage());
         }
 
         mail.setAction(EisenhowerAction.DELEGATE.name());
@@ -127,7 +179,7 @@ public class MailFlowService {
 
     // --- SYNCHRONISATION ---
     public void syncToGmail() {
-        System.out.println("Synchronisation des labels vers Gmail...");
+        System.out.println("🔄 Synchronisation des labels vers Gmail...");
         for (Mail mail : cachedMails) {
             if (mail.getAction() != EisenhowerAction.PENDING) {
                 String tag = mail.getEffectiveTag();
@@ -139,7 +191,7 @@ public class MailFlowService {
     }
 
     public void detectStatusWithAI() {
-        System.out.println("Analyse automatique des statuts Kanban...");
+        System.out.println("🧠 Analyse automatique des statuts Kanban...");
         for (Mail mail : cachedMails) {
             if (mail.getAction() != EisenhowerAction.PENDING) {
                 String status = statusClassifier.classifyStatus(mail.getContent());
