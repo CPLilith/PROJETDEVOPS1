@@ -7,20 +7,22 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.Map;
 
 import projet.devops.Mail.Classifier.Persona;
-import projet.devops.Mail.Classifier.PersonaResourceService;
+import projet.devops.Mail.Repository.PersonaRepository;
 import projet.devops.Mail.Service.MailFlowService;
 import projet.devops.Mail.Service.MailFlowService.DelegationData;
 
 @Controller
 public class MailActionController {
 
-    private static final String REDIRECT_HOME = "redirect:/";
+    private static final String REDIRECT_HOME   = "redirect:/";
     private static final String REDIRECT_KANBAN = "redirect:/kanban";
 
     private final MailFlowService flowService;
+    private final PersonaRepository personaRepository; 
 
-    public MailActionController(MailFlowService flowService) {
+    public MailActionController(MailFlowService flowService, PersonaRepository personaRepository) {
         this.flowService = flowService;
+        this.personaRepository = personaRepository;
     }
 
     @PostMapping("/fetch")
@@ -38,12 +40,13 @@ public class MailActionController {
 
     @PostMapping("/analyze")
     public String analyze() {
-        flowService.processPendingMails(PersonaResourceService.loadPersona());
+        flowService.processPendingMails(personaRepository.load());
         return REDIRECT_HOME;
     }
 
     @PostMapping("/update-mail-tag")
-    public String updateMailTag(@RequestParam("messageId") String messageId, @RequestParam("tag") String tag) {
+    public String updateMailTag(@RequestParam("messageId") String messageId,
+                                @RequestParam("tag") String tag) {
         flowService.updateMailTagById(messageId, tag);
         return REDIRECT_HOME;
     }
@@ -69,8 +72,7 @@ public class MailActionController {
 
     @PostMapping("/delegate-confirm")
     @ResponseBody
-    public Map<String, String> delegateConfirm(@RequestParam String messageId, @RequestParam String assignee,
-            @RequestParam String draftBody) {
+    public Map<String, String> delegateConfirm(@RequestParam String messageId, @RequestParam String assignee, @RequestParam String draftBody) {
         flowService.confirmDelegation(messageId, assignee, draftBody);
         return Map.of("status", "success");
     }
@@ -83,8 +85,8 @@ public class MailActionController {
 
     // --- PERSONA ---
     @PostMapping("/persona")
-    public String persona(@RequestParam("persona") String p) throws Exception {
-        PersonaResourceService.savePersona(Persona.valueOf(p.toUpperCase()));
+    public String persona(@RequestParam("persona") String p) {
+        personaRepository.save(Persona.valueOf(p.toUpperCase()));
         return REDIRECT_HOME;
     }
 }

@@ -1,10 +1,8 @@
 package projet.devops.Mail.Classifier;
 
+import java.util.List;
 import projet.devops.Mail.Mail;
 
-// interface pour la stratégie de classification (choisir son IA)
-public interface ClassificationStrategy {
-    EisenhowerAction classify(Mail mail, Persona persona);
-
-    String getStrategyName();
+public interface ClassificationStrategy extends Nameable {
+    EisenhowerAction classify(Mail mail, Persona persona, List<String> customTags);
 }

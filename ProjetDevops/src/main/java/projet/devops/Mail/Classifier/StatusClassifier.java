@@ -2,34 +2,37 @@ package projet.devops.Mail.Classifier;
 
 import org.springframework.stereotype.Component;
 
-@Component
-public class StatusClassifier {
-    private final OllamaClient client;
+import projet.devops.Mail.Service.AiServiceInterface;
 
-    // public StatusClassifier() {
-    // this.client = new OllamaClient("http://localhost:11434");
-    // }
+@Component
+public class StatusClassifier extends AiServiceInterface {
 
     public StatusClassifier(OllamaClient client) {
-        this.client = client;
+        super(client);
     }
 
     public String classifyStatus(String content) {
-        try {
-            // Nettoyage rapide du contenu pour l'IA
-            String clean = content.length() > 300 ? content.substring(0, 300) : content;
+        return execute(content);
+    }
 
-            String prompt = """
-                    Analyse ce mail. La tâche mentionnée est-elle terminée, validée ou faite ?
-                    Réponds UNIQUEMENT par 'FINALISÉ' si c'est fini, ou 'SUIVI' si c'est encore à faire.
+    @Override
+    protected String buildPrompt(String input) {
+        String clean = input.length() > 300 ? input.substring(0, 300) : input;
+        return """
+                Analyse ce mail. La tâche mentionnée est-elle terminée, validée ou faite ?
+                Réponds UNIQUEMENT par 'FINALISÉ' si c'est fini, ou 'SUIVI' si c'est encore à faire.
 
-                    Texte : "%s"
-                    """.formatted(clean);
+                Texte : "%s"
+                """.formatted(clean);
+    }
 
-            String response = client.generateResponse("tinyllama", prompt).toUpperCase();
-            return response.contains("FINALISÉ") ? "FINALISÉ" : "SUIVI";
-        } catch (Exception e) {
-            return "SUIVI";
-        }
+    @Override
+    protected String parseResult(String rawResponse) {
+        return rawResponse.toUpperCase().contains("FINALISÉ") ? "FINALISÉ" : "SUIVI";
+    }
+
+    @Override
+    protected String getDefaultResult() {
+        return "SUIVI";
     }
 }

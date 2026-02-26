@@ -5,28 +5,27 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import projet.devops.Mail.Classifier.Persona;
-import projet.devops.Mail.Classifier.PersonaResourceService;
+import projet.devops.Mail.Repository.PersonaRepository;
 import projet.devops.Mail.Service.CustomDoTagService;
 
 @ControllerAdvice
 public class GlobalModelAdvice {
 
     private final CustomDoTagService customDoTagService;
+    private final PersonaRepository personaRepository; 
 
-    public GlobalModelAdvice(CustomDoTagService customDoTagService) {
+    public GlobalModelAdvice(CustomDoTagService customDoTagService, PersonaRepository personaRepository) {
         this.customDoTagService = customDoTagService;
+        this.personaRepository = personaRepository;
     }
 
     @ModelAttribute
     public void addGlobalAttributes(Model model) {
-        // Injection du Persona (ou étudiant par défaut)
         try {
-            model.addAttribute("currentPersona", PersonaResourceService.loadPersona());
+            model.addAttribute("currentPersona", personaRepository.load());
         } catch (Exception e) {
-            model.addAttribute("currentPersona", Persona.ETUDIANT);
+            model.addAttribute("currentPersona", Persona.NEUTRE);
         }
-
-        // Injection des Tags personnalisés
         model.addAttribute("customDoTags", customDoTagService.getCustomTags());
     }
 }

@@ -1,10 +1,7 @@
 package projet.devops.Mail.Controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,14 +10,13 @@ import java.util.Map;
 
 import projet.devops.Mail.Mail;
 import projet.devops.Mail.Classifier.EisenhowerAction;
+import projet.devops.Mail.Classifier.PersonaResourceService;
 import projet.devops.Mail.Service.MailFlowService;
 
-// Le record utilisé pour formater la réponse JSON avec les liens HATEOAS
-record RestResponse<T>(T data, Map<String, String> _links) {
-}
+record RestResponse<T>(T data, Map<String, String> _links) {}
 
-@RestController // <-- Remplace @Controller + @ResponseBody, c'est plus DRY pour les API !
-@RequestMapping("/api/mails") // <-- Applique "/api/mails" à toutes les méthodes de la classe (DRY)
+@RestController
+@RequestMapping("/api/mails")
 public class MailRestApiController {
 
     private final MailFlowService flowService;
@@ -29,73 +25,132 @@ public class MailRestApiController {
         this.flowService = flowService;
     }
 
-    /**
-     * Endpoint racine de l'API (Collection de ressources)
-     * Renvoye la liste de tous les mails avec des liens dynamiques
-     */
     @GetMapping
     public RestResponse<List<RestResponse<Mail>>> apiGetAllMails() {
         List<Mail> mails = flowService.getMails();
-        if (mails == null)
-            mails = new ArrayList<>();
+        if (mails == null) mails = new ArrayList<>();
 
         List<RestResponse<Mail>> mailResponses = new ArrayList<>();
-
         for (Mail mail : mails) {
-            Map<String, String> links = new HashMap<>();
-
-            // Liens universels pour cette ressource (Niveau 3)
-            links.put("self", "/api/mails/" + mail.getMessageId());
-            links.put("update-status", "/update-status?messageId=" + mail.getMessageId());
-
-            // Liens contextuels (Le cœur du niveau 3 HATEOAS)
-            if (mail.getAction() == EisenhowerAction.DELEGATE) {
-                links.put("delegate-auto", "/delegate-auto?messageId=" + mail.getMessageId());
-            } else if (mail.getAction() == EisenhowerAction.PLAN) {
-                links.put("prepare-meeting", "/events/prepare?messageId=" + mail.getMessageId());
-            } else if (mail.getAction() == EisenhowerAction.PENDING) {
-                links.put("analyze", "/analyze");
-            }
-
-            mailResponses.add(new RestResponse<>(mail, links));
+            mailResponses.add(new RestResponse<>(mail, buildMailLinks(mail)));
         }
 
-        // Liens globaux pour l'API
         Map<String, String> globalLinks = new HashMap<>();
         globalLinks.put("self", "/api/mails");
-        globalLinks.put("fetch", "/fetch");
-        globalLinks.put("sync", "/sync");
+        globalLinks.put("fetch", "/api/mails/fetch");
+        globalLinks.put("analyze", "/api/mails/analyze");
 
         return new RestResponse<>(mailResponses, globalLinks);
     }
 
-    /**
-     * Endpoint d'une ressource unique
-     */
     @GetMapping("/{id}")
     public ResponseEntity<RestResponse<Mail>> apiGetMailById(@PathVariable("id") String id) {
-        Mail foundMail = flowService.getMails().stream()
+        Mail foundMail = findById(id);
+        if (foundMail == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(new RestResponse<>(foundMail, buildMailLinks(foundMail)));
+    }
+
+    @PostMapping("/fetch")
+    public ResponseEntity<Map<String, Object>> apiFetch() {
+        try {
+            List<Mail> mails = flowService.fetchMails();
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("count", mails.size());
+            Map<String, String> links = new HashMap<>();
+            links.put("self", "/api/mails/fetch");
+            links.put("mails", "/api/mails");
+            response.put("_links", links);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("status", "error");
+            error.put("message", e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+
+    @PostMapping("/analyze")
+    public ResponseEntity<Map<String, Object>> apiAnalyze() {
+        flowService.processPendingMails(PersonaResourceService.loadPersona());
+        long classified = flowService.getMails().stream()
+                .filter(m -> m.getAction() != EisenhowerAction.PENDING)
+                .count();
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("classified", classified);
+        Map<String, String> links = new HashMap<>();
+        links.put("self", "/api/mails/analyze");
+        links.put("mails", "/api/mails");
+        response.put("_links", links);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<RestResponse<Mail>> apiUpdateStatus(
+            @PathVariable("id") String id,
+            @RequestBody Map<String, String> body) {
+
+        String status = body.get("status");
+        if (status == null || status.isBlank()) return ResponseEntity.badRequest().build();
+
+        if (findById(id) == null) return ResponseEntity.notFound().build();
+
+        flowService.updateStatusById(id, status.toUpperCase());
+        return ResponseEntity.ok(new RestResponse<>(findById(id), buildMailLinks(findById(id))));
+    }
+
+    @PutMapping("/{id}/tag")
+    public ResponseEntity<RestResponse<Mail>> apiUpdateTag(
+            @PathVariable("id") String id,
+            @RequestBody Map<String, String> body) {
+
+        String tag = body.get("tag");
+        if (tag == null || tag.isBlank()) return ResponseEntity.badRequest().build();
+
+        if (findById(id) == null) return ResponseEntity.notFound().build();
+
+        flowService.updateMailTagById(id, tag);
+        return ResponseEntity.ok(new RestResponse<>(findById(id), buildMailLinks(findById(id))));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> apiDeleteMail(@PathVariable("id") String id) {
+        if (findById(id) == null) return ResponseEntity.notFound().build();
+
+        flowService.updateMailTagById(id, EisenhowerAction.DELETE.name());
+
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "deleted");
+        response.put("messageId", id);
+        response.put("collection", "/api/mails");
+        return ResponseEntity.ok(response);
+    }
+
+
+    private Mail findById(String id) {
+        return flowService.getMails().stream()
                 .filter(m -> m.getMessageId().equals(id))
                 .findFirst()
                 .orElse(null);
+    }
 
-        if (foundMail == null) {
-            return ResponseEntity.notFound().build();
-        }
-
+    private Map<String, String> buildMailLinks(Mail mail) {
         Map<String, String> links = new HashMap<>();
-        links.put("self", "/api/mails/" + id);
+        links.put("self", "/api/mails/" + mail.getMessageId());
         links.put("collection", "/api/mails");
-        links.put("update-status", "/update-status?messageId=" + id);
+        links.put("update-status", "/api/mails/" + mail.getMessageId() + "/status");
+        links.put("update-tag", "/api/mails/" + mail.getMessageId() + "/tag");
+        links.put("delete", "/api/mails/" + mail.getMessageId());
 
-        // HATEOAS : on ne propose la génération de PDF que si le mail est tagué PLAN
-        if (foundMail.getAction() == EisenhowerAction.PLAN) {
-            links.put("prepare-meeting", "/events/prepare?messageId=" + id);
-        }
-        if (foundMail.getAction() == EisenhowerAction.DELEGATE) {
-            links.put("delegate-auto", "/delegate-auto?messageId=" + id);
+        if (mail.getAction() == EisenhowerAction.DELEGATE) {
+            links.put("delegate-auto", "/delegate-auto?messageId=" + mail.getMessageId());
+        } else if (mail.getAction() == EisenhowerAction.PLAN) {
+            links.put("prepare-meeting", "/events/prepare?messageId=" + mail.getMessageId());
+        } else if (mail.getAction() == EisenhowerAction.PENDING) {
+            links.put("analyze", "/api/mails/analyze");
         }
 
-        return ResponseEntity.ok(new RestResponse<>(foundMail, links));
+        return links;
     }
 }

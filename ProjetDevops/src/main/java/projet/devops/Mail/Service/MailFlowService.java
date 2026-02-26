@@ -12,8 +12,11 @@ import projet.devops.Mail.Classifier.EisenhowerAction;
 import projet.devops.Mail.Classifier.EisenhowerClassifier;
 import projet.devops.Mail.Classifier.Persona;
 import projet.devops.Mail.Classifier.StatusClassifier;
+import projet.devops.Mail.Event.MailClassifiedEvent;
+import projet.devops.Mail.Event.MailEventPublisher;
 import projet.devops.Mail.Mail;
 import projet.devops.Mail.Repository.MailCacheRepository;
+import projet.devops.Mail.Repository.PersonaRepository;
 
 @Service
 public class MailFlowService {
@@ -24,14 +27,18 @@ public class MailFlowService {
     private final TeamService teamService;
     private final ContactService contactService;
     private final MailSenderService mailSenderService;
-    private final MailCacheRepository cacheRepository; // DIP : Inversion de dépendance
+    private final MailCacheRepository cacheRepository;
+    private final MailEventPublisher eventPublisher;   
+    private final PersonaRepository personaRepository; 
 
     private List<Mail> cachedMails = new ArrayList<>();
 
     public MailFlowService(MailService imapService, EisenhowerClassifier classifier,
             StatusClassifier statusClassifier, TeamService teamService,
             ContactService contactService, MailSenderService mailSenderService,
-            MailCacheRepository cacheRepository) {
+            MailCacheRepository cacheRepository,
+            MailEventPublisher eventPublisher,
+            PersonaRepository personaRepository) {
         this.imapService = imapService;
         this.classifier = classifier;
         this.statusClassifier = statusClassifier;
@@ -39,6 +46,8 @@ public class MailFlowService {
         this.contactService = contactService;
         this.mailSenderService = mailSenderService;
         this.cacheRepository = cacheRepository;
+        this.eventPublisher = eventPublisher;
+        this.personaRepository = personaRepository;
     }
 
     @PostConstruct
@@ -50,7 +59,6 @@ public class MailFlowService {
         cacheRepository.saveCache(this.cachedMails);
     }
 
-    // --- MAGIE DRY : Fini les boucles for répétées partout ! ---
     private Mail findMailById(String messageId) {
         return cachedMails.stream()
                 .filter(m -> m.getMessageId().equals(messageId))
@@ -66,11 +74,21 @@ public class MailFlowService {
         return this.cachedMails;
     }
 
-    // --- DÉLÉGATION IA ---
+    public void processPendingMails(Persona currentPersona) {
+        for (Mail mail : cachedMails) {
+            if (mail.getAction() == EisenhowerAction.PENDING) {
+                String tag = classifier.classifyAsString(mail, currentPersona);
+                mail.setAction(tag);
+
+                eventPublisher.publish(new MailClassifiedEvent(mail));
+            }
+        }
+        saveCache();
+    }
+
     public DelegationData suggestDelegation(String messageId) {
         Mail mail = findMailById(messageId);
-        if (mail == null)
-            return null;
+        if (mail == null) return null;
 
         String trackingId = "DEL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         Map<String, String> availableContacts = contactService.getAllContacts();
@@ -84,13 +102,12 @@ public class MailFlowService {
 
     public void confirmDelegation(String messageId, String assigneeEmail, String finalDraft) {
         Mail mail = findMailById(messageId);
-        if (mail == null)
-            return;
+        if (mail == null) return;
 
         try {
             mailSenderService.sendEmail(assigneeEmail, "Fwd: " + mail.getSubject(), finalDraft);
         } catch (Exception e) {
-            System.err.println("❌ Erreur SMTP : " + e.getMessage());
+            System.err.println("Erreur SMTP : " + e.getMessage());
         }
 
         mail.setAction(EisenhowerAction.DELEGATE.name());
@@ -108,9 +125,9 @@ public class MailFlowService {
         }
     }
 
-    // --- SYNCHRONISATION & IA ---
+    // --- SYNCHRONISATION ---
     public void syncToGmail() {
-        System.out.println("🔄 Synchronisation des labels vers Gmail...");
+        System.out.println("Synchronisation des labels vers Gmail...");
         for (Mail mail : cachedMails) {
             if (mail.getAction() != EisenhowerAction.PENDING) {
                 String tag = mail.getEffectiveTag();
@@ -122,20 +139,11 @@ public class MailFlowService {
     }
 
     public void detectStatusWithAI() {
-        System.out.println("🧠 Analyse automatique des statuts Kanban...");
+        System.out.println("Analyse automatique des statuts Kanban...");
         for (Mail mail : cachedMails) {
             if (mail.getAction() != EisenhowerAction.PENDING) {
                 String status = statusClassifier.classifyStatus(mail.getContent());
                 mail.setStatus(status);
-            }
-        }
-        saveCache();
-    }
-
-    public void processPendingMails(Persona currentPersona) {
-        for (Mail mail : cachedMails) {
-            if (mail.getAction() == EisenhowerAction.PENDING) {
-                mail.setAction(classifier.classify(mail, currentPersona));
             }
         }
         saveCache();
@@ -162,24 +170,16 @@ public class MailFlowService {
         return cachedMails;
     }
 
-    public record DelegationData(String assignee, String draftBody, String trackingId) {
-    }
+    public record DelegationData(String assignee, String draftBody, String trackingId) {}
 
     public void cleanMailsAfterTagDeletion(String deletedTagName) {
         boolean modified = false;
         for (Mail mail : cachedMails) {
-            // On récupère le tag effectif (celui qui est affiché à l'écran)
-            String currentTag = mail.getEffectiveTag();
-
-            if (deletedTagName.equals(currentTag)) {
-                // On le remet en "DO" simple
+            if (deletedTagName.equals(mail.getEffectiveTag())) {
                 mail.setAction("DO");
                 modified = true;
             }
         }
-
-        if (modified) {
-            saveCache(); // On force l'écriture sur le disque
-        }
+        if (modified) saveCache();
     }
 }

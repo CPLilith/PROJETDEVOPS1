@@ -6,7 +6,7 @@
         <h1 class="mail-title">Suivi Kanban (Délégations)</h1>
         <div class="kanban-container" style="margin-top: 30px;">
             <div class="kanban-col">
-                <h3><i class="fas fa-rocket" style="color: var(--delegate);"></i> EN ATTENTE (DELEGATE)</h3>
+                <h3><i class="fas fa-rocket" style="color: var(--delegate);"></i> EN COURS (DELEGATE)</h3>
                 <div th:each="mail : ${todoMails}" class="mail-card"
                     style="margin-bottom:15px; border-left: 4px solid var(--delegate);">
                     <div
@@ -30,11 +30,20 @@
             <div class="kanban-col">
                 <h3><i class="fas fa-check-circle" style="color: #22c55e;"></i> FINALISÉ</h3>
                 <div th:each="mail : ${doneMails}" class="mail-card"
-                    style="margin-bottom:15px; opacity:0.7; border-left: 4px solid #22c55e;">
+                    style="margin-bottom:15px; border-left: 4px solid #22c55e;">
                     <div th:text="${mail.subject}"
-                        style="font-weight:600; font-size: 13px; text-decoration: line-through; color: var(--text-sub);">
+                        style="font-weight:600; font-size: 13px; text-decoration: line-through; color: var(--text-sub); margin-bottom: 15px;">
                     </div>
+                    <form action="/update-status" method="post">
+                        <input type="hidden" name="messageId" th:value="${mail.messageId}">
+                        <button type="submit" name="status" value="SUIVI"
+                            style="width:100%; background:#fef3c7; color:#92400e; border: 1px solid #fde68a;">
+                            <i class="fas fa-undo"></i> Remettre en cours
+                        </button>
+                    </form>
                 </div>
+                <div th:if="${#lists.isEmpty(doneMails)}"
+                    style="text-align: center; color: var(--text-sub); padding: 20px; font-size: 13px;">Aucune tâche finalisée.</div>
             </div>
         </div>
     </section>
