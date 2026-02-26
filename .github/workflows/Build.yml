@@ -1,0 +1,28 @@
+name: Build OK
+
+on:
+  push:
+    branches: [ main, develop, Alex ]
+  pull_request:
+    branches: [ main, develop, Alex ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          # L'option cache intégrée à setup-java est la méthode la plus propre aujourd'hui
+          cache: maven 
+
+      - name: Build with Maven (Skip Tests)
+        run: |
+          cd ProjetDevops
+          mvn clean package -DskipTests
