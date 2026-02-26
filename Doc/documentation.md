@@ -52,8 +52,8 @@ Il y a aussi les applications de gestion de projet comme Jira qui proposent des 
 *(Section à compléter : Planning, outils utilisés, etc.)*
 
 ## 6. Diagramme de classes
-<img width="1600" height="530" alt="image" src="https://github.com/user-attachments/assets/110fe765-abd3-4907-8ba1-9916bc011874" />
 
+![Diagramme de classes](https://github.com/user-attachments/assets/110fe765-abd3-4907-8ba1-9916bc011874){width=100%}
 
 ### 6.1 But des features
 ### 6.2 Scénarios
