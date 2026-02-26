@@ -65,3 +65,4 @@ L'application se concentre sur l'efficacité : extraction, analyse par IA, et sy
 
 ## 8. Annexe API REST
 *(Détails des endpoints ici)*
+OK 
