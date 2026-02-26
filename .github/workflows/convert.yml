@@ -1,42 +1,40 @@
-name: Generate LaTeX Documentation
-on: 
+name: Markdown vers PDF (Style LaTeX)
+
+on:
   push:
+    branches:
+      - main
     paths:
-      - 'Doc/documentation.md' # Se lance uniquement quand tu modifies ce fichier
+      - 'Doc/**/*.md'
 
 jobs:
-  convert:
+  convert-to-pdf:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Autorise le bot à écrire le PDF dans ton repo
+    
     steps:
-      - name: Checkout Code
+      - name: Récupérer le code
         uses: actions/checkout@v4
 
-      - name: Markdown to PDF
-        uses: docker://pandoc/extra:latest
-        with:
-          args: >-
-            --standalone
-            --output=Doc/documentation.pdf
-            Doc/documentation.md
+      # Utilisation d'une action toute prête qui contient Pandoc + LaTeX
+      - name: Générer le PDF via Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
 
-      - name: Commit and Push PDF
+      - name: Installer TeX Live (Léger)
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Vérifie s'il y a un changement pour éviter les erreurs
-          git add Doc/documentation.pdf
-          if git diff --staged --quiet; then
-            echo "Aucun changement détecté sur le PDF."
-          else
-            git commit -m "docs: mise à jour automatique du PDF de documentation"
-            git push
-          fi
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra texlive-xetex
 
-      - name: Upload Artifact (Backup)
-        uses: actions/upload-artifact@v4
-        with:
-          name: Rapport-PDF-Backup
-          path: Doc/documentation.pdf
+      - name: Conversion MD vers PDF
+        run: |
+          for file in Doc/*.md; do
+            filename=$(basename "$file" .md)
+            # On utilise xelatex pour une meilleure gestion des polices et accents
+            pandoc "$file" -o "Doc/${filename}.pdf" --pdf-engine=xelatex
+          done
+
+      - name: Sauvegarder et Push le PDF
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add Doc/*.pdf
+          git diff --quiet && git diff --staged --quiet || (git commit -m "📄 Nouveau PDF généré" && git push)
