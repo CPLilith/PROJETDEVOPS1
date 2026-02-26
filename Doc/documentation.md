@@ -53,8 +53,7 @@ Voici comment se situe EisenFlow par rapport aux solutions existantes :
 *(Section à compléter : Planning, outils utilisés, etc.)*
 
 ## 6. Diagramme de classes
-<img width="1360" height="201" alt="image" src="https://github.com/user-attachments/assets/748cdc3a-3c9f-4602-82ee-25cc9c754b62" />
-<img width="1360" height="201" alt="image" src="https://github.com/user-attachments/assets/748cdc3a-3c9f-4602-82ee-25cc9c754b62" />
+<img width="1600" height="530" alt="image" src="https://github.com/user-attachments/assets/110fe765-abd3-4907-8ba1-9916bc011874" />
 
 
 ### 6.1 But des features
