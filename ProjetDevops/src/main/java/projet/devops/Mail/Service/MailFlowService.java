@@ -118,7 +118,7 @@ public class MailFlowService {
             });
             futures.add(future);
         }
-*
+        
         executor.shutdown();
         try {
             boolean finished = executor.awaitTermination(10, TimeUnit.MINUTES);

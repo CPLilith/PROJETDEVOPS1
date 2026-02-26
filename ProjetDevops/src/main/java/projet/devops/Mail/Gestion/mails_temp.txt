@@ -238,4 +238,12 @@
   "from" : "Alex Brindusoiu <41014348@parisnanterre.fr>",
   "content" : "bonjour,\r\n\r\nsdqjdpqjpdjq opjqsdjpodqjopjsod osqjdopsqjdopjdqop foot à 14H30 et medecin\r\na 16H\r\n",
   "status" : "SUIVI"
+}, {
+  "date" : "2026",
+  "subject" : "Sujet",
+  "messageId" : "ID1",
+  "action" : "DO",
+  "from" : "test@gmail.com",
+  "content" : "Contenu",
+  "status" : "SUIVI"
 } ]
