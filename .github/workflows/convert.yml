@@ -25,7 +25,7 @@ jobs:
       - name: Installer TeX Live (Léger)
         run: |
           sudo apt-get update
-          sudo apt-get install -y texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra texlive-xetex
+          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended texlive-latex-extra curl
 
       - name: Conversion MD vers PDF
         run: |
