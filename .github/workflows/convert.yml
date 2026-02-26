@@ -1,10 +1,17 @@
 name: Generate LaTeX Documentation
-on: [push]
+on: 
+  push:
+    paths:
+      - 'Doc/documentation.md' # Se lance uniquement quand tu modifies ce fichier
+
 jobs:
   convert:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Autorise le bot à écrire le PDF dans ton repo
     steps:
-      - uses: actions/checkout@v4 # Passage en v4 pour checkout également
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Markdown to PDF
         uses: docker://pandoc/extra:latest
@@ -14,8 +21,22 @@ jobs:
             --output=Doc/documentation.pdf
             Doc/documentation.md
 
-      - name: Upload result
-        uses: actions/upload-artifact@v4 # LA CORRECTION EST ICI
+      - name: Commit and Push PDF
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Vérifie s'il y a un changement pour éviter les erreurs
+          git add Doc/documentation.pdf
+          if git diff --staged --quiet; then
+            echo "Aucun changement détecté sur le PDF."
+          else
+            git commit -m "docs: mise à jour automatique du PDF de documentation"
+            git push
+          fi
+
+      - name: Upload Artifact (Backup)
+        uses: actions/upload-artifact@v4
         with:
-          name: Rapport-Final
+          name: Rapport-PDF-Backup
           path: Doc/documentation.pdf
