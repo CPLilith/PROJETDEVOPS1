@@ -93,7 +93,8 @@ public class MailFlowService {
             return;
         }
 
-        System.out.println("🚀 Analyse parallèle de " + pendingMails.size() + " mail(s) avec "+ THREAD_POOL_SIZE + " threads...");
+        System.out.println(
+                "🚀 Analyse parallèle de " + pendingMails.size() + " mail(s) avec " + THREAD_POOL_SIZE + " threads...");
 
         // Pool de threads fixe — évite de surcharger Ollama
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
@@ -118,7 +119,7 @@ public class MailFlowService {
             });
             futures.add(future);
         }
-        
+
         executor.shutdown();
         try {
             boolean finished = executor.awaitTermination(10, TimeUnit.MINUTES);
@@ -138,7 +139,8 @@ public class MailFlowService {
     // --- DÉLÉGATION IA ---
     public DelegationData suggestDelegation(String messageId) {
         Mail mail = findMailById(messageId);
-        if (mail == null) return null;
+        if (mail == null)
+            return null;
 
         String trackingId = "DEL-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         Map<String, String> availableContacts = contactService.getAllContacts();
@@ -152,7 +154,8 @@ public class MailFlowService {
 
     public void confirmDelegation(String messageId, String assigneeEmail, String finalDraft) {
         Mail mail = findMailById(messageId);
-        if (mail == null) return;
+        if (mail == null)
+            return;
 
         try {
             mailSenderService.sendEmail(assigneeEmail, "Fwd: " + mail.getSubject(), finalDraft);
@@ -220,7 +223,8 @@ public class MailFlowService {
         return cachedMails;
     }
 
-    public record DelegationData(String assignee, String draftBody, String trackingId) {}
+    public record DelegationData(String assignee, String draftBody, String trackingId) {
+    }
 
     public void cleanMailsAfterTagDeletion(String deletedTagName) {
         boolean modified = false;
@@ -230,6 +234,7 @@ public class MailFlowService {
                 modified = true;
             }
         }
-        if (modified) saveCache();
+        if (modified)
+            saveCache();
     }
 }
