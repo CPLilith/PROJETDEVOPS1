@@ -1,5 +1,4 @@
 name: CI - Couverture (JaCoCo Maven)
-
 on:
   push:
     branches: [ "main" ]
@@ -16,7 +15,7 @@ jobs:
       MAIL_IMAP_USERNAME: ${{ secrets.MAIL_IMAP_USERNAME }}
       MAIL_IMAP_PASSWORD: ${{ secrets.MAIL_IMAP_PASSWORD }}
       OLLAMA_BASE_URL: "http://localhost:11434"
-
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,15 +28,15 @@ jobs:
           cache: 'maven'
 
       - name: Droit d'exécution pour Maven
+        working-directory: ./ProjetDevops # Indique dans quel dossier lancer la commande
         run: chmod +x mvnw
 
       - name: Lancer les tests et générer le rapport JaCoCo
-        # Utilisation de Maven au lieu de Gradle
+        working-directory: ./ProjetDevops # Indique dans quel dossier lancer Maven
         run: ./mvnw test jacoco:report
-        
+              
       - name: Sauvegarder le rapport (Artifact)
-        # Permet de télécharger la page HTML du rapport depuis GitHub
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-coverage-report
-          path: target/site/jacoco/
+          path: ProjetDevops/target/site/jacoco/ # Ajout du dossier parent dans le chemin
