@@ -93,8 +93,7 @@ public class MailFlowService {
             return;
         }
 
-        System.out.println("🚀 Analyse parallèle de " + pendingMails.size() + " mail(s) avec "
-                + THREAD_POOL_SIZE + " threads...");
+        System.out.println("🚀 Analyse parallèle de " + pendingMails.size() + " mail(s) avec "+ THREAD_POOL_SIZE + " threads...");
 
         // Pool de threads fixe — évite de surcharger Ollama
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
@@ -119,8 +118,7 @@ public class MailFlowService {
             });
             futures.add(future);
         }
-
-        // Attendre que tous les threads finissent (max 3 minutes)
+*
         executor.shutdown();
         try {
             boolean finished = executor.awaitTermination(10, TimeUnit.MINUTES);
