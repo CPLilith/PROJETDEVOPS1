@@ -1,0 +1,43 @@
+name: Markdown vers PDF (Style LaTeX)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Doc/**/*.md'
+
+permissions:
+  contents: write
+  
+jobs:
+  convert-to-pdf:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      # Utilisation d'une action toute prête qui contient Pandoc + LaTeX
+      - name: Générer le PDF via Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Installer TeX Live (Léger)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra texlive-xetex
+
+      - name: Conversion MD vers PDF
+        run: |
+          for file in Doc/*.md; do
+            filename=$(basename "$file" .md)
+            # On ajoute --extract-media pour gérer les images
+            pandoc "$file" -o "Doc/${filename}.pdf" --pdf-engine=xelatex --extract-media=.
+          done
+
+      - name: Sauvegarder et Push le PDF
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add Doc/*.pdf
+          git diff --quiet && git diff --staged --quiet || (git commit -m "📄 Nouveau PDF généré" && git push)
