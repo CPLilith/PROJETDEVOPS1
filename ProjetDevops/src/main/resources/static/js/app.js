@@ -14,9 +14,9 @@ function openMail(cardEl, event) {
     document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
     cardEl.classList.add('active');
 
-    const id = cardEl.getAttribute('data-id');
-    const subject = cardEl.getAttribute('data-subject');
-    const from = cardEl.getAttribute('data-from');
+    const id = cardEl.dataset.id;
+    const subject = cardEl.dataset.subject;
+    const from = cardEl.dataset.from;
     const content = document.getElementById('content-' + id).value;
 
     renderReader(subject, "De : " + from, content, id, false);
@@ -27,9 +27,9 @@ function openNote(cardEl, event) {
     document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
     cardEl.classList.add('active');
 
-    const id = cardEl.getAttribute('data-id');
-    const subject = cardEl.getAttribute('data-subject');
-    const from = cardEl.getAttribute('data-from');
+    const id = cardEl.dataset.id;
+    const subject = cardEl.dataset.subject;
+    const from = cardEl.dataset.from;
     const content = document.getElementById('note-content-' + id).value;
 
     renderReader(subject, "Auteur IA : " + from, content, id, true);
@@ -210,7 +210,7 @@ function setFilter(tag, chipEl) {
     chipEl.classList.add('active');
 
     document.querySelectorAll('.feed-list .mail-card').forEach(card => {
-        const cardTag = card.getAttribute('data-tag') || 'PENDING';
+        const cardTag = card.dataset.tag || 'PENDING';
         let show = false;
 
         if (tag === 'ALL') {
