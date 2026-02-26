@@ -246,4 +246,12 @@
   "from" : "test@gmail.com",
   "content" : "Contenu",
   "status" : "SUIVI"
+}, {
+  "date" : "2026",
+  "subject" : "Sujet",
+  "messageId" : "ID1",
+  "action" : "PENDING",
+  "from" : "test@gmail.com",
+  "content" : "Contenu",
+  "status" : "SUIVI"
 } ]

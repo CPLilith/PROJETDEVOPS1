@@ -30,9 +30,9 @@
     <properties>
         <java.version>21</java.version>
         
-        <sonar.organization>VOTRE_ORGANISATION_ICI</sonar.organization>
+        <sonar.organization>cplilith</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.projectKey>5635507eac86a3098517c5014da2b85fc13616c8</sonar.projectKey>
+        <sonar.projectKey>CPLilith_PROJETDEVOPS1</sonar.projectKey>
     </properties>
     
     <dependencies>
