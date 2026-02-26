@@ -1,39 +1,39 @@
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/ClassificationStrategy.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/EisenhowerAction.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/EisenhowerClassifier.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/OllamaClient.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/OllamaStrategy.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/Persona.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaConfigLoader.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaPromptProvider.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaResourceService.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/StatusClassifier.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/TextCleaner.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/EventController.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/GlobalModelAdvice.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/HomeController.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/KnowledgeController.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/MailActionController.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/MailRestApiController.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/TagApiController.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Gestion/FichierTemp.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Mail.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Model/Note.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/ContactRepository.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/CustomTagRepository.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/JsonContactRepository.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/JsonCustomTagRepository.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/JsonNoteRepository.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/LocalMailCacheRepository.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/MailCacheRepository.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/NoteRepository.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/ContactService.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/CustomDoTagService.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailFlowService.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailMapper.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailSenderService.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailService.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MeetingPrepService.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/NoteService.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/TeamService.java
-/mnt/c/Users/arthu/Downloads/Cours Master/S1/DevOps/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/ProjetDevopsApplication.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/ClassificationStrategy.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/EisenhowerAction.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/EisenhowerClassifier.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/OllamaClient.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/OllamaStrategy.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/Persona.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaConfigLoader.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaPromptProvider.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/PersonaResourceService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/StatusClassifier.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Classifier/TextCleaner.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/EventController.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/GlobalModelAdvice.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/HomeController.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/KnowledgeController.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/MailActionController.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/MailRestApiController.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Controller/TagApiController.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Gestion/FichierTemp.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Mail.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Model/Note.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/ContactRepository.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/CustomTagRepository.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/JsonContactRepository.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/JsonCustomTagRepository.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/JsonNoteRepository.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/LocalMailCacheRepository.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/MailCacheRepository.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Repository/NoteRepository.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/ContactService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/CustomDoTagService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailFlowService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailMapper.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailSenderService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MailService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/MeetingPrepService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/NoteService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/Mail/Service/TeamService.java
+/home/alex/Github/PROJETDEVOPS1/ProjetDevops/src/main/java/projet/devops/ProjetDevopsApplication.java

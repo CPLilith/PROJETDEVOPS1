@@ -6,7 +6,8 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>4.0.0</version>
-        <relativePath/> </parent>
+        <relativePath/> 
+    </parent>
     <groupId>Projet</groupId>
     <artifactId>Devops</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -25,9 +26,15 @@
         <tag/>
         <url/>
     </scm>
+    
     <properties>
         <java.version>21</java.version>
+        
+        <sonar.organization>VOTRE_ORGANISATION_ICI</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.projectKey>VOTRE_CLE_DE_PROJET_ICI</sonar.projectKey>
     </properties>
+    
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
