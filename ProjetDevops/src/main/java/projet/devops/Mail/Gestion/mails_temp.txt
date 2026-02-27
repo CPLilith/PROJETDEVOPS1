@@ -1,6 +1,0 @@
-  "date" : "Thu Feb 26 19:22:19 CET 2026",
-  "subject" : "devops2788, catch up on moments you've missed",
-  "messageId" : "<a09d87b8-885f-4542-9c4a-dfec2425a5ee@priority.instagram.com>",
-  "action" : "DO",
-  "from" : "Instagram <notification@priority.instagram.com>",
-  "content" : "",
