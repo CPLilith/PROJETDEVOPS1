@@ -86,7 +86,7 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 
 ## 6. Diagramme de classes
 
-![Diagramme de classes](https://github.com/user-attachments/assets/110fe765-abd3-4907-8ba1-9916bc011874){width=100%}
+![Diagramme de classes](https://github.com/user-attachments/assets/04e1e5df-bce5-4aa3-aa25-af5c25877ec3){width=100%}
 
 ### 6.1 But des features
 
