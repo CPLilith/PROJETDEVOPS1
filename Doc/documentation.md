@@ -124,6 +124,8 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 
 * **Scénario F4 (Délégation) :** L'utilisateur reçoit une demande technique qu'il ne peut pas traiter. L'application utilise le routage hybride pour identifier l'expert concerné, prépare un brouillon de réponse expliquant le contexte, prêt à être envoyé.
 
+![Diagramme de séquence](https://github.com/user-attachments/assets/2948a8f5-1d0c-47f6-8faa-d05887287d8a)
+
 * **Scénario F5 & F6 (Réunion et Agenda) :** Un fil de mails contient une invitation pour un point de synchronisation vendredi à 10h. L'IA (via NER) extrait la date, propose d'ajouter le rendez-vous à l'agenda (F6) et génère simultanément un PDF via OpenPDF résumant les échanges précédents pour préparer la réunion (F5).
 
 ### 6.3 Wireframe et screenshots
