@@ -128,6 +128,8 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 
 * **Scénario F5 & F6 (Réunion et Agenda) :** Un fil de mails contient une invitation pour un point de synchronisation vendredi à 10h. L'IA (via NER) extrait la date, propose d'ajouter le rendez-vous à l'agenda (F6) et génère simultanément un PDF via OpenPDF résumant les échanges précédents pour préparer la réunion (F5).
 
+![Diagramme de séquence](https://github.com/user-attachments/assets/45069392-ac90-40bf-aba1-297a3d2ce816)
+
 ### 6.3 Wireframe et screenshots
 **F1 : Traitement et fusion de fichier marksdown**
 **F2 : Tri Intelligent (IA)**
