@@ -27,4 +27,4 @@ echo ""
 # Fonction de nettoyage pour fermer Ollama quand on fait CTRL+C
 trap "echo -e '\e[1;31m\nStopping Ollama...\e[0m'; kill $OLLAMA_PID; exit" INT
 
-mvn clean install spring-boot:run
+mvn clean spring-boot:run

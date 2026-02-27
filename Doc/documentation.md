@@ -136,9 +136,19 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 
 
 ### 6.3 Wireframe et screenshots
-**F1 : Traitement et fusion de fichier marksdown**
-**F2 : Tri Intelligent (IA)**
+
+**F1 : Tri Intelligent (IA)**
+
+**F2 : Traitement et fusion de fichier marksdown**
+
 **F3 : Tags Personnalisés**
+
+**F4 : Délégation Assistée**
+
+**F5 : Préparation Réunions**
+
+**F6 : Agenda & Rendez-vous**
+
 
 \newpage
 
