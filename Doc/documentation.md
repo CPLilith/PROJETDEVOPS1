@@ -140,30 +140,34 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 ### 6.3 Wireframe et screenshots
 
 **F1 : Tri Intelligent (IA)**
-![SreanF1](https://github.com/user-attachments/assets/24b03e22-c213-4ee8-81fc-f1b295c7dedc)
+
+![SreanF1](https://github.com/user-attachments/assets/cd2b0a3e-746c-444a-afe7-5d157780b504)
 
 **F2 : Traitement et fusion de fichier marksdown**
 ![SreanF2](https://github.com/user-attachments/assets/6f462a65-7ced-415c-8c2f-5953c516dc20)
 **F3 : Tags Personnalisés**
+![SreanF3](https://github.com/user-attachments/assets/a9dff067-ae3f-49b4-aa24-b5371072cedd)
 
 **F4 : Délégation Assistée**
-
+![SreanF4](https://github.com/user-attachments/assets/c5f58c8e-241e-4e74-96ea-0a0800e568b6)
 **F5 : Préparation Réunions**
 
+![SreanF5](https://github.com/user-attachments/assets/c264c441-d032-4e98-ab94-f679bb8cbbca)
 **F6 : Agenda & Rendez-vous**
-
+![SreanF6](https://github.com/user-attachments/assets/ac544583-a606-4329-aaed-cb31b5fa2e4b)
 
 \newpage
 
 ## 7. Résumé des fonctionnalités
 
-* **Synchronisation :** Relève et traitement sécurisés via les protocoles IMAP/SMTP pour vous accompagner vers l'objectif de l'*Inbox Zero*.
-* **Tri IA (Local) :** Classification sémantique selon la matrice d'Eisenhower, propulsée localement par le modèle LLM *TinyLlama* pour garantir une confidentialité totale de vos données.
-* **Tags personnalisés :** Système d'étiquetage dynamique et hautement flexible (gestion des "Sous-tags DO"), avec une persistance légère et rapide gérée via des fichiers JSON.
-* **Délégation Intelligente :** Routage automatisé vers les collaborateurs les plus pertinents et génération de brouillons de transfert, assistés par l'IA et l'analyse de mots-clés.
-* **Préparation & Synthèse :** Compilation et génération automatique de mémos récapitulatifs au format PDF pour faciliter la préparation de vos réunions ou le suivi de vos dossiers.
-* **Planification (Agenda) :** Utilisation de la détection d'entités nommées (NER - *Named Entity Recognition*) pour identifier et extraire automatiquement les dates et événements de vos emails afin de les planifier.
+**1. Gestion intelligente des tâches et de l'agenda (F1, F4, F6)**
+Le cœur du système utilise une IA locale (Ollama) pour analyser sémantiquement les besoins de l'utilisateur. Il est capable de trier et prioriser automatiquement les tâches selon la matrice d'Eisenhower (via le Pattern Strategy), mais aussi de détecter des dates et lieux (NER et Regex) pour proposer des planifications dans l'agenda. Si une tâche doit être transférée, un routage hybride identifie le bon expert et prépare un brouillon de délégation assistée (via le Pattern Adapter).
 
+**2. Traitement documentaire et Synthèse (F2, F5)**
+L'outil excelle dans la manipulation de documents. Il peut compiler un livrable final en fusionnant et en nettoyant dynamiquement plusieurs fragments de fichiers Markdown avant de les passer à Pandoc. Il agit également comme un assistant de préparation de réunions en demandant à l'IA de synthétiser l'historique des échanges pour générer un mémo au format PDF (en utilisant OpenPDF et des flux binaires).
+
+**3. Personnalisation de l'espace de travail (F3)**
+Pour s'adapter aux processus spécifiques de chaque utilisateur, le système permet une gestion flexible grâce à des tags personnalisés. Ces tags sont strictement contrôlés par des expressions régulières (Regex) et sauvegardés au format JSON via la librairie Jackson.
 ---
 
 # 8. Annexe API REST
