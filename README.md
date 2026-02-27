@@ -17,22 +17,62 @@ Arthur CHAUVEAU
 Swetha SARAVANAN
 Alex BRINDUSOIU
 
-Projet Gestionnaire de Mail intelligent
+Présentation
+EisenFlow est un gestionnaire de mails intelligent basé sur la matrice d'Eisenhower. Il se connecte à une boîte Gmail via IMAP, analyse automatiquement chaque mail grâce à un LLM local (Ollama/TinyLlama), et le classe en 4 tags d'action: DO PLAN DELEGATE DELETE. L'objectif est d'aider l'utilisateur à prioriser, déléguer et planifier ses mails sans effort manuel.
 
-déroulé du gestionnaire de mail intelligent
-- possibilité d'obtenir les inputs ( plusieurs approche possible, au début nous allons nous axer sur le cccv meme si non pertinent. on élaboreras sur les approches plus intéressant après avancement sur le projet )
-- matrice d'eisenhower (important, urgent, no imp, no urg) pour la décision des gestions de mail, il est possible de réaliser ce procédé de differente manière: manuel par l'utilisateur, semi auto par classificateur puis validation et complétement auto par classificateur et totale confiance dans le programme/LLM )
-- type d'action: 
-  - imp + urg -> traiter : laisser dans a traiter, confirmation quand plus dans l'espace
-  - imp + no urg -> planifier : mail into mail / mail into agenda, option de lier le mail par calendrier, alerte, tri par date
-  - no imp + urg -> déléguer : délégue le mail a une autre personne. Possibilité de rajout de message, possibilité d'associer des personnes/groupes 
-  - no imp + no urg -> supprimer : supprime le message
+Fonctionnalités:
 
-backlog:
-- pouvoir input par sélection les non lus/ drapeau / certain mail etc -> systeme de filtre pour input
-- choix technique : ql librairie, api, facon de stock (nv user/mail réel),  local,etc
-- trouver un moyen d'exporter les mails (input cccv?)
-- garde de tri ?
+Classification IA (Matrice d'Eisenhower)
+
+Connexion IMAP à Gmail et récupération des 30 derniers mails
+Classification automatique par LLM local (TinyLlama via Ollama) en 4 catégories :
+
+DO — Urgent & Important : à traiter immédiatement
+PLAN — Important & Non urgent : à planifier
+DELEGATE — Urgent & Non important : à déléguer
+DELETE — Ni urgent ni important : à supprimer
+
+
+Analyse parallèle multi-threadée (5 threads simultanés) pour réduire le temps de traitement
+Tags DO personnalisés créés par l'utilisateur intégrés dans l'analyse IA
+Adaptation au profil utilisateur via un système de Persona (Étudiant, Développeur, Professeur)
+Synchronisation des labels vers Gmail
+
+Suivi Kanban et délégations intelligente
+
+Identification automatique du meilleur expert parmi les contacts enregistrés et génération d'un brouillon de transfert personnalisé.
+
+Vue Kanban des mails délégués en deux colonnes : EN COURS et FINALISÉ
+Détection automatique du statut via l'IA (FINALISÉ ou SUIVI)
+
+Agenda IA
+
+Détection automatique des dates et lieux dans les mails PLAN et DO
+Génération d'une fiche mémo PDF pour préparer une réunion (contexte, objectif, points clés)
+
+Gestion des contacts
+
+Analyse automatique des expéditeurs pour en déduire leur expertise métier
+Dictionnaire de contacts persisté en JSON, utilisé pour la délégation
+
+Import de fichiers Markdown (.md)
+Synthèse IA multi-documents avec classification Eisenhower automatique
+Gestion des notes avec tags personnalisables
+
+Tags personnalisés
+
+Création et suppression de sous-catégories DO (DO_FORMATION, DO_URGENCE_CLIENT...)
+Pris en compte dans l'analyse IA et les filtres de l'interface
+
+
+Architecture technique
+
+Spring Boot — backend MVC + API REST
+Ollama / TinyLlama — LLM local pour la classification et la génération de texte
+IMAP / SMTP Gmail — récupération et envoi de mails
+Thymeleaf — templates HTML côté serveur
+Persistance JSON — mails, contacts, notes, tags et persona stockés localement
+Patterns appliqués — Strategy, Facade, Observer, Template Method, Repository (GoF) + principes SOLID
 
 ---
 
