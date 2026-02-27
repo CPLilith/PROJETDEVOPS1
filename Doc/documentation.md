@@ -28,33 +28,35 @@ header-includes: |
 
 # Présentation Générale
 
-## 1. Qui ?
+## 1. Qui sommes-nous?
 
-**EisenFlow** a été créé pour aider les personnes qui reçoivent beaucoup d’emails et qui ont du mal à tout gérer. Le but est de réduire le stress et de mieux organiser le travail grâce à l’Intelligence Artificielle.
+Nous sommes une équipe de quatre étudiants en **Master 1 MIAGE** (Méthodes Informatiques Appliquées à la Gestion des Entreprises), parcours **APPRENTISSAGE**, promotion **2025** à l'**Université Paris Nanterre.**
+
+Ce projet a été réalisé dans le cadre de notre cursus **DevOps**.
 
 ## 2. Quoi ? Pourquoi ?
 
-L'objectif est d'appliquer la méthode de productivité *Eisenhower* directement dans le flux de travail des emails, en utilisant une IA locale pour garantir la **confidentialité** des données utilisateur.
+L'objectif principal est de résoudre la "surcharge cognitive" liée au flux incessant d'emails en appliquant la méthode de productivité **Eisenhower** directement à la source. 
 
-## 3. Description de l'application
+Plutôt que de traiter les messages de manière chronologique, l'application force une hiérarchisation basée sur la valeur (importance) et l'urgence. L'innovation majeure réside dans l'utilisation d'une **IA locale** : contrairement aux solutions cloud classiques, le traitement sémantique s'effectue sur la machine de l'utilisateur, garantissant une **confidentialité absolue** des données sensibles et une indépendance vis-à-vis des connexions internet pour la partie analyse.
 
-Notre application permet à l'utilisateur de charger ses mails dans notre application. Cette application va ensuite donner la possibilité de soit classer automatiquement les mails dans la Matrice Eisenhower pour que les mails se fassent taguer, soit de laisser classer et taguer les mails manuellement par l'utilisateur. 
+## 3. À propos du projet
 
-Parmi les fonctionnalités présentes dans notre application il y a la possibilité d'envoyer les résultats dans Gmail directement, classer et taguer les mails. 
+**Eisenflow** est une solution intelligente de gestion du flux d'emails. Contrairement à une boîte de messagerie classique où l'utilisateur subit un flux chronologique et indifférencié, notre application :
 
-Dans les tags disponibles, il y a le DO, PLAN, DELEGATE et DELETE. Le **DO** est le tag qui regroupe les tâches urgentes et importantes nécessitant une action immédiate.
+* **Importe et Synchronise** : Récupération sécurisée de vos emails (via IMAP/Gmail) et création d'un cache local pour une navigation ultra-rapide et déconnectée.
+* **Analyse** : Évaluation sémantique locale par IA du contenu de chaque message pour en déduire le contexte, le niveau d'urgence et l'importance.
+* **Optimise et Catégorise** : Classement automatique (ou manuel) de vos emails selon la **Matrice d'Eisenhower** (DO, PLAN, DELEGATE, DELETE), avec la possibilité de créer des sous-tags personnalisés (ex: *DO · RH*, *DO · Technique*).
+* **Délégation Assistée par IA** : Identification automatique du meilleur collaborateur dans votre équipe pour traiter une tâche spécifique, couplée à la pré-rédaction intelligente d'un brouillon de transfert.
+* **Extraction de Connaissances** : Transformation des fils d'emails complexes en notes structurées persistantes (*Knowledge Base*) et génération de rapports ou mémos au format PDF.
+* **Synchronisation Bidirectionnelle** : Exportation de vos décisions locales (tags et catégories) directement sur votre compte Gmail sous forme de labels, en un clic.
+* **Gestion Intelligente de l'Intégrité** : Mécanisme de suppression en cascade garantissant que la modification ou la suppression d'un tag personnalisé réaffecte proprement les emails associés, sans aucune perte de données.
 
-L'application offre deux modes d'utilisation :
-* **Classement automatique :** L'IA analyse le contenu et applique les tags de la Matrice Eisenhower.
-* **Classement manuel :** L'utilisateur garde le contrôle total sur le tagage.
+### Public visé
 
-### Fonctionnalités clés
-L'application permet d'envoyer les résultats directement dans Gmail. Les tags disponibles sont :
-
-1. **DO** : Tâches urgentes et importantes.
-2. **PLAN** : Tâches importantes mais non urgentes.
-3. **DELEGATE** : Tâches urgentes mais non importantes.
-4. **DELETE** : Tâches ni urgentes ni importantes.
+* **Étudiants :** Pour jongler entre les mails administratifs de l'université, les rendus de projets urgents et les travaux de groupe. L'application permet d'isoler instantanément ce qui requiert une action immédiate (DO) des simples newsletters étudiantes (DELETE), réduisant ainsi le stress lié aux deadlines.
+* **Développeurs :** Pour protéger les précieuses périodes de "Deep Work". L'IA aide à séparer les alertes serveurs ou rapports de bugs critiques (DO) du reste du bruit numérique (notifications de pull requests, newsletters tech), tout en facilitant la délégation de tickets d'assistance au reste de l'équipe technique.
+* **Enseignants :** Pour gérer efficacement le flux constant et chronophage de questions d'étudiants, de directives administratives et de réunions pédagogiques. L'outil aide à prioriser les demandes urgentes, à planifier les corrections (PLAN) et à extraire rapidement les informations clés en mémos PDF pour les cours.
 
 ---
 
@@ -152,16 +154,14 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 
 \newpage
 
-## 7. Résumé des features
+## 7. Résumé des fonctionnalités
 
-L'application repose sur un cœur Java/Spring Boot solide orchestrant 6 fonctionnalités principales :
-
-1. **Synchronisation :** Relève sécurisée (IMAP/SMTP) pour tendre vers le Zéro Inbox.
-2. **Tri IA :** Classification Eisenhower sémantique gérée localement par TinyLlama.
-3. **Tags personnalisés :** Flexibilité du système gérée via JSON.
-4. **Délégation :** Routage et brouillons assistés par IA et mots-clés.
-5. **Préparation :** Mémos PDF générés automatiquement.
-6. **Agenda :** Détection d'entités (NER) pour planifier les évènements.
+* **Synchronisation :** Relève et traitement sécurisés via les protocoles IMAP/SMTP pour vous accompagner vers l'objectif de l'*Inbox Zero*.
+* **Tri IA (Local) :** Classification sémantique selon la matrice d'Eisenhower, propulsée localement par le modèle LLM *TinyLlama* pour garantir une confidentialité totale de vos données.
+* **Tags personnalisés :** Système d'étiquetage dynamique et hautement flexible (gestion des "Sous-tags DO"), avec une persistance légère et rapide gérée via des fichiers JSON.
+* **Délégation Intelligente :** Routage automatisé vers les collaborateurs les plus pertinents et génération de brouillons de transfert, assistés par l'IA et l'analyse de mots-clés.
+* **Préparation & Synthèse :** Compilation et génération automatique de mémos récapitulatifs au format PDF pour faciliter la préparation de vos réunions ou le suivi de vos dossiers.
+* **Planification (Agenda) :** Utilisation de la détection d'entités nommées (NER - *Named Entity Recognition*) pour identifier et extraire automatiquement les dates et événements de vos emails afin de les planifier.
 
 ---
 
