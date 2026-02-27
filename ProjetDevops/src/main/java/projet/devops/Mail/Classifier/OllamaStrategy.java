@@ -26,6 +26,9 @@ public class OllamaStrategy implements ClassificationStrategy {
 
     @Override
     public EisenhowerAction classify(Mail mail, Persona persona, List<String> customTags) {
+        if (mail.getContent() == null || mail.getContent().trim().isEmpty()) {
+            return EisenhowerAction.DELETE;
+        }
         try {
             String prompt = buildPrompt(mail, persona, customTags);
             String response = client.generateResponse("tinyllama", prompt);

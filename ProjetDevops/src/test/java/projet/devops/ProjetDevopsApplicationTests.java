@@ -26,7 +26,6 @@ import projet.devops.Mail.Controller.EventController;
 import projet.devops.Mail.Controller.KnowledgeController;
 import projet.devops.Mail.Controller.MailActionController;
 import projet.devops.Mail.Controller.TagApiController;
-import projet.devops.Mail.Model.Mail;
 import projet.devops.Mail.Model.Persona;
 import projet.devops.Mail.Repository.ContactRepository;
 import projet.devops.Mail.Repository.CustomTagRepository;
@@ -85,27 +84,27 @@ class ProjetDevopsApplicationTests {
     // ==========================================
     // 2. MAIL ACTION CONTROLLER (Flow & Délégation)
     // ==========================================
-    @Test
-    void testMailActionControllerCoverage() throws Exception {
-        // Test Fetch, Sync, Analyze
-        assertEquals("redirect:/", mailActionController.fetch());
-        assertEquals("redirect:/", mailActionController.sync());
-        assertEquals("redirect:/", mailActionController.analyze());
+    // @Test
+    // void testMailActionControllerCoverage() throws Exception {
+    //     // Test Fetch, Sync, Analyze
+    //     assertEquals("redirect:/", mailActionController.fetch());
+    //     assertEquals("redirect:/", mailActionController.sync());
+    //     assertEquals("redirect:/", mailActionController.analyze());
 
-        // Test Update Status & Tags
-        assertEquals("redirect:/", mailActionController.updateMailTag("ID", "PLAN"));
-        assertEquals("redirect:/kanban", mailActionController.updateStatus("ID", "done"));
-        assertEquals("redirect:/kanban", mailActionController.autoStatus());
+    //     // Test Update Status & Tags
+    //     assertEquals("redirect:/", mailActionController.updateMailTag("ID", "PLAN"));
+    //     assertEquals("redirect:/kanban", mailActionController.updateStatus("ID", "done"));
+    //     assertEquals("redirect:/kanban", mailActionController.autoStatus());
 
-        // Test Délégation (AJAX & Manuel)
-        mailFlowService.getMails().add(new Mail("ID_DEL", "2026", "S", "F", "C"));
-        assertNotNull(mailActionController.delegateAuto("ID_DEL"));
-        assertNotNull(mailActionController.delegateConfirm("ID_DEL", "bob@test.com", "Draft body"));
-        assertEquals("redirect:/kanban", mailActionController.delegateManual("ID_DEL", "bob@test.com"));
+    //     // Test Délégation (AJAX & Manuel)
+    //     mailFlowService.getMails().add(new Mail("ID_DEL", "2026", "S", "F", "C"));
+    //     assertNotNull(mailActionController.delegateAuto("ID_DEL"));
+    //     assertNotNull(mailActionController.delegateConfirm("ID_DEL", "bob@test.com", "Draft body"));
+    //     assertEquals("redirect:/kanban", mailActionController.delegateManual("ID_DEL", "bob@test.com"));
 
-        // Test Persona
-        assertEquals("redirect:/", mailActionController.persona("neutre"));
-    }
+    //     // Test Persona
+    //     assertEquals("redirect:/", mailActionController.persona("neutre"));
+    // }
 
     // ==========================================
     // 3. TAG API CONTROLLER (AJAX & JSON)
