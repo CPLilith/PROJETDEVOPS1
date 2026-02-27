@@ -68,7 +68,19 @@ Un autre type d'applications parmi les boîtes mails sont celles utilisant l'IA 
 
 Il y a aussi les applications de gestion de projet comme Jira qui proposent des tableaux Kanban, permettent de suivre les tâches et sont donc très utiles pour le travail en équipe. Notre application permet de suivre les tâches lues dans les mails, contrairement à Jira qui nécessite de mettre manuellement chaque tâche.
 
-> **Note sur la confidentialité :** Contrairement à SuperHuman, EisenFlow privilégie une **IA locale** pour protéger la vie privée des utilisateurs.
+L'intégration de l'Intelligence Artificielle au sein de Gmail
+
+L'évolution récente de Gmail, propulsée par l'intégration de modèles d'intelligence artificielle avancés (tels que Gemini), a transformé la messagerie standard en un véritable assistant de productivité. L'état de l'art de ces fonctionnalités natives s'articule autour de cinq axes majeurs :
+
+* Rédaction assistée ("Help me write") : Cette fonctionnalité permet de générer des courriels complets à partir de requêtes textuelles basiques. L'IA offre également la possibilité d'ajuster dynamiquement le ton du message (pour le rendre plus formel ou décontracté) et inclut des outils de relecture avancée visant à optimiser la syntaxe et l'impact du texte.
+
+* Résumés automatiques de l'historique : Face à la surcharge informationnelle, l'IA propose une synthèse proactive des longs fils de discussion. Le système extrait et structure les points clés des échanges, permettant à l'utilisateur de s'approprier rapidement le contexte sans avoir à parcourir l'intégralité des messages.
+
+* Recherche par requêtes en langage naturel (Q&A) : Le moteur de recherche classique par mots-clés évolue vers une interface conversationnelle. L'utilisateur peut interroger directement sa base de données d'e-mails (par exemple : « Quand arrive mon colis ? ») pour obtenir une réponse précise et synthétisée par l'IA, remplaçant ainsi la traditionnelle liste de résultats cliquables.
+
+* Réponses intelligentes et contextuelles (Smart Replies) : S'appuyant sur une analyse sémantique globale de l'échange en cours, le système est capable de suggérer des réponses longues et adaptées. Ces propositions prennent en compte le contexte spécifique de la discussion, réduisant le temps de rédaction pour les tâches répétitives.
+
+* Tri prédictif et système de relances (Nudging) : L'organisation de la boîte de réception est optimisée par une priorisation automatique des messages jugés prioritaires. Ce tri intelligent est couplé à un mécanisme de rappels proactifs (« Nudges »), qui identifie et fait remonter les courriels en attente d'une réponse ou nécessitant un suivi de la part de l'utilisateur.
 
 \newpage
 
