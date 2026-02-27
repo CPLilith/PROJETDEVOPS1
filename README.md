@@ -64,6 +64,6 @@ cd /PROJETDEVOPS1/ProjetDevops
 | Membre | GitHub | Numéro Étudiant | Rôle |
 | :--- | :--- | :--- | :--- |
 | **Alex BRINDUSOIU** | [@4l43](https://github.com/4l43) | 41014348 | ? |
-| **Swetha SARAVANAN** | [@CPLilith](https://github.com/CPLilith) | 43010994 | ? |
-| **Franck ZHENG** | [@SwethaSaravanan16](https://github.com/SwethaSaravanan16) | 41003040 | ? |
+| **Franck ZHENG** | [@CPLilith](https://github.com/CPLilith) | 43010994 | ? |
+| **Swetha SARAVANAN** | [@SwethaSaravanan16](https://github.com/SwethaSaravanan16) | 41003040 | ? |
 | **Arthur CHAUVEAU** | [@CHAUVEAUArthur](https://github.com/CHAUVEAUArthur) | 41005688 | ? |
