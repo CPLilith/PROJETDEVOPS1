@@ -121,6 +121,7 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 * **Scénario F1 & F2 (Synchronisation et Tri) :** L'utilisateur connecte son compte. Le backend relève les mails via Jakarta Mail. L'IA Ollama analyse sémantiquement chaque message en fonction du persona choisi et les répartit dans les colonnes du Kanban (DO, PLAN, etc.).
 
 ![Diagramme de séquence](https://github.com/user-attachments/assets/1ba9aa8a-48d1-4c4d-ae3b-4f438329aeb2)
+![Diagramme de séquence](https://github.com/user-attachments/assets/353e2007-63bf-47aa-b829-8048686e99cc)
 
 * **Scénario F4 (Délégation) :** L'utilisateur reçoit une demande technique qu'il ne peut pas traiter. L'application utilise le routage hybride pour identifier l'expert concerné, prépare un brouillon de réponse expliquant le contexte, prêt à être envoyé.
 
