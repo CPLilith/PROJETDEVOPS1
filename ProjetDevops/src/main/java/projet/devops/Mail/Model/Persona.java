@@ -1,4 +1,4 @@
-package projet.devops.Mail.Classifier;
+package projet.devops.Mail.Model;
 
 public enum Persona {
     ETUDIANT,

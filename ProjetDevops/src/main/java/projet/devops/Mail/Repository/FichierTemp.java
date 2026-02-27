@@ -1,4 +1,4 @@
-package projet.devops.Mail.Gestion;
+package projet.devops.Mail.Repository;
 
 import org.springframework.stereotype.Component;
 import java.io.FileWriter;

@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import projet.devops.Mail.Mail;
-import projet.devops.Mail.Classifier.EisenhowerAction;
 import projet.devops.Mail.Classifier.EisenhowerClassifier;
+import projet.devops.Mail.Model.EisenhowerAction;
+import projet.devops.Mail.Model.Mail;
 import projet.devops.Mail.Service.MailFlowService;
 import projet.devops.Mail.Service.MeetingPrepService;
 

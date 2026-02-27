@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Repository;
 
-import projet.devops.Mail.Mail;
-import projet.devops.Mail.Gestion.FichierTemp;
+import projet.devops.Mail.Model.Mail;
 
 @Repository // SRP : Son seul rôle est de traduire les Mails pour FichierTemp
 public class LocalMailCacheRepository implements MailCacheRepository {

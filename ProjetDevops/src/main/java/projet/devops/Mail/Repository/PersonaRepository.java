@@ -1,6 +1,6 @@
 package projet.devops.Mail.Repository;
 
-import projet.devops.Mail.Classifier.Persona;
+import projet.devops.Mail.Model.Persona;
 
 public interface PersonaRepository {
     Persona load();

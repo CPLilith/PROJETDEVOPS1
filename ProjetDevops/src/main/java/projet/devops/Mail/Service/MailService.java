@@ -15,7 +15,7 @@ import jakarta.mail.Store;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.MessageIDTerm;
-import projet.devops.Mail.Mail;
+import projet.devops.Mail.Model.Mail;
 
 @Service
 public class MailService {

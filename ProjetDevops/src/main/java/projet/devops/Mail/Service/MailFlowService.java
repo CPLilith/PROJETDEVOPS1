@@ -12,13 +12,13 @@ import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Service;
 
-import projet.devops.Mail.Classifier.EisenhowerAction;
 import projet.devops.Mail.Classifier.EisenhowerClassifier;
-import projet.devops.Mail.Classifier.Persona;
 import projet.devops.Mail.Classifier.StatusClassifier;
 import projet.devops.Mail.Event.MailClassifiedEvent;
 import projet.devops.Mail.Event.MailEventPublisher;
-import projet.devops.Mail.Mail;
+import projet.devops.Mail.Model.EisenhowerAction;
+import projet.devops.Mail.Model.Mail;
+import projet.devops.Mail.Model.Persona;
 import projet.devops.Mail.Repository.MailCacheRepository;
 import projet.devops.Mail.Repository.PersonaRepository;
 

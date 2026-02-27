@@ -9,8 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.PostConstruct;
 import projet.devops.Mail.Classifier.OllamaClient;
-import projet.devops.Mail.Classifier.Persona;
 import projet.devops.Mail.Model.Note;
+import projet.devops.Mail.Model.Persona;
 import projet.devops.Mail.Repository.NoteRepository;
 
 @Service

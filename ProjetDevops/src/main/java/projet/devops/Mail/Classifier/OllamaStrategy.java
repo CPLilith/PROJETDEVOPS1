@@ -4,7 +4,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import projet.devops.Mail.Mail;
+import projet.devops.Mail.Model.EisenhowerAction;
+import projet.devops.Mail.Model.Mail;
+import projet.devops.Mail.Model.Persona;
+import projet.devops.Mail.Service.PersonaPromptProvider;
+import projet.devops.Mail.Service.TextCleaner;
 
 @Component
 public class OllamaStrategy implements ClassificationStrategy {

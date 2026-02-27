@@ -1,4 +1,6 @@
-package projet.devops.Mail.Classifier;
+package projet.devops.Mail.Service;
+
+import projet.devops.Mail.Model.Persona;
 
 public final class PersonaPromptProvider {
 

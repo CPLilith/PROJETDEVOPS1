@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 import projet.devops.Mail.Classifier.OllamaClient;
-import projet.devops.Mail.Classifier.TextCleaner;
 
 @Service
 public class TeamService {

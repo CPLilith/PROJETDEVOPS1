@@ -1,7 +1,8 @@
 package projet.devops.Mail.Repository;
 
 import java.util.List;
-import projet.devops.Mail.Mail;
+
+import projet.devops.Mail.Model.Mail;
 
 public interface MailCacheRepository {
     void saveCache(List<Mail> mails);

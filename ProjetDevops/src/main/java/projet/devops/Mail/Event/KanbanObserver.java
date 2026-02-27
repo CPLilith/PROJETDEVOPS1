@@ -2,8 +2,8 @@ package projet.devops.Mail.Event;
 
 import org.springframework.stereotype.Component;
 
-import projet.devops.Mail.Classifier.EisenhowerAction;
-import projet.devops.Mail.Mail;
+import projet.devops.Mail.Model.EisenhowerAction;
+import projet.devops.Mail.Model.Mail;
 
 @Component
 public class KanbanObserver implements MailEventObserver {

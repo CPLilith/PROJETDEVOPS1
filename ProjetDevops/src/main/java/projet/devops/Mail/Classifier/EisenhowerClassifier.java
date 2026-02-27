@@ -6,8 +6,12 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import projet.devops.Mail.Mail;
+import projet.devops.Mail.Model.EisenhowerAction;
+import projet.devops.Mail.Model.Mail;
+import projet.devops.Mail.Model.Persona;
 import projet.devops.Mail.Service.CustomDoTagService;
+import projet.devops.Mail.Service.PersonaPromptProvider;
+import projet.devops.Mail.Service.TextCleaner;
 
 @Service
 public class EisenhowerClassifier {

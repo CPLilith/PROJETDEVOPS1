@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import projet.devops.Mail.Mail;
-import projet.devops.Mail.Classifier.EisenhowerAction;
-import projet.devops.Mail.Classifier.PersonaResourceService;
+import projet.devops.Mail.Model.EisenhowerAction;
+import projet.devops.Mail.Model.Mail;
 import projet.devops.Mail.Service.MailFlowService;
+import projet.devops.Mail.Service.PersonaResourceService;
 
 record RestResponse<T>(T data, Map<String, String> _links) {}
 

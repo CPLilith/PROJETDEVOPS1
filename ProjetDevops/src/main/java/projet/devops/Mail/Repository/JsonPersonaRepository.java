@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-import projet.devops.Mail.Classifier.Persona;
+import projet.devops.Mail.Model.Persona;
 
 @Repository
 public class JsonPersonaRepository implements PersonaRepository {

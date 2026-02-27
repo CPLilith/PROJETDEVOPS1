@@ -22,12 +22,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import projet.devops.Mail.Classifier.OllamaClient;
-import projet.devops.Mail.Classifier.Persona;
 import projet.devops.Mail.Controller.EventController;
 import projet.devops.Mail.Controller.KnowledgeController;
 import projet.devops.Mail.Controller.MailActionController;
 import projet.devops.Mail.Controller.TagApiController;
-import projet.devops.Mail.Mail;
+import projet.devops.Mail.Model.Mail;
+import projet.devops.Mail.Model.Persona;
 import projet.devops.Mail.Repository.ContactRepository;
 import projet.devops.Mail.Repository.CustomTagRepository;
 import projet.devops.Mail.Repository.NoteRepository;

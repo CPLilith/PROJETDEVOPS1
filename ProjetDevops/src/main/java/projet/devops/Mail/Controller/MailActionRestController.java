@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import projet.devops.Mail.Classifier.Persona;
+import projet.devops.Mail.Model.Persona;
 import projet.devops.Mail.Repository.PersonaRepository;
 import projet.devops.Mail.Service.MailFlowService;
 import projet.devops.Mail.Service.MailFlowService.DelegationData;

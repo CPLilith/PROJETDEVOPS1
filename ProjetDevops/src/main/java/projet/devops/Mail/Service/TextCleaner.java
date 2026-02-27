@@ -1,6 +1,6 @@
-package projet.devops.Mail.Classifier;
+package projet.devops.Mail.Service;
 
-import projet.devops.Mail.Mail;
+import projet.devops.Mail.Model.Mail;
 
 public class TextCleaner {
 

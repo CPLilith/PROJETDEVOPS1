@@ -1,9 +1,11 @@
-package projet.devops.Mail.Classifier;
+package projet.devops.Mail.Service;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+
+import projet.devops.Mail.Model.Persona;
 
 public final class PersonaConfigLoader {
 

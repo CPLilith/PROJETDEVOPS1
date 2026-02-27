@@ -6,8 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import projet.devops.Mail.Classifier.OllamaClient;
-import projet.devops.Mail.Classifier.TextCleaner;
-import projet.devops.Mail.Mail;
+import projet.devops.Mail.Model.Mail;
 
 @Service
 public class MeetingPrepService extends AiServiceInterface {

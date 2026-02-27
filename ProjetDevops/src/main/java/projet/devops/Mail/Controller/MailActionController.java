@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.Map;
 
-import projet.devops.Mail.Classifier.Persona;
+import projet.devops.Mail.Model.Persona;
 import projet.devops.Mail.Repository.PersonaRepository;
 import projet.devops.Mail.Service.MailFlowService;
 import projet.devops.Mail.Service.MailFlowService.DelegationData;

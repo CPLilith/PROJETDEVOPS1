@@ -4,7 +4,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import projet.devops.Mail.Classifier.Persona;
+import projet.devops.Mail.Model.Persona;
 import projet.devops.Mail.Repository.PersonaRepository;
 import projet.devops.Mail.Service.CustomDoTagService;
 

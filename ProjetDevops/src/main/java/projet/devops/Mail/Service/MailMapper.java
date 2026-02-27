@@ -9,8 +9,8 @@ import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
-import projet.devops.Mail.Mail;
-import projet.devops.Mail.Classifier.EisenhowerAction;
+import projet.devops.Mail.Model.EisenhowerAction;
+import projet.devops.Mail.Model.Mail;
 
 @Component // SRP: Son seul rôle est de transformer un objet technique en objet métier
 public class MailMapper {

@@ -1,9 +1,11 @@
-package projet.devops.Mail.Classifier;
+package projet.devops.Mail.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import projet.devops.Mail.Model.Persona;
 
 public final class PersonaResourceService {
 

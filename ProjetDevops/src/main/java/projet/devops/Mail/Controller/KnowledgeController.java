@@ -11,8 +11,8 @@ import java.util.Collections;
 import java.util.List;
 
 import projet.devops.Mail.Model.Note;
-import projet.devops.Mail.Classifier.PersonaResourceService;
 import projet.devops.Mail.Service.NoteService;
+import projet.devops.Mail.Service.PersonaResourceService;
 
 @Controller
 public class KnowledgeController {

@@ -1,6 +1,6 @@
 package projet.devops.Mail.Event;
 
-import projet.devops.Mail.Mail;
+import projet.devops.Mail.Model.Mail;
 
 public class MailClassifiedEvent {
 

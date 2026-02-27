@@ -1,6 +1,4 @@
-package projet.devops.Mail;
-
-import projet.devops.Mail.Classifier.EisenhowerAction;
+package projet.devops.Mail.Model;
 
 public class Mail {
     private String messageId;
