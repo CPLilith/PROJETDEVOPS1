@@ -61,21 +61,3 @@ cd /PROJETDEVOPS1/ProjetDevops
 mvn clean install
 mvn spring-boot:run
 ```
-## Version 1.0.0 alpha :
-
-**Features Principales**
-• Classification IA intelligente des emails via Ollama (TinyLlama) s’adaptant dynamiquement au
-profil utilisateur (Persona).
-– Synchronisation des d´ecisions de priorit´e (Labels) avec l’interface serveur Gmail.
-• Syst`eme de Knowledge Base (Vault) permettant l’import de dossiers locaux et la g´en´eration auto-
-matique de synth`eses par l’IA.
-
-**Petites Features**
-• Interface de lecture unifi´ee avec s´electeurs de priorit´e manuels (DO, PLAN, DELEGATE, DELETE)
-pour les mails et les notes.
-• Syst`eme de bascule de Persona (
-Etudiant, D´eveloppeur, Professeur) modifiant le comportement de
-l’analyse IA.
-
-**Notes Techniques**
-• Mise en place du moteur de d´ependances Maven pour la gestion des biblioth`eques externes
