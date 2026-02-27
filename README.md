@@ -11,68 +11,37 @@
 # PROJETDEVOPS1
 Github du projet DevOps M1 MIAGE APP
 
-Etudiants:
-Franck ZHENG
-Arthur CHAUVEAU
-Swetha SARAVANAN
-Alex BRINDUSOIU
+---
 
-Présentation
-EisenFlow est un gestionnaire de mails intelligent basé sur la matrice d'Eisenhower. Il se connecte à une boîte Gmail via IMAP, analyse automatiquement chaque mail grâce à un LLM local (Ollama/TinyLlama), et le classe en 4 tags d'action: DO PLAN DELEGATE DELETE. L'objectif est d'aider l'utilisateur à prioriser, déléguer et planifier ses mails sans effort manuel.
+## 1. Qui sommes-nous?
 
-Fonctionnalités:
+Nous sommes une équipe de quatre étudiants en **Master 1 MIAGE** (Méthodes Informatiques Appliquées à la Gestion des Entreprises), parcours **APPRENTISSAGE**, promotion **2025** à l'**Université Paris Nanterre.**
 
-Classification IA (Matrice d'Eisenhower)
+Ce projet a été réalisé dans le cadre de notre cursus **DevOps**.
 
-Connexion IMAP à Gmail et récupération des 30 derniers mails
-Classification automatique par LLM local (TinyLlama via Ollama) en 4 catégories :
+## 2. Quoi ? Pourquoi ?
 
-DO — Urgent & Important : à traiter immédiatement
-PLAN — Important & Non urgent : à planifier
-DELEGATE — Urgent & Non important : à déléguer
-DELETE — Ni urgent ni important : à supprimer
+L'objectif principal est de résoudre la "surcharge cognitive" liée au flux incessant d'emails en appliquant la méthode de productivité **Eisenhower** directement à la source. 
 
+Plutôt que de traiter les messages de manière chronologique, l'application force une hiérarchisation basée sur la valeur (importance) et l'urgence. L'innovation majeure réside dans l'utilisation d'une **IA locale** : contrairement aux solutions cloud classiques, le traitement sémantique s'effectue sur la machine de l'utilisateur, garantissant une **confidentialité absolue** des données sensibles et une indépendance vis-à-vis des connexions internet pour la partie analyse.
 
-Analyse parallèle multi-threadée (5 threads simultanés) pour réduire le temps de traitement
-Tags DO personnalisés créés par l'utilisateur intégrés dans l'analyse IA
-Adaptation au profil utilisateur via un système de Persona (Étudiant, Développeur, Professeur)
-Synchronisation des labels vers Gmail
+## 3. À propos du projet
 
-Suivi Kanban et délégations intelligente
+**Eisenflow** est une solution intelligente de gestion du flux d'emails. Contrairement à une boîte de messagerie classique où l'utilisateur subit un flux chronologique et indifférencié, notre application :
 
-Identification automatique du meilleur expert parmi les contacts enregistrés et génération d'un brouillon de transfert personnalisé.
+* **Importe et Synchronise** : Récupération sécurisée de vos emails (via IMAP/Gmail) et création d'un cache local pour une navigation ultra-rapide et déconnectée.
+* **Analyse** : Évaluation sémantique locale par IA du contenu de chaque message pour en déduire le contexte, le niveau d'urgence et l'importance.
+* **Optimise et Catégorise** : Classement automatique (ou manuel) de vos emails selon la **Matrice d'Eisenhower** (DO, PLAN, DELEGATE, DELETE), avec la possibilité de créer des sous-tags personnalisés (ex: *DO · RH*, *DO · Technique*).
+* **Délégation Assistée par IA** : Identification automatique du meilleur collaborateur dans votre équipe pour traiter une tâche spécifique, couplée à la pré-rédaction intelligente d'un brouillon de transfert.
+* **Extraction de Connaissances** : Transformation des fils d'emails complexes en notes structurées persistantes (*Knowledge Base*) et génération de rapports ou mémos au format PDF.
+* **Synchronisation Bidirectionnelle** : Exportation de vos décisions locales (tags et catégories) directement sur votre compte Gmail sous forme de labels, en un clic.
+* **Gestion Intelligente de l'Intégrité** : Mécanisme de suppression en cascade garantissant que la modification ou la suppression d'un tag personnalisé réaffecte proprement les emails associés, sans aucune perte de données.
 
-Vue Kanban des mails délégués en deux colonnes : EN COURS et FINALISÉ
-Détection automatique du statut via l'IA (FINALISÉ ou SUIVI)
+### Public visé
 
-Agenda IA
-
-Détection automatique des dates et lieux dans les mails PLAN et DO
-Génération d'une fiche mémo PDF pour préparer une réunion (contexte, objectif, points clés)
-
-Gestion des contacts
-
-Analyse automatique des expéditeurs pour en déduire leur expertise métier
-Dictionnaire de contacts persisté en JSON, utilisé pour la délégation
-
-Import de fichiers Markdown (.md)
-Synthèse IA multi-documents avec classification Eisenhower automatique
-Gestion des notes avec tags personnalisables
-
-Tags personnalisés
-
-Création et suppression de sous-catégories DO (DO_FORMATION, DO_URGENCE_CLIENT...)
-Pris en compte dans l'analyse IA et les filtres de l'interface
-
-
-Architecture technique
-
-Spring Boot — backend MVC + API REST
-Ollama / TinyLlama — LLM local pour la classification et la génération de texte
-IMAP / SMTP Gmail — récupération et envoi de mails
-Thymeleaf — templates HTML côté serveur
-Persistance JSON — mails, contacts, notes, tags et persona stockés localement
-Patterns appliqués — Strategy, Facade, Observer, Template Method, Repository (GoF) + principes SOLID
+* **Étudiants :** Pour jongler entre les mails administratifs de l'université, les rendus de projets urgents et les travaux de groupe. L'application permet d'isoler instantanément ce qui requiert une action immédiate (DO) des simples newsletters étudiantes (DELETE), réduisant ainsi le stress lié aux deadlines.
+* **Développeurs :** Pour protéger les précieuses périodes de "Deep Work". L'IA aide à séparer les alertes serveurs ou rapports de bugs critiques (DO) du reste du bruit numérique (notifications de pull requests, newsletters tech), tout en facilitant la délégation de tickets d'assistance au reste de l'équipe technique.
+* **Enseignants :** Pour gérer efficacement le flux constant et chronophage de questions d'étudiants, de directives administratives et de réunions pédagogiques. L'outil aide à prioriser les demandes urgentes, à planifier les corrections (PLAN) et à extraire rapidement les informations clés en mémos PDF pour les cours.
 
 ---
 
