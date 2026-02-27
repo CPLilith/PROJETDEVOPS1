@@ -1,5 +1,5 @@
 ![License](https://img.shields.io/badge/license-MIT-yellowgreen)
-![Versions](https://img.shields.io/badge/Version-v1.0.3_alpha-007ec6)
+![Versions](https://img.shields.io/badge/Version-v1.0.0-beta-007ec6)
 [![Tests OK](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/maven.yml/badge.svg)](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/maven.yml)
 ![CI - Couverture (JaCoCo Maven)](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/Couverture.yml/badge.svg)
 ![Build OK](https://github.com/CPLilith/PROJETDEVOPS1/actions/workflows/Build.yml/badge.svg)
