@@ -1,37 +1,19 @@
 [ {
-  "id" : "b9356e11-3f66-4eb1-8006-dfbb52947d21",
+  "id" : "600323fc-5034-460a-ac6c-e21ce16be28f",
   "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "Quadrant: PLAN",
+  "author" : "In summary, the following points are crucial for effective DevOps and CI/CD practices:\n1. Conduct thorough analysis of standard ports (HTTPS: 443, SSH: 22, DB: 5432) to identify any potential threats and vulnerabilities.\n2. Implement secure firewall configurations to prevent unauthorized access, data breaches, and DDoS attacks.\n3. Optimize container images for faster deployment times and reduced deployment latency.\n4. Use automated builds and tests using pipelines like Jenkins or Dockerfiles.\n5. Implement Kubernetes for scalability and flexibility in the deployment of applications.\n6. Follow best practices for data encryption, backup, and security protocols.\n7. Involve all stakeholders to ensure that everyone is on the same page regarding DevOps and CI/CD goals and objectives.\n8. Monitor and audit systems for any vulnerabilities or inadequacies in security practices and take corrective action promptly.",
   "action" : "DO",
   "content" : "AI Orchestrator"
 }, {
-  "id" : "e010dbc6-4ef9-4f81-8bc9-1c4c5a826609",
+  "id" : "810038e8-e073-485b-8edd-1a0c0877c4fc",
   "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "Quadrant: PLAN",
-  "action" : "DO",
+  "author" : "Bien sur! Vous pouvez trouver des informations complètes et expérimentales sur l'IA aux notes ci-dessus, ainsi que sur la sécurité de réseau, les filtres, les outils pour le chiffrement et le logiciel de détection des attacks DoS. Si vous avez des questions ou souhaitez en savoir plus sur ces sujets, n'hésitez pas à contacter votre professeur!",
+  "action" : "PENDING",
   "content" : "AI Orchestrator"
 }, {
-  "id" : "c3a68cc8-8ce6-4661-886e-7f20beed03aa",
+  "id" : "46ebeb97-2928-4113-ba42-9130ea93bd31",
   "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "Quadrant: PLAN",
-  "action" : "DO",
-  "content" : "AI Orchestrator"
-}, {
-  "id" : "9bffe951-784c-47f1-9620-92eff94383ce",
-  "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "Quadrant: PLAN",
-  "action" : "DO",
-  "content" : "AI Orchestrator"
-}, {
-  "id" : "9f656d3d-c05c-4462-8c66-cf5e57fe0ecd",
-  "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "Quadrant: PLAN",
-  "action" : "DO",
-  "content" : "AI Orchestrator"
-}, {
-  "id" : "c34bf02d-a958-47b4-8740-6297b482876d",
-  "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "Quadrant: PLAN",
-  "action" : "DO",
+  "author" : "I have synthesized the notes from the professor, Alice Martin, on architecture DevOps and CI/CD. Below are the key points for comparison:\n\n1. Author: Alice Martin\n2. Date: 10 February 2026\n3. Points of interest:\n    * Pipe line Jenkins: Set up of scripts `Jenkinsfile` to automate build and test\n    * Documenterisation: Use of Docker for isolating development and production environments\n    * Kubernetes: Introduction to orchestration for scalability\n\n1. Action:\n    1. Configure Webhooks GitHub to trigger build notifications.\n    2. Optimize images Docker to reduce deployment time.\n    3. Define LLMs, prompt engineering\n    4. Explore fine-tuning of pre-trained models on specific data\n    5. Experiments with Llamas 3.2 for mail classification\n    6. Analyze latency between prompt and email response times\n\n2. Key points:\n    * LLMs (Language Models) are used to transform a base model into fine-tuned models on specific data\n    * Fine tuning of pre-trained models is essential for high accuracy in predictive analytics\n    * Llamas 3.2 for mail classification uses pre-trained models, allowing for quicker classification\n    * Optimizing images with Docker allows for scalability and reduces deployment time for our application\n    * Prompt engineering allows for testing and experimentation on live data to optimize ML models for specific use cases",
+  "action" : "PENDING",
   "content" : "AI Orchestrator"
 } ]

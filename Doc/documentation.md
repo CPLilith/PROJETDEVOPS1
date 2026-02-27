@@ -8,6 +8,7 @@ author:
   - Franck ZHENG
 date: "Février 2026"
 lang: fr-FR
+classoption: titlepage
 toc: true
 toc-title: "Table des matières"
 numbersections: true
@@ -89,13 +90,13 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 
 ### 6.1 But des features
 
-**F1 : Synchronisation Emails**
-* **Objectif :** Maintenir le Zéro Inbox et lire les messages de façon sécurisée.
-* **Implémentation :** Utilisation de `jakarta.mail` (IMAP/SMTP) pour la lecture, la création de labels et le déplacement de mails (parsing MimeMultipart).
-
-**F2 : Tri Intelligent (IA)**
+**F1 : Tri Intelligent (IA)**
 * **Objectif :** Automatiser la priorisation selon la matrice d'Eisenhower.
 * **Implémentation :** Analyse sémantique via IA locale (Ollama) prenant en compte le Persona de l'utilisateur. Utilisation du Pattern *Strategy*.
+
+**F2 : Traitement et fusion de fichier marksdown**
+* **Objectif:**  Centraliser et assembler dynamiquement plusieurs fichiers Markdown fragmentés en un document unique et structuré pour générer le livrable final.
+* **Implémentation :** Un script parcourt les dossiers cibles, nettoie les métadonnées (frontmatter) et concatène les fichiers .md dans un ordre défini avant de passer le résultat au compilateur Pandoc.
 
 **F3 : Tags Personnalisés**
 * **Objectif :** Adapter l'outil aux processus spécifiques de l'utilisateur.
@@ -124,7 +125,9 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 * **Scénario F5 & F6 (Réunion et Agenda) :** Un fil de mails contient une invitation pour un point de synchronisation vendredi à 10h. L'IA (via NER) extrait la date, propose d'ajouter le rendez-vous à l'agenda (F6) et génère simultanément un PDF via OpenPDF résumant les échanges précédents pour préparer la réunion (F5).
 
 ### 6.3 Wireframe et screenshots
-*(À compléter par vos maquettes et captures d'écran de l'application)*
+**F1 : Traitement et fusion de fichier marksdown**
+**F2 : Tri Intelligent (IA)**
+**F3 : Tags Personnalisés**
 
 \newpage
 
@@ -141,5 +144,123 @@ L'application repose sur un cœur Java/Spring Boot solide orchestrant 6 fonction
 
 ---
 
-## 8. Annexe API REST
-*(Détails des endpoints du backend Spring Boot à insérer ici)*
+# 8. Annexe API REST
+## Documentation de l'API Mails
+
+**URL de base :** `/api/mails`  
+**Format des requêtes et réponses :** `application/json`
+
+---
+
+### 1. Actions Globales (Collection)
+
+Ces routes agissent sur l'ensemble de la boîte mail ou sur la configuration globale.
+
+| Méthode | Route | Description | Corps (Body) |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/` | Récupère tous les emails avec leurs liens d'actions (HATEOAS). | *Aucun* |
+| **POST** | `/fetch` | Récupère les nouveaux emails depuis la source. | *Aucun* |
+| **POST** | `/sync` | Synchronise avec Gmail puis récupère les nouveaux emails. | *Aucun* |
+| **POST** | `/analyze` | Analyse et classifie automatiquement les emails en attente (PENDING). | *Aucun* |
+| **POST** | `/auto-status` | Met à jour automatiquement les statuts grâce à l'IA. | *Aucun* |
+| **PUT** | `/persona` | Met à jour le Persona de l'utilisateur. | `{"persona": "NOM_DU_PERSONA"}` |
+
+---
+
+### 2. Actions Spécifiques (Ressource Unique)
+
+Ces routes ciblent un email précis grâce à son identifiant (`{id}`).
+
+| Méthode | Route | Description | Corps (Body) Requis |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/{id}` | Récupère les détails d'un email spécifique. | *Aucun* |
+| **PUT** | `/{id}/status` | Modifie le statut d'un email (ex: TODO, DONE). | `{"status": "DONE"}` |
+| **PUT** | `/{id}/tag` | Ajoute ou modifie un tag sur l'email. | `{"tag": "URGENT"}` |
+| **DELETE**| `/{id}` | Marque l'email comme supprimé (Action = DELETE). | *Aucun* |
+
+---
+
+### 3. Actions de Délégation
+
+Routes dédiées au processus de délégation (Eisenhower : Delegate).
+
+| Méthode | Route | Description | Corps (Body) Requis |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/{id}/delegate-auto` | Génère une suggestion de délégation via l'IA. | *Aucun* |
+| **POST** | `/{id}/delegate-confirm`| Valide la délégation avec l'assigné et le brouillon. | `{"assignee": "email@...", "draftBody": "texte..."}` |
+| **POST** | `/{id}/delegate-manual` | Force une délégation manuelle sans brouillon IA. | `{"assignee": "email@..."}` |
+
+---
+
+> **Note sur le format de réponse (HATEOAS) :** > La plupart des requêtes GET (et certaines PUT) renvoient l'objet modifié accompagné d'un nœud `_links`. Ces liens indiquent au front-end quelles sont les prochaines actions possibles en fonction de l'état actuel de l'email.
+
+## Documentation des Contrôleurs (Application Web)
+
+Ce document liste l'ensemble des routes exposées par les contrôleurs de l'application. La majorité des routes utilisent le pattern MVC classique (redirection vers des vues ou d'autres pages), avec quelques endpoints spécifiques renvoyant des données brutes (JSON ou PDF).
+
+---
+
+### 1. Vues Principales (Navigation)
+Géré par `HomeController`. Ces routes permettent d'afficher les différentes pages de l'interface utilisateur.
+
+| Méthode | Route | Description | Paramètres |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/` | Affiche la page d'accueil (Boîte de réception / Inbox). | *Aucun* |
+| **GET** | `/kanban` | Affiche la vue Kanban (tâches en cours et finalisées). | *Aucun* |
+| **GET** | `/tags` | Affiche la page de gestion des tags personnalisés. | *Aucun* |
+
+---
+
+### 2. Actions sur les Mails
+Géré par `MailActionController`. Ces routes traitent les formulaires d'action sur les emails et redirigent vers les vues.
+
+| Méthode | Route | Description | Paramètres attendus |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/fetch` | Récupère les nouveaux mails depuis la source. | *Aucun* |
+| **POST** | `/sync` | Synchronise avec Gmail et récupère les mails. | *Aucun* |
+| **POST** | `/analyze` | Lance l'analyse IA des mails en attente. | *Aucun* |
+| **POST** | `/auto-status` | Met à jour les statuts automatiquement avec l'IA. | *Aucun* |
+| **POST** | `/update-mail-tag`| Met à jour le tag d'un mail spécifique. | `messageId`, `tag` |
+| **POST** | `/update-status` | Met à jour le statut d'un mail. | `messageId`, `status` |
+| **POST** | `/persona` | Modifie le Persona global de classification. | `persona` |
+
+### Délégation
+| Méthode | Route | Description | Paramètres attendus | Retour |
+| :--- | :--- | :--- | :--- | :--- |
+| **POST** | `/delegate-auto` | Suggère une délégation via l'IA. | `messageId` | **JSON** |
+| **POST** | `/delegate-confirm`| Confirme la délégation avec le brouillon. | `messageId`, `assignee`, `draftBody`| **JSON** |
+| **POST** | `/delegate-manual` | Force une délégation sans brouillon IA. | `messageId`, `assignee` | Redirection |
+
+---
+
+### 3. Événements et Planification
+Géré par `EventController`. Permet de gérer les mails classifiés comme "À planifier".
+
+| Méthode | Route | Description | Paramètres attendus | Retour |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/events` | Affiche la liste des événements et tâches à faire. | *Aucun* | Vue HTML |
+| **POST** | `/events/prepare`| Génère une fiche de préparation de réunion. | `messageId` | **Fichier PDF** |
+
+---
+
+### 4. Base de Connaissances (Knowledge)
+Géré par `KnowledgeController`. Permet de gérer les notes et fichiers de contexte pour l'IA.
+
+| Méthode | Route | Description | Paramètres attendus |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/knowledge` | Affiche la base de connaissances. | *Aucun* |
+| **POST** | `/knowledge/upload`| Uploade et génère des notes IA depuis des fichiers.| `files` (Multipart) |
+| **POST** | `/update-note-tag` | Modifie le tag d'une note spécifique. | `index`, `tag` |
+| **POST** | `/knowledge/delete`| Supprime une note de la base. | `index` |
+
+---
+
+### 5. Gestion des Tags (Tags & API)
+Géré par `TagApiController`. Gère la création et la suppression des étiquettes personnalisées.
+
+| Méthode | Route | Description | Paramètres attendus | Retour |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/tags` | Récupère la liste de tous les tags. | *Aucun* | **JSON** |
+| **POST** | `/tags/create` | Crée un nouveau tag via le formulaire classique. | `label` | Redirection |
+| **POST** | `/tags/create-ajax`| Crée un nouveau tag de manière asynchrone (AJAX).| `label` | **JSON** |
+| **POST** | `/tags/delete` | Supprime un tag et nettoie les mails associés. | `tagName` | Redirection |
