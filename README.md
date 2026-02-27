@@ -49,22 +49,11 @@ Sommaire des commandes :
 # Installer Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Lancer le serveur Ollama
-ollama serve &
-
-Dans un autre terminal 
-
-# Télécharger le modèle et lancer TinyLlama 
-ollama pull tinyllama
-
-# Télécharger le modèle et lancer llama2
-ollama pull llama2
-
-# Télécharger le modèle et lancer phi
-ollama pull phi
-
 # Aller dans le répertoire du projet
 cd /PROJETDEVOPS1/ProjetDevops
+
+#Lancer le projet
+./run_project.sh
 
 # Compiler et exécuter l'application Spring Boot
 mvn clean install
@@ -72,15 +61,19 @@ mvn spring-boot:run
 ```
 ## Version 1.0.0 alpha :
 
-### Features :
- - Tri des mails à l'aide de la matrice d'Eisenhower sous 4 labelles / tags =>URGENT_IMPORTANT,IMPORTANTS,URGENT, NON_URGENT_NON_IMPORTANT. Puis synchronisation
- - Supression de mails si NON_URGENT_NON_IMPORTANT
- - Ajout de Persona  : Étudiants, développeur, professeur, neutre. Afin de personnalisé les réponses des IA selon la personne qui l'utilise.
- - Proposition d'un tag A_MODIFIER si au moins 2 des 3 IA ne sont pas d'accord pour que l'utilisateur ai la main.
+**Features Principales**
+• Classification IA intelligente des emails via Ollama (TinyLlama) s’adaptant dynamiquement au
+profil utilisateur (Persona).
+– Synchronisation des d´ecisions de priorit´e (Labels) avec l’interface serveur Gmail.
+• Syst`eme de Knowledge Base (Vault) permettant l’import de dossiers locaux et la g´en´eration auto-
+matique de synth`eses par l’IA.
 
-### Utilisation
+**Petites Features**
+• Interface de lecture unifi´ee avec s´electeurs de priorit´e manuels (DO, PLAN, DELEGATE, DELETE)
+pour les mails et les notes.
+• Syst`eme de bascule de Persona (
+Etudiant, D´eveloppeur, Professeur) modifiant le comportement de
+l’analyse IA.
 
-Aller sur l'url  http://localhost:8080/mails/view si mail_temps.txt n'existe pas part chercher les mails. Puis on peut faire un  http://localhost:8080/mails/refresh pour forcer la récupération des mails depuis IMAP + tag par IA.
-Et pour finir un  http://localhost:8080/mails/sync-tags pour synchroniser les tags vers Gmail.
-Pour selectionner le persona, on utilise  http://localhost:8080/mails/persona.
-Pour voir les mails avec le labels 'Non_Urgent_Non_Important' on utilise /mails/delete-page et cliquer sur le bouton pour lancer la suppression via /mails/delete-execute
+**Notes Techniques**
+• Mise en place du moteur de d´ependances Maven pour la gestion des biblioth`eques externes
