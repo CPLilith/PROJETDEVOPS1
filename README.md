@@ -56,8 +56,4 @@ cd /PROJETDEVOPS1/ProjetDevops
 
 #Lancer le projet
 ./run_project.sh
-
-# Compiler et exécuter l'application Spring Boot
-mvn clean install
-mvn spring-boot:run
 ```
