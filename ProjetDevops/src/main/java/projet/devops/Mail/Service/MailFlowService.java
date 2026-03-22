@@ -208,6 +208,8 @@ public class MailFlowService {
         if (mail != null) {
             mail.setAction(tag);
             saveCache();
+
+            eventPublisher.publish(new MailClassifiedEvent(mail));
         }
     }
 
