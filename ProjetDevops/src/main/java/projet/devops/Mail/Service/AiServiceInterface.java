@@ -18,6 +18,7 @@ public abstract class AiServiceInterface {
             String raw = callAi(prompt);
             return parseResult(raw);
         } catch (Exception e) {
+            e.printStackTrace();
             System.err.println("[" + getClass().getSimpleName() + "] Erreur IA : " + e.getMessage());
             return getDefaultResult();
         }
