@@ -13,11 +13,18 @@ import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventDateTime;
+import com.google.api.services.calendar.model.*;
+
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
 import projet.devops.Mail.Model.CalendarIntent;
+import projet.devops.Mail.Strategy.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -25,11 +32,15 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class GoogleCalendarService {
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "storage/google_tokens";
+
+    @Autowired
+    private JavaMailSender mailSender;
 
     @Value("${google.client.id}")
     private String clientId;
@@ -37,80 +48,111 @@ public class GoogleCalendarService {
     @Value("${google.client.secret}")
     private String clientSecret;
 
-    /**
-     * Initialise le client Google Calendar avec l'authentification OAuth2.
-     */
+    @Value("${spring.mail.username}")
+    private String senderEmail;
+
     private Calendar getCalendarClient() throws Exception {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-
-        // On construit le JSON de credentials dynamiquement avec tes clés du .properties
         String credentialsJson = String.format(
             "{\"installed\":{\"client_id\":\"%s\",\"project_id\":\"eisenflow\",\"auth_uri\":\"https://accounts.google.com/o/oauth2/auth\",\"token_uri\":\"https://oauth2.googleapis.com/token\",\"client_secret\":\"%s\",\"redirect_uris\":[\"http://localhost:8888/Callback\"]}}", 
             clientId, clientSecret
         );
-
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
-            JSON_FACTORY, 
-            new InputStreamReader(new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8)))
-        );
-
-        // Configuration du flux d'autorisation
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, Collections.singletonList(CalendarScopes.CALENDAR_EVENTS))
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8))));
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, Collections.singletonList(CalendarScopes.CALENDAR_EVENTS))
                 .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
-                .setAccessType("offline")
-                .build();
-
-        // On utilise le port 8888 (celui que tu as libéré avec le "kill")
+                .setAccessType("offline").build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-
-        return new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                .setApplicationName("EisenFlow")
-                .build();
+        return new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName("EisenFlow").build();
     }
 
-    /**
-     * Insère un événement dans Google Calendar basé sur l'analyse de l'IA.
-     */
+    private DelegationStrategy getStrategyAlgo(String confidence) {
+        if (confidence == null) return new MajeureStrategy(); 
+        switch (confidence.toUpperCase()) {
+            case "MINEUR": return new MineureStrategy();
+            case "MOYEN":  return new MoyenneStrategy();
+            case "MAJEUR":
+            default:       return new MajeureStrategy();
+        }
+    }
+
     public String insertEvent(CalendarIntent intent) {
         try {
             Calendar service = getCalendarClient();
-            
-            // 1. Préparation du texte
-            String summary = (intent.getTitle() != null && !intent.getTitle().isEmpty()) ? intent.getTitle() : "Tâche IA détectée";
-            String description = "🤖 Stratégie IA : " + intent.getStrategy() + "\n👤 Assigné à : " + intent.getAssignee();
-
-            Event event = new Event()
-                .setSummary(summary)
-                .setDescription(description);
-
-            // 2. Gestion stricte des dates pour éviter l'erreur 400
-            // Format d'entrée attendu de l'IA : dd/MM/yyyy
+            String mainSummary = (intent.getTitle() != null && !intent.getTitle().isEmpty()) ? intent.getTitle() : "Tâche déléguée";
             DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            LocalDate startDate = LocalDate.parse(intent.getDeadline(), inputFormatter);
-            
-            // IMPORTANT : Pour Google, un événement "All Day" doit finir le LENDEMAIN du début.
-            // Si l'événement est le 28/03/2026, la fin doit être le 29/03/2026.
-            LocalDate endDate = startDate.plusDays(1);
+            LocalDate deadlineDate = LocalDate.parse(intent.getDeadline(), inputFormatter);
+            LocalDate today = LocalDate.now();
 
-            // On utilise le format YYYY-MM-DD exigé par Google pour les dates sans heure
-            EventDateTime start = new EventDateTime().setDate(new DateTime(startDate.toString()));
-            EventDateTime end = new EventDateTime().setDate(new DateTime(endDate.toString()));
+            // 1. ENVOI DU MAIL "FAÇON DOCTOLIB" AVEC INVITATION AUTOMATIQUE (.ICS)
+            if ("BOOMERANG".equalsIgnoreCase(intent.getStrategy()) && intent.getAssignee().contains("@")) {
+                sendIcsEmail(intent, mainSummary, deadlineDate);
+            }
 
-            event.setStart(start);
-            event.setEnd(end);
+            // 2. TES RELANCES STRATEGY (Uniquement chez toi)
+            if ("BOOMERANG".equalsIgnoreCase(intent.getStrategy())) {
+                DelegationStrategy strategyAlgo = getStrategyAlgo(intent.getConfidence());
+                List<LocalDate> reminderDates = strategyAlgo.calculateReminderDates(deadlineDate, today);
+                for (LocalDate rDate : reminderDates) {
+                    Event rEvent = new Event().setSummary("⏳ Relance : " + mainSummary);
+                    rEvent.setStart(new EventDateTime().setDate(new DateTime(rDate.toString())))
+                          .setEnd(new EventDateTime().setDate(new DateTime(rDate.plusDays(1).toString())));
+                    service.events().insert("primary", rEvent).execute();
+                }
+            }
 
-            // 3. Exécution de la requête
-            Event createdEvent = service.events().insert("primary", event).execute();
-            
-            System.out.println("✅ [Google API] Succès ! Événement créé : " + createdEvent.getHtmlLink());
-            return createdEvent.getHtmlLink();
+            // 3. TA DEADLINE RÉELLE (Jour J - Seulement pour toi)
+            Event realDeadlineEvent = new Event()
+                .setSummary("🚨 DEADLINE RÉELLE : " + mainSummary)
+                .setDescription("Fin de la tâche déléguée à " + intent.getAssignee());
+            realDeadlineEvent.setStart(new EventDateTime().setDate(new DateTime(deadlineDate.toString())))
+                             .setEnd(new EventDateTime().setDate(new DateTime(deadlineDate.plusDays(1).toString())));
+
+            Event result = service.events().insert("primary", realDeadlineEvent).execute();
+            return result.getHtmlLink();
 
         } catch (Exception e) {
-            System.err.println("❌ [Google API] Échec de la création : " + e.getMessage());
             e.printStackTrace();
             return null;
+        }
+    }
+
+    // NOUVELLE MÉTHODE : Le mail avec fichier .ics (Le Standard de l'Industrie)
+    private void sendIcsEmail(CalendarIntent intent, String title, LocalDate deadline) {
+        try {
+            LocalDate jMoinsUn = deadline.minusDays(1);
+            
+            // On crée le mail enrichi (MimeMessage)
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            
+            helper.setFrom(senderEmail);
+            helper.setTo(intent.getAssignee().trim());
+            helper.setSubject("Invitation : " + title);
+            helper.setText("Bonjour,\n\nCette tâche vous a été déléguée. Vous trouverez l'invitation pour la veille de l'échéance en pièce jointe (qui s'ajoute souvent automatiquement à votre calendrier).\n\n" +
+                           "--- CONTENU DU MAIL ---\n" + intent.getFullMailContent());
+
+            // On génère le fichier iCalendar (Le format lu par Gmail, Outlook, Apple)
+            String icsContent = "BEGIN:VCALENDAR\n" +
+                                "VERSION:2.0\n" +
+                                "PRODID:-//EisenFlow//FR\n" +
+                                "METHOD:REQUEST\n" +
+                                "BEGIN:VEVENT\n" +
+                                "DTSTART;VALUE=DATE:" + jMoinsUn.format(DateTimeFormatter.BASIC_ISO_DATE) + "\n" +
+                                "DTEND;VALUE=DATE:" + deadline.format(DateTimeFormatter.BASIC_ISO_DATE) + "\n" +
+                                "SUMMARY:📌 À FAIRE : " + title + "\n" +
+                                "DESCRIPTION:Tâche déléguée via EisenFlow.\\n\\n" + intent.getFullMailContent().replace("\n", "\\n") + "\n" +
+                                "END:VEVENT\n" +
+                                "END:VCALENDAR";
+
+            // On l'attache au mail
+            helper.addAttachment("invitation.ics", new ByteArrayResource(icsContent.getBytes(StandardCharsets.UTF_8)), "text/calendar");
+
+            mailSender.send(mimeMessage);
+            System.out.println("✅ Email .ics envoyé avec succès !");
+            
+        } catch (Exception e) {
+            System.err.println("❌ Erreur d'envoi du mail .ics : " + e.getMessage());
         }
     }
 }

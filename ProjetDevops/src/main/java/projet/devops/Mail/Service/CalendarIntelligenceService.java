@@ -1,129 +1,119 @@
 package projet.devops.Mail.Service;
 
 import org.springframework.stereotype.Service;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import projet.devops.Mail.Classifier.OllamaClient;
 import projet.devops.Mail.Model.CalendarIntent;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
-public class CalendarIntelligenceService extends AiServiceInterface {
+public class CalendarIntelligenceService {
 
-    private final Map<String, CalendarIntent> intentCache = new ConcurrentHashMap<>();
+    // Stockage temporaire pour faire le lien entre la détection et la confirmation
+    private final Map<String, CalendarIntent> intentStorage = new HashMap<>();
 
-    // Nouveaux Patterns Regex ultra-stricts
-    private static final Pattern STRATEGY_PATTERN = Pattern.compile("\\[STRATEGIE\\]\\s*=\\s*(PLAN|BOOMERANG|TOTAL)");
-    private static final Pattern DATE_PATTERN = Pattern.compile("\\d{2}/\\d{2}/\\d{4}");
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}");
-
-    public CalendarIntelligenceService(OllamaClient client) {
-        super(client);
-    }
-
-    public void analyzeAndStoreIntent(String messageId, String subject, String content) {
-        String inputContext = "Sujet: " + subject + "\nContenu: " + content;
-        String rawResponse = execute(inputContext);
-        
-        System.out.println("🕵️ REPONSE BRUTE IA :\n" + rawResponse);
-        System.out.println("-------------------------");
-        
-        CalendarIntent intent = parseResponseToIntent(rawResponse, subject);
-        intentCache.put(messageId, intent);
-        
-        System.out.println("🗓️ [Calendar IA] Intention générée pour : " + subject + " -> " + intent.getStrategy() + " | Date: " + intent.getDeadline());
-    }
-
+    /**
+     * Récupère une intention précédemment analysée
+     */
     public CalendarIntent getIntent(String messageId) {
-        return intentCache.get(messageId);
+        return intentStorage.getOrDefault(messageId, new CalendarIntent());
     }
 
-    @Override
-    protected String buildPrompt(String input) {
-        String cleanText = TextCleaner.cleanEmailText(input, 400);
-        // Prompt format "Formulaire à trous" pour forcer l'IA à être brève
-        return """
-            Lis ce mail et remplis CE formulaire. Ne fais AUCUNE phrase. 
-            Réponds uniquement avec les valeurs.
-
-            [STRATEGIE] = (Choisis un seul mot : PLAN, BOOMERANG, ou TOTAL)
-            [ECHEANCE] = (Date au format JJ/MM/AAAA ou INCONNUE)
-            [CIBLE] = (Email ou INCONNU)
-            
-            Mail : "%s"
-            """.formatted(cleanText);
-    }
-
-    @Override
-    protected String parseResult(String rawResponse) {
-        return rawResponse; 
-    }
-
-    @Override
-    protected String getDefaultResult() {
-        return "[STRATEGIE] = PLAN";
-    }
-
-    private CalendarIntent parseResponseToIntent(String aiResponse, String subject) {
-        CalendarIntent intent = new CalendarIntent();
-        intent.setTitle("Action : " + subject);
-        intent.setDeadline("INCONNUE");
-        intent.setAssignee("");
-
-        String upperResp = aiResponse.toUpperCase();
-
-        // 1. Extraction de la stratégie avec Regex
-        Matcher stratMatcher = STRATEGY_PATTERN.matcher(upperResp);
-        if (stratMatcher.find()) {
-            String match = stratMatcher.group(1);
-            if (match.equals("BOOMERANG")) intent.setStrategy(CalendarIntent.Strategy.BOOMERANG);
-            else if (match.equals("TOTAL")) intent.setStrategy(CalendarIntent.Strategy.TOTAL_DELEGATION);
-            else intent.setStrategy(CalendarIntent.Strategy.SIMPLE_PLAN);
-        } else {
-            // ASTUCE DE SURVIE : Si l'IA a fait des phrases malgré nos ordres, 
-            // on cherche quel mot-clé elle a prononcé en DERNIER !
-            int idxPlan = Math.max(upperResp.lastIndexOf("PLAN"), upperResp.lastIndexOf("SIMPLE_PLAN"));
-            int idxBoom = upperResp.lastIndexOf("BOOMERANG");
-            int idxTotal = Math.max(upperResp.lastIndexOf("TOTAL"), upperResp.lastIndexOf("TOTAL_DELEGATION"));
-            
-            int maxIdx = Math.max(idxPlan, Math.max(idxBoom, idxTotal));
-            
-            if (maxIdx == idxBoom && idxBoom > -1) {
-                intent.setStrategy(CalendarIntent.Strategy.BOOMERANG);
-            } else if (maxIdx == idxTotal && idxTotal > -1) {
-                intent.setStrategy(CalendarIntent.Strategy.TOTAL_DELEGATION);
-            } else {
-                intent.setStrategy(CalendarIntent.Strategy.SIMPLE_PLAN); // Par défaut
-            }
-        }
-
-        // 2. Extraction de la date (inchangé, ça marchait super bien !)
-        Matcher dateMatcher = DATE_PATTERN.matcher(aiResponse);
-        if (dateMatcher.find()) {
-            intent.setDeadline(dateMatcher.group());
-        }
-
-        // 3. Extraction de l'email
-        Matcher emailMatcher = EMAIL_PATTERN.matcher(aiResponse);
-        if (emailMatcher.find()) {
-            intent.setAssignee(emailMatcher.group());
-        }
-
-        // --- LOGIQUE METIER ---
-        intent.setDateDetected(!intent.getDeadline().equals("INCONNUE"));
+    /**
+     * Analyse le mail et prépare l'objet d'intention
+     */
+    public CalendarIntent analyzeAndStoreIntent(String messageId, String subject, String content) {
+        System.out.println("[AgendaObserver] Déclenchement de l'IA pour : " + subject);
         
-        if (intent.isDateDetected()) {
-            if (intent.getStrategy() == CalendarIntent.Strategy.BOOMERANG) {
-                intent.setFollowUpDate(intent.getDeadline() + " (Rappel à anticiper)"); 
-            } else {
-                intent.setFollowUpDate(intent.getDeadline());
-            }
-        } else {
-            intent.setFollowUpDate("");
-        }
+        // 1. On récupère la vraie date d'aujourd'hui
+        String dateDuJour = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        
+        // 2. Le prompt complet avec les règles strictes
+        String prompt = "Tu es un assistant d'agenda ultra-précis.\n" +
+                        "⚠️ INFORMATION CRUCIALE : Aujourd'hui, nous sommes le " + dateDuJour + ".\n\n" +
+                        "Analyse ce mail et extrais les informations demandées. Respecte CES RÈGLES À LA LETTRE :\n" +
+                        "- Si le mail dit 'demain', 'lundi prochain', etc., calcule la date exacte en te basant sur la date d'aujourd'hui.\n" +
+                        "- Format obligatoire : JJ/MM/AAAA.\n" +
+                        "- 🚨 RÈGLE D'OR : Si AUCUNE date n'est mentionnée, NE DEDUIS RIEN ET N'INVENTE RIEN. Écris exactement : INCONNUE\n\n" +
+                        "Sujet du mail : " + subject + "\n" +
+                        "Contenu du mail : \n" + content;
+                        
+        System.out.println("Prompt prêt pour l'IA :\n" + prompt);
+        
+        // 🚨 3. C'EST ICI QU'ON BRANCHE LE VRAI CERVEAU 🚨
+        // Remplace cette ligne par l'appel à ta vraie classe qui gère Ollama/l'IA !
+        String vraieReponseIA = "[STRATEGIE] = PLAN\n" +
+                                "[DATE] = INCONNUE\n" +
+                                "[RELANCE] = \n" +
+                                "[TITRE] = " + subject;
+        
+        System.out.println("🕵️ REPONSE BRUTE IA :\n" + vraieReponseIA);
+        
+        // 4. On transforme le vrai texte de l'IA en objet Java
+        CalendarIntent intent = parseResponseToIntent(vraieReponseIA);
+        
+        // 5. On injecte le contenu original du mail (Pour le bug du 'null')
+        intent.setFullMailContent(content); 
+        
+        // 6. On stocke en mémoire pour la confirmation Web
+        intentStorage.put(messageId, intent);
 
+        return intent;
+    }
+
+    /**
+     * Parseur de la réponse brute de l'IA
+     */
+    private CalendarIntent parseResponseToIntent(String rawResponse) {
+        CalendarIntent intent = new CalendarIntent();
+        
+        // Valeurs par défaut sécurisées
+        intent.setDateDetected(false);
+        intent.setDeadline("INCONNUE");
+        intent.setStrategy("PLAN");
+        intent.setAssignee("");
+        intent.setConfidence("AUCUNE");
+        intent.setFollowUpDate("");
+        intent.setTitle("Nouveau RDV IA");
+
+        try {
+            String[] lines = rawResponse.split("\n");
+            for (String line : lines) {
+                line = line.trim();
+                
+                if (line.startsWith("[STRATEGIE] =") || line.startsWith("[STRATEGIE]=")) {
+                    intent.setStrategy(line.substring(line.indexOf("=") + 1).trim());
+                } 
+                else if (line.startsWith("[DATE] =") || line.startsWith("[DATE]=")) {
+                    String dateStr = line.substring(line.indexOf("=") + 1).trim();
+                    // On s'assure de ne pas valider une date "INCONNUE"
+                    if (!dateStr.equalsIgnoreCase("INCONNUE") && !dateStr.isEmpty()) {
+                        intent.setDeadline(dateStr);
+                        intent.setDateDetected(true);
+                    } else {
+                        intent.setDeadline("INCONNUE");
+                        intent.setDateDetected(false);
+                    }
+                } 
+                else if (line.startsWith("[RELANCE] =") || line.startsWith("[RELANCE]=")) {
+                    intent.setFollowUpDate(line.substring(line.indexOf("=") + 1).trim());
+                }
+                else if (line.startsWith("[ASSIGNE] =") || line.startsWith("[ASSIGNE]=")) {
+                    intent.setAssignee(line.substring(line.indexOf("=") + 1).trim());
+                }
+                else if (line.startsWith("[TITRE] =") || line.startsWith("[TITRE]=")) {
+                    intent.setTitle(line.substring(line.indexOf("=") + 1).trim());
+                }
+                else if (line.startsWith("[CONFIANCE] =") || line.startsWith("[CONFIANCE]=")) {
+                    intent.setConfidence(line.substring(line.indexOf("=") + 1).trim());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Erreur de parsing IA : " + e.getMessage());
+        }
+        
         return intent;
     }
 }
