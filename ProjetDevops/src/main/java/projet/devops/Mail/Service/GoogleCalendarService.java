@@ -33,6 +33,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 @Service
 public class GoogleCalendarService {
@@ -58,7 +64,7 @@ public class GoogleCalendarService {
             clientId, clientSecret
         );
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8))));
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, Collections.singletonList(CalendarScopes.CALENDAR_EVENTS))
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, Collections.singletonList(CalendarScopes.CALENDAR))
                 .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
                 .setAccessType("offline").build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
@@ -90,6 +96,7 @@ public class GoogleCalendarService {
             }
 
             // 2. TES RELANCES STRATEGY (Uniquement chez toi)
+            // Note : On laisse ça en événement "Toute la journée" car c'est juste un pense-bête
             if ("BOOMERANG".equalsIgnoreCase(intent.getStrategy())) {
                 DelegationStrategy strategyAlgo = getStrategyAlgo(intent.getConfidence());
                 List<LocalDate> reminderDates = strategyAlgo.calculateReminderDates(deadlineDate, today);
@@ -101,12 +108,31 @@ public class GoogleCalendarService {
                 }
             }
 
-            // 3. TA DEADLINE RÉELLE (Jour J - Seulement pour toi)
+            // 3. TA DEADLINE RÉELLE (Jour J - Seulement pour toi) - MODIFIÉ ICI 👇
             Event realDeadlineEvent = new Event()
                 .setSummary("🚨 DEADLINE RÉELLE : " + mainSummary)
                 .setDescription("Fin de la tâche déléguée à " + intent.getAssignee());
-            realDeadlineEvent.setStart(new EventDateTime().setDate(new DateTime(deadlineDate.toString())))
-                             .setEnd(new EventDateTime().setDate(new DateTime(deadlineDate.plusDays(1).toString())));
+
+            // --- NOUVELLE GESTION DE L'HEURE ET DE LA DURÉE ---
+            String startTimeStr = (intent.getStartTime() != null && !intent.getStartTime().isEmpty()) ? intent.getStartTime() : "09:00";
+            int duration = intent.getDurationMinutes() > 0 ? intent.getDurationMinutes() : 60;
+
+            LocalTime startTime = LocalTime.parse(startTimeStr);
+            LocalDateTime startDateTime = LocalDateTime.of(deadlineDate, startTime);
+            LocalDateTime endDateTime = startDateTime.plusMinutes(duration);
+            ZoneId zoneId = ZoneId.of("Europe/Paris");
+
+            EventDateTime start = new EventDateTime()
+                .setDateTime(new DateTime(startDateTime.atZone(zoneId).toInstant().toEpochMilli()))
+                .setTimeZone("Europe/Paris");
+
+            EventDateTime end = new EventDateTime()
+                .setDateTime(new DateTime(endDateTime.atZone(zoneId).toInstant().toEpochMilli()))
+                .setTimeZone("Europe/Paris");
+
+            realDeadlineEvent.setStart(start);
+            realDeadlineEvent.setEnd(end);
+            // --- FIN DE LA NOUVELLE GESTION ---
 
             Event result = service.events().insert("primary", realDeadlineEvent).execute();
             return result.getHtmlLink();
@@ -154,5 +180,72 @@ public class GoogleCalendarService {
         } catch (Exception e) {
             System.err.println("❌ Erreur d'envoi du mail .ics : " + e.getMessage());
         }
+    }
+
+    /**
+     * Interroge Google Calendar pour trouver les créneaux libres d'une journée.
+     * @param dateStr La date cible au format "dd/MM/yyyy"
+     * @param durationMinutes La durée de la tâche (ex: 60)
+     * @return Une liste de chaînes représentant les heures de début possibles (ex: ["09:00", "10:30"])
+     */
+    public List<String> getAvailableSlots(String dateStr, int durationMinutes) throws Exception {
+        
+        // 1. Initialise ton client Google Calendar (comme tu le fais dans insertEvent)
+        Calendar service = getCalendarClient();;
+
+        // 2. Définir la plage horaire de travail (09h00 à 18h00)
+        LocalDate targetDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        LocalDateTime startOfDay = targetDate.atTime(9, 0);
+        LocalDateTime endOfDay = targetDate.atTime(18, 0);
+
+        DateTime timeMin = new DateTime(startOfDay.atZone(ZoneId.of("Europe/Paris")).toInstant().toEpochMilli());
+        DateTime timeMax = new DateTime(endOfDay.atZone(ZoneId.of("Europe/Paris")).toInstant().toEpochMilli());
+
+        // 3. Préparer la requête FreeBusy de Google
+        FreeBusyRequest request = new FreeBusyRequest();
+        request.setTimeMin(timeMin);
+        request.setTimeMax(timeMax);
+        request.setItems(Collections.singletonList(new FreeBusyRequestItem().setId("primary"))); // "primary" = ton agenda principal
+
+        // 4. Récupérer les événements existants (les conflits)
+        FreeBusyResponse response = service.freebusy().query(request).execute();
+        List<TimePeriod> busyPeriods = response.getCalendars().get("primary").getBusy();
+        if (busyPeriods == null) {
+            busyPeriods = new ArrayList<>();
+        }
+
+        // 5. L'algorithme de balayage : on cherche des trous de la bonne durée
+        List<String> freeSlots = new ArrayList<>();
+        LocalTime pointer = LocalTime.of(9, 0); // On commence à scanner à 09h00
+        LocalTime endDay = LocalTime.of(18, 0);
+
+        // Tant que le créneau tient avant 18h00
+        while (!pointer.plusMinutes(durationMinutes).isAfter(endDay)) {
+            LocalTime slotStart = pointer;
+            LocalTime slotEnd = pointer.plusMinutes(durationMinutes);
+            boolean isConflict = false;
+
+            // Vérifier s'il chevauche un événement existant
+            for (TimePeriod busy : busyPeriods) {
+                LocalTime busyStart = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(busy.getStart().getValue()), ZoneId.of("Europe/Paris")).toLocalTime();
+                LocalTime busyEnd = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(busy.getEnd().getValue()), ZoneId.of("Europe/Paris")).toLocalTime();
+
+                // Logique de collision de temps
+                if (slotStart.isBefore(busyEnd) && slotEnd.isAfter(busyStart)) {
+                    isConflict = true;
+                    break; // Pas la peine de vérifier les autres, on passe au créneau suivant
+                }
+            }
+
+            if (!isConflict) {
+                // Si pas de conflit, c'est un créneau valide !
+                freeSlots.add(slotStart.toString());
+            }
+
+            // On avance notre "scanner" de 30 minutes (pour proposer des créneaux ronds comme 10h00, 10h30...)
+            pointer = pointer.plusMinutes(30);
+        }
+
+        return freeSlots;
     }
 }

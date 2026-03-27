@@ -7,6 +7,7 @@ import projet.devops.Mail.Service.CalendarIntelligenceService;
 import projet.devops.Mail.Service.GoogleCalendarService;
 
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/calendar")
@@ -62,6 +63,33 @@ public class CalendarRestApiController {
             return ResponseEntity.ok(Map.of("status", "success", "link", eventLink));
         } else {
             return ResponseEntity.status(500).body(Map.of("error", "Erreur Google Calendar"));
+        }
+    }
+
+    // --- NOUVELLE ROUTE : MOTEUR DE TEMPS & DISPONIBILITÉS ---
+    @GetMapping("/freebusy")
+    public ResponseEntity<?> getFreeSlots(
+            @RequestParam("date") String date,
+            @RequestParam(value = "duration", defaultValue = "60") int durationMinutes) {
+        
+        System.out.println("🔍 Recherche de créneaux libres le " + date + " pour " + durationMinutes + " min.");
+        
+        try {
+            // On appelle l'algorithme que tu viens de coder !
+            List<String> freeSlots = googleCalendarService.getAvailableSlots(date, durationMinutes);
+            
+            // On renvoie un JSON structuré au Front-end
+            return ResponseEntity.ok(Map.of(
+                "status", "success", 
+                "slots", freeSlots
+            ));
+            
+        } catch (Exception e) {
+            System.err.println("❌ Erreur lors de la vérification FreeBusy : " + e.getMessage());
+            return ResponseEntity.status(500).body(Map.of(
+                "status", "error", 
+                "message", "Impossible de vérifier les disponibilités."
+            ));
         }
     }
 }

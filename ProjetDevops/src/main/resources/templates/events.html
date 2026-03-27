@@ -4,20 +4,20 @@
 
     <section class="view-wrapper" id="main-reader">
         <h1 class="mail-title">Agenda IA</h1>
-        
+
         <div th:if="${events != null and !#lists.isEmpty(events)}">
             <div th:each="event : ${events}" class="mail-card"
                 style="margin-bottom:15px; border-left: 4px solid var(--plan);">
                 <div style="color:var(--accent); font-weight:700; font-size: 14px;" th:text="${event.dateLieu}"></div>
                 <div th:text="${event.title}" style="font-weight:700; font-size: 18px; margin: 10px 0;"></div>
                 <span class="importance-tag" th:classappend="'tag-' + ${event.type}" th:text="${event.type}"></span>
-                
+
                 <div style="margin-top: 15px; display: flex; gap: 10px;">
                     <button th:data-id="${event.sourceId}" onclick="generateMemo(this.getAttribute('data-id'), this)"
                         style="background: var(--text-main); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
                         <i class="fas fa-file-pdf"></i> Générer Mémo PDF
                     </button>
-                    
+
                     <button th:data-id="${event.sourceId}" onclick="openAgendaModal(this.getAttribute('data-id'))"
                         style="background: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
                         <i class="fas fa-calendar-plus"></i> Ajouter à l'agenda
@@ -25,7 +25,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div th:if="${events == null or #lists.isEmpty(events)}"
             style="text-align:center; padding:50px; color: var(--text-sub);">
             <i class="fas fa-calendar-times fa-3x" style="opacity:0.3; margin-bottom:15px;"></i>
@@ -33,45 +33,101 @@
         </div>
     </section>
 
-    <div id="agenda-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div class="modal-content" style="background: white; padding: 25px; border-radius: 8px; max-width: 500px; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <div id="agenda-modal" class="modal-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="modal-content"
+            style="background: white; padding: 25px; border-radius: 8px; max-width: 500px; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <div class="modal-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
                 <i class="fas fa-calendar-check" style="color: #3b82f6; font-size: 24px;"></i>
                 <h3 style="margin: 0; font-size: 18px;">Validation de l'événement</h3>
             </div>
-            
+
             <div class="modal-body" style="text-align: left; margin-bottom: 20px;">
                 <input type="hidden" id="modal-message-id">
 
-                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">Titre du RDV :</label>
-                <input type="text" id="modal-title" style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">Titre du RDV
+                    :</label>
+                <input type="text" id="modal-title"
+                    style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box;">
 
-                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">Stratégie IA :</label>
-                <select id="modal-strategy" onchange="updateModalFields()" style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; background: white; box-sizing: border-box;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">Stratégie IA
+                    :</label>
+                <select id="modal-strategy" onchange="updateModalFields()"
+                    style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; background: white; box-sizing: border-box;">
                     <option value="PLAN">PLAN (Tâche classique / Réunion)</option>
                     <option value="TOIA">TOIA (Urgent / À faire soi-même)</option>
                     <option value="BOOMERANG">BOOMERANG (Délégation avec suivi)</option>
                 </select>
 
-                <div id="delegation-zone" style="display: none; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #334155;">Assigné à :</label>
-                    <input type="text" id="modal-assignee" placeholder="Nom ou email" style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box;">
+                <div id="delegation-zone"
+                    style="display: none; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 15px;">
+                    <label
+                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #334155;">Assigné
+                        à :</label>
+                    <input type="text" id="modal-assignee" placeholder="Nom ou email"
+                        style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box;">
 
-                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #334155;">Niveau de confiance :</label>
-                    <select id="modal-confidence" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: white; box-sizing: border-box;">
+                    <label
+                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #334155;">Niveau
+                        de confiance :</label>
+                    <select id="modal-confidence"
+                        style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: white; box-sizing: border-box;">
                         <option value="MAJEUR">Majeure (1 seul rappel la veille)</option>
                         <option value="MOYEN">Moyenne (Rappel à 75% du temps restant)</option>
                         <option value="MINEUR">Mineure (Multiples rappels plus tôt)</option>
                     </select>
                 </div>
 
-                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #ef4444;">Date limite (obligatoire) :</label>
-                <input type="date" id="modal-date" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box;">
+                <label
+                    style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #ef4444;">Date
+                    limite (obligatoire) :</label>
+                <input type="date" id="modal-date"
+                    style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box;">
+
+                <div id="time-management-zone"
+                    style="background: #f0fdf4; padding: 15px; border-radius: 6px; border: 1px dashed #86efac; margin-top: 15px;">
+                    <label
+                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #166534;">Durée
+                        estimée :</label>
+                    <select id="modal-duration"
+                        style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #bbf7d0; border-radius: 6px; background: white; box-sizing: border-box;">
+                        <option value="15">15 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="60" selected>1 heure</option>
+                        <option value="120">2 heures</option>
+                    </select>
+
+                    <label
+                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #166534;">Heure
+                        de début :</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="time" id="modal-time"
+                            style="flex: 1; padding: 8px; border: 1px solid #bbf7d0; border-radius: 6px; box-sizing: border-box;">
+                        <button type="button" id="btn-check-freebusy" onclick="checkFreeBusy()"
+                            style="background: #22c55e; color: white; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: background 0.2s;">
+                            🔍 Trouver un créneau
+                        </button>
+                    </div>
+
+                    <div id="freebusy-results" style="display: none; margin-top: 15px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; color: #15803d;">Créneaux
+                            libres trouvés :</label>
+                        <div id="slots-container" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        </div>
+                        <small id="no-slots-msg"
+                            style="display: none; color: #dc2626; font-size: 12px; font-weight: bold;">Aucun créneau
+                            disponible pour cette durée ce jour-là.</small>
+                    </div>
+                </div>
             </div>
 
             <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button onclick="closeAgendaModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;">Annuler</button>
-                <button id="modal-submit-btn" onclick="confirmAgendaEvent()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">Confirmer la création</button>
+                <button onclick="closeAgendaModal()"
+                    style="padding: 8px 16px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;">Annuler</button>
+                <button id="modal-submit-btn" onclick="confirmAgendaEvent()"
+                    style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">Confirmer
+                    la création</button>
             </div>
         </div>
     </div>
@@ -81,7 +137,7 @@
         function updateModalFields() {
             const strategy = document.getElementById('modal-strategy').value;
             const delegationZone = document.getElementById('delegation-zone');
-            
+
             if (strategy === 'BOOMERANG') {
                 delegationZone.style.display = 'block';
             } else {
@@ -95,11 +151,11 @@
 
         async function openAgendaModal(messageId) {
             try {
-                if(typeof showLoader === "function") showLoader("Analyse de l'IA en cours...");
-                
+                if (typeof showLoader === "function") showLoader("Analyse de l'IA en cours...");
+
                 const response = await fetch(`/api/calendar/intent/${messageId}`);
-                
-                if(document.getElementById('loading-overlay')) {
+
+                if (document.getElementById('loading-overlay')) {
                     document.getElementById('loading-overlay').style.display = 'none';
                 }
 
@@ -113,7 +169,7 @@
                 // Pré-remplissage basique
                 document.getElementById('modal-message-id').value = messageId;
                 document.getElementById('modal-title').value = intent.title || '';
-                
+
                 // Pré-remplissage de la stratégie et mise à jour de l'affichage
                 const strategySelect = document.getElementById('modal-strategy');
                 if (intent.strategy && ["PLAN", "TOIA", "BOOMERANG"].includes(intent.strategy.toUpperCase())) {
@@ -121,10 +177,10 @@
                 } else {
                     strategySelect.value = "PLAN"; // Fallback par défaut
                 }
-                
+
                 // Pré-remplissage de l'assigné
                 document.getElementById('modal-assignee').value = intent.assignee || '';
-                
+
                 // On met à jour l'affichage en fonction de la stratégie pré-remplie
                 updateModalFields();
 
@@ -137,14 +193,14 @@
                 }
 
                 dateInput.addEventListener('input', validateDate);
-                validateDate(); 
+                validateDate();
 
                 // Affichage centré de la modale (flex)
                 document.getElementById('agenda-modal').style.display = 'flex';
 
             } catch (error) {
                 console.error("Erreur:", error);
-                if(document.getElementById('loading-overlay')) {
+                if (document.getElementById('loading-overlay')) {
                     document.getElementById('loading-overlay').style.display = 'none';
                 }
                 alert("Erreur lors de la récupération des données.");
@@ -162,7 +218,7 @@
 
             const selectedDate = new Date(dateInput.value);
             const today = new Date();
-            today.setHours(0, 0, 0, 0); 
+            today.setHours(0, 0, 0, 0);
 
             if (selectedDate >= today) {
                 submitBtn.disabled = false;
@@ -181,64 +237,140 @@
             input.style.borderColor = '#ef4444';
         }
 
-       async function confirmAgendaEvent() {
-        // 1. ON RÉCUPÈRE L'ID QUI A ÉTÉ STOCKÉ DANS LE CHAMP CACHÉ
-        const messageId = document.getElementById('modal-message-id').value;
-        
-        const title = document.getElementById('modal-title').value;
-        const strategyChoice = document.getElementById('modal-strategy').value;
-        const assignee = document.getElementById('modal-assignee').value;
-        const rawDate = document.getElementById('modal-date').value;
+        async function confirmAgendaEvent() {
+            const messageId = document.getElementById('modal-message-id').value;
+            const title = document.getElementById('modal-title').value;
+            const strategyChoice = document.getElementById('modal-strategy').value;
+            const assignee = document.getElementById('modal-assignee').value;
+            const rawDate = document.getElementById('modal-date').value;
 
-        if (!rawDate) {
-            alert("Veuillez sélectionner une date valide.");
-            return;
+            // --- NOUVELLES DONNÉES DE TEMPS ---
+            let startTime = document.getElementById('modal-time').value;
+            const durationMinutes = document.getElementById('modal-duration').value;
+
+            if (!rawDate) {
+                alert("Veuillez sélectionner une date valide.");
+                return;
+            }
+
+            // Si l'utilisateur n'a pas mis d'heure, on met 09:00 par défaut pour éviter que ça plante
+            if (!startTime) {
+                startTime = "09:00";
+            }
+
+            const parts = rawDate.split('-');
+            const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+            // Création du Payload (avec startTime et durationMinutes inclus !)
+            const payload = {
+                title: title,
+                strategy: strategyChoice,
+                assignee: strategyChoice === 'BOOMERANG' ? assignee : "",
+                deadline: formattedDate,
+                dateDetected: true,
+                confidence: strategyChoice === 'BOOMERANG' ? document.getElementById('modal-confidence').value : "AUCUNE",
+                startTime: startTime,
+                durationMinutes: parseInt(durationMinutes)
+            };
+
+            closeAgendaModal();
+            if (typeof showLoader === "function") showLoader('Création dans Google Calendar...');
+
+            try {
+                const url = `/api/calendar/confirm?messageId=${encodeURIComponent(messageId)}`;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (document.getElementById('loading-overlay')) {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                }
+
+                if (response.ok) {
+                    alert('Événement généré et programmé avec succès !');
+                    window.location.reload();
+                } else {
+                    alert('Erreur lors de la création du RDV sur le serveur.');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                if (document.getElementById('loading-overlay')) {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                }
+                alert('Erreur réseau de communication.');
+            }
         }
 
-        const parts = rawDate.split('-');
-        const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        async function checkFreeBusy() {
+            const dateInput = document.getElementById('modal-date').value;
+            const durationInput = document.getElementById('modal-duration').value;
+            const btn = document.getElementById('btn-check-freebusy');
+            const resultsZone = document.getElementById('freebusy-results');
+            const slotsContainer = document.getElementById('slots-container');
+            const noSlotsMsg = document.getElementById('no-slots-msg');
 
-        // Création du Payload
-        const payload = {
-            title: title,
-            strategy: strategyChoice,
-            assignee: strategyChoice === 'BOOMERANG' ? assignee : "",
-            deadline: formattedDate,
-            dateDetected: true,
-            confidence: strategyChoice === 'BOOMERANG' ? document.getElementById('modal-confidence').value : "AUCUNE"
-        };
-
-        closeAgendaModal();
-        if(typeof showLoader === "function") showLoader('Création dans Google Calendar...');
-
-        try {
-            // 🚨 LA MODIFICATION EST LÀ : on encode l'ID pour le sécuriser dans l'URL
-            const url = `/api/calendar/confirm?messageId=${encodeURIComponent(messageId)}`;
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if(document.getElementById('loading-overlay')) {
-                document.getElementById('loading-overlay').style.display = 'none';
+            if (!dateInput) {
+                alert("Veuillez d'abord choisir une date !");
+                return;
             }
 
-            if (response.ok) {
-                alert('Événement(s) généré(s) avec succès !');
-                window.location.reload(); 
-            } else {
-                alert('Erreur lors de la création du RDV sur le serveur.');
+            // Convertir YYYY-MM-DD (format input date) en DD/MM/YYYY (format API)
+            const parts = dateInput.split('-');
+            const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+            btn.innerHTML = "⏳ Recherche...";
+            btn.disabled = true;
+            resultsZone.style.display = 'block';
+            slotsContainer.innerHTML = '';
+            noSlotsMsg.style.display = 'none';
+
+            try {
+                const response = await fetch(`/api/calendar/freebusy?date=${encodeURIComponent(formattedDate)}&duration=${durationInput}`);
+                const data = await response.json();
+
+                btn.innerHTML = "🔍 Trouver un créneau";
+                btn.disabled = false;
+
+                if (data.status === 'success') {
+                    if (data.slots.length === 0) {
+                        noSlotsMsg.style.display = 'block';
+                    } else {
+                        data.slots.forEach(time => {
+                            const timeBtn = document.createElement('button');
+                            timeBtn.type = 'button';
+                            timeBtn.innerText = time;
+                            // Style des petits boutons verts
+                            timeBtn.style.cssText = "padding: 6px 12px; background: white; border: 1px solid #22c55e; color: #15803d; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;";
+
+                            timeBtn.onclick = function () {
+                                // 1. On remplit l'input Heure
+                                document.getElementById('modal-time').value = time;
+                                // 2. On reset le style de tous les boutons
+                                Array.from(slotsContainer.children).forEach(b => {
+                                    b.style.background = 'white';
+                                    b.style.color = '#15803d';
+                                });
+                                // 3. On met en surbrillance celui cliqué
+                                this.style.background = '#22c55e';
+                                this.style.color = 'white';
+                            };
+                            slotsContainer.appendChild(timeBtn);
+                        });
+                    }
+                } else {
+                    alert("Erreur serveur lors de la recherche des disponibilités.");
+                }
+            } catch (error) {
+                console.error("Erreur Fetch:", error);
+                btn.innerHTML = "🔍 Trouver un créneau";
+                btn.disabled = false;
+                alert("Erreur de connexion avec le serveur.");
             }
-        } catch (error) {
-            console.error('Erreur:', error);
-            if(document.getElementById('loading-overlay')) {
-                document.getElementById('loading-overlay').style.display = 'none';
-            }
-            alert('Erreur réseau de communication.');
         }
-    }
     </script>
 </th:block>
+
 </html>

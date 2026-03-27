@@ -9,8 +9,12 @@ public class CalendarIntent {
     private String confidence;
     private String followUpDate;
     private String fullMailContent; // NOUVEAU : Pour stocker le corps du mail original
+    private String startTime; // Heure de début (ex: "10:00")
+    private int durationMinutes; // Durée de la tâche en minutes (ex: 60)
 
-    public CalendarIntent() {}
+    public CalendarIntent() {
+        this.durationMinutes = 60;
+    }
 
     // Getters et Setters
     public String getTitle() { return title; }
@@ -36,4 +40,10 @@ public class CalendarIntent {
 
     public String getFullMailContent() { return fullMailContent; }
     public void setFullMailContent(String fullMailContent) { this.fullMailContent = fullMailContent; }
+
+    public String getStartTime() { return startTime; }
+    public void setStartTime(String startTime) { this.startTime = startTime; }
+
+    public int getDurationMinutes() { return durationMinutes; }
+    public void setDurationMinutes(int durationMinutes) { this.durationMinutes = durationMinutes; }
 }
