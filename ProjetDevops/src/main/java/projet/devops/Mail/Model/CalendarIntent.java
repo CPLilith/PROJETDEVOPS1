@@ -11,6 +11,7 @@ public class CalendarIntent {
     private String fullMailContent; // NOUVEAU : Pour stocker le corps du mail original
     private String startTime; // Heure de début (ex: "10:00")
     private int durationMinutes; // Durée de la tâche en minutes (ex: 60)
+    private boolean allDay;
 
     public CalendarIntent() {
         this.durationMinutes = 60;
@@ -46,4 +47,7 @@ public class CalendarIntent {
 
     public int getDurationMinutes() { return durationMinutes; }
     public void setDurationMinutes(int durationMinutes) { this.durationMinutes = durationMinutes; }
+
+    public boolean isAllDay() { return allDay; }
+    public void setAllDay(boolean allDay) { this.allDay = allDay; }
 }

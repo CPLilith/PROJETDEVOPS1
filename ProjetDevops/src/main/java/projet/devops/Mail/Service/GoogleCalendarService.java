@@ -33,11 +33,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 @Service
@@ -108,30 +106,34 @@ public class GoogleCalendarService {
                 }
             }
 
-            // 3. TA DEADLINE RÉELLE (Jour J - Seulement pour toi) - MODIFIÉ ICI 👇
+            // 3. TA DEADLINE RÉELLE (Jour J - Seulement pour toi)
             Event realDeadlineEvent = new Event()
                 .setSummary("🚨 DEADLINE RÉELLE : " + mainSummary)
                 .setDescription("Fin de la tâche déléguée à " + intent.getAssignee());
 
-            // --- NOUVELLE GESTION DE L'HEURE ET DE LA DURÉE ---
-            String startTimeStr = (intent.getStartTime() != null && !intent.getStartTime().isEmpty()) ? intent.getStartTime() : "09:00";
-            int duration = intent.getDurationMinutes() > 0 ? intent.getDurationMinutes() : 60;
+            // --- GESTION TOUTE LA JOURNÉE VS HEURE PRÉCISE ---
+            if (intent.isAllDay()) {
+                // Création en mode "Toute la journée" (All Day)
+                realDeadlineEvent.setStart(new EventDateTime().setDate(new DateTime(deadlineDate.toString())));
+                realDeadlineEvent.setEnd(new EventDateTime().setDate(new DateTime(deadlineDate.plusDays(1).toString())));
+            } else {
+                // Création en mode "Heure précise"
+                String startTimeStr = (intent.getStartTime() != null && !intent.getStartTime().isEmpty()) ? intent.getStartTime() : "09:00";
+                int duration = intent.getDurationMinutes() > 0 ? intent.getDurationMinutes() : 60;
 
-            LocalTime startTime = LocalTime.parse(startTimeStr);
-            LocalDateTime startDateTime = LocalDateTime.of(deadlineDate, startTime);
-            LocalDateTime endDateTime = startDateTime.plusMinutes(duration);
-            ZoneId zoneId = ZoneId.of("Europe/Paris");
+                LocalTime startTime = LocalTime.parse(startTimeStr);
+                LocalDateTime startDateTime = LocalDateTime.of(deadlineDate, startTime);
+                LocalDateTime endDateTime = startDateTime.plusMinutes(duration);
+                ZoneId zoneId = ZoneId.of("Europe/Paris");
 
-            EventDateTime start = new EventDateTime()
-                .setDateTime(new DateTime(startDateTime.atZone(zoneId).toInstant().toEpochMilli()))
-                .setTimeZone("Europe/Paris");
+                realDeadlineEvent.setStart(new EventDateTime()
+                    .setDateTime(new DateTime(startDateTime.atZone(zoneId).toInstant().toEpochMilli()))
+                    .setTimeZone("Europe/Paris"));
 
-            EventDateTime end = new EventDateTime()
-                .setDateTime(new DateTime(endDateTime.atZone(zoneId).toInstant().toEpochMilli()))
-                .setTimeZone("Europe/Paris");
-
-            realDeadlineEvent.setStart(start);
-            realDeadlineEvent.setEnd(end);
+                realDeadlineEvent.setEnd(new EventDateTime()
+                    .setDateTime(new DateTime(endDateTime.atZone(zoneId).toInstant().toEpochMilli()))
+                    .setTimeZone("Europe/Paris"));
+            }
             // --- FIN DE LA NOUVELLE GESTION ---
 
             Event result = service.events().insert("primary", realDeadlineEvent).execute();

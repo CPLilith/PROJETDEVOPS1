@@ -2,9 +2,6 @@ package projet.devops.Mail.Service;
 
 import org.springframework.stereotype.Service;
 import projet.devops.Mail.Model.CalendarIntent;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 

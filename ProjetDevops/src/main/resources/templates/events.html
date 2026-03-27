@@ -86,38 +86,49 @@
 
                 <div id="time-management-zone"
                     style="background: #f0fdf4; padding: 15px; border-radius: 6px; border: 1px dashed #86efac; margin-top: 15px;">
-                    <label
-                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #166534;">Durée
-                        estimée :</label>
-                    <select id="modal-duration"
-                        style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #bbf7d0; border-radius: 6px; background: white; box-sizing: border-box;">
-                        <option value="15">15 minutes</option>
-                        <option value="30">30 minutes</option>
-                        <option value="60" selected>1 heure</option>
-                        <option value="120">2 heures</option>
-                    </select>
 
-                    <label
-                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #166534;">Heure
-                        de début :</label>
-                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <input type="time" id="modal-time"
-                            style="flex: 1; padding: 8px; border: 1px solid #bbf7d0; border-radius: 6px; box-sizing: border-box;">
-                        <button type="button" id="btn-check-freebusy" onclick="checkFreeBusy()"
-                            style="background: #22c55e; color: white; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: background 0.2s;">
-                            🔍 Trouver un créneau
-                        </button>
+                    <div style="margin-bottom: 10px;">
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #166534;">
+                            <input type="checkbox" id="modal-allday" onchange="toggleTimeZone()" checked>
+                            Toute la journée
+                        </label>
                     </div>
 
-                    <div id="freebusy-results" style="display: none; margin-top: 15px;">
+                    <div id="time-fields"
+                        style="display: none; border-top: 1px solid #bbf7d0; padding-top: 10px; margin-top: 10px;">
                         <label
-                            style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; color: #15803d;">Créneaux
-                            libres trouvés :</label>
-                        <div id="slots-container" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #166534;">Durée
+                            estimée :</label>
+                        <select id="modal-duration"
+                            style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #bbf7d0; border-radius: 6px; background: white; box-sizing: border-box;">
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="60" selected>1 heure</option>
+                            <option value="120">2 heures</option>
+                        </select>
+
+                        <label
+                            style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #166534;">Heure
+                            de début :</label>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="time" id="modal-time"
+                                style="flex: 1; padding: 8px; border: 1px solid #bbf7d0; border-radius: 6px; box-sizing: border-box;">
+                            <button type="button" id="btn-check-freebusy" onclick="checkFreeBusy()"
+                                style="background: #22c55e; color: white; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">
+                                🔍 Trouver un créneau
+                            </button>
                         </div>
-                        <small id="no-slots-msg"
-                            style="display: none; color: #dc2626; font-size: 12px; font-weight: bold;">Aucun créneau
-                            disponible pour cette durée ce jour-là.</small>
+
+                        <div id="freebusy-results" style="display: none; margin-top: 15px;">
+                            <label
+                                style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; color: #15803d;">Créneaux
+                                libres trouvés :</label>
+                            <div id="slots-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                            <small id="no-slots-msg"
+                                style="display: none; color: #dc2626; font-size: 12px; font-weight: bold;">Aucun créneau
+                                disponible pour cette durée ce jour-là.</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -261,7 +272,9 @@
             const parts = rawDate.split('-');
             const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
-            // Création du Payload (avec startTime et durationMinutes inclus !)
+            const isAllDay = document.getElementById('modal-allday').checked; // <-- NOUVEAU
+
+            // Création du Payload
             const payload = {
                 title: title,
                 strategy: strategyChoice,
@@ -269,8 +282,11 @@
                 deadline: formattedDate,
                 dateDetected: true,
                 confidence: strategyChoice === 'BOOMERANG' ? document.getElementById('modal-confidence').value : "AUCUNE",
-                startTime: startTime,
-                durationMinutes: parseInt(durationMinutes)
+
+                // --- MODIFICATIONS ICI ---
+                allDay: isAllDay,
+                startTime: isAllDay ? "" : startTime, // Si c'est toute la journée, on envoie rien
+                durationMinutes: isAllDay ? 0 : parseInt(durationMinutes)
             };
 
             closeAgendaModal();
@@ -368,6 +384,16 @@
                 btn.innerHTML = "🔍 Trouver un créneau";
                 btn.disabled = false;
                 alert("Erreur de connexion avec le serveur.");
+            }
+        }
+
+        function toggleTimeZone() {
+            const isAllDay = document.getElementById('modal-allday').checked;
+            const timeFields = document.getElementById('time-fields');
+            if (isAllDay) {
+                timeFields.style.display = 'none';
+            } else {
+                timeFields.style.display = 'block';
             }
         }
     </script>
