@@ -76,12 +76,11 @@ public class CalendarRestApiController {
         
         try {
             // On appelle l'algorithme que tu viens de coder !
-            List<String> freeSlots = googleCalendarService.getAvailableSlots(date, durationMinutes);
+            List<Map<String, Object>> allSlots = googleCalendarService.getAvailableSlots(date, durationMinutes);
             
-            // On renvoie un JSON structuré au Front-end
             return ResponseEntity.ok(Map.of(
                 "status", "success", 
-                "slots", freeSlots
+                "slots", allSlots
             ));
             
         } catch (Exception e) {

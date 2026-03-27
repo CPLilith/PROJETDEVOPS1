@@ -33,6 +33,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -185,15 +186,15 @@ public class GoogleCalendarService {
     }
 
     /**
-     * Interroge Google Calendar pour trouver les créneaux libres d'une journée.
+     * Interroge Google Calendar pour lister TOUS les créneaux d'une journée (libres et occupés).
      * @param dateStr La date cible au format "dd/MM/yyyy"
      * @param durationMinutes La durée de la tâche (ex: 60)
-     * @return Une liste de chaînes représentant les heures de début possibles (ex: ["09:00", "10:30"])
+     * @return Une liste de dictionnaires (Map) contenant l'heure ("time") et l'état de disponibilité ("available").
      */
-    public List<String> getAvailableSlots(String dateStr, int durationMinutes) throws Exception {
+    public List<Map<String, Object>> getAvailableSlots(String dateStr, int durationMinutes) throws Exception {
         
-        // 1. Initialise ton client Google Calendar (comme tu le fais dans insertEvent)
-        Calendar service = getCalendarClient();;
+        // 1. Initialisation du client Google Calendar
+        Calendar service = getCalendarClient(); 
 
         // 2. Définir la plage horaire de travail (09h00 à 18h00)
         LocalDate targetDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
@@ -207,7 +208,7 @@ public class GoogleCalendarService {
         FreeBusyRequest request = new FreeBusyRequest();
         request.setTimeMin(timeMin);
         request.setTimeMax(timeMax);
-        request.setItems(Collections.singletonList(new FreeBusyRequestItem().setId("primary"))); // "primary" = ton agenda principal
+        request.setItems(Collections.singletonList(new FreeBusyRequestItem().setId("primary"))); // "primary" = agenda principal
 
         // 4. Récupérer les événements existants (les conflits)
         FreeBusyResponse response = service.freebusy().query(request).execute();
@@ -216,10 +217,22 @@ public class GoogleCalendarService {
             busyPeriods = new ArrayList<>();
         }
 
-        // 5. L'algorithme de balayage : on cherche des trous de la bonne durée
-        List<String> freeSlots = new ArrayList<>();
+        // ==========================================
+        //         🔍 BLOC DE LOGS DE DEBUG 🔍
+        // ==========================================
+        System.out.println("\n--- 🛠️ DEBUG FREEBUSY ---");
+        System.out.println("📅 Date demandée : " + dateStr);
+        System.out.println("⏳ Nombre d'événements bloquants trouvés : " + busyPeriods.size());
+        for(TimePeriod tp : busyPeriods) {
+            System.out.println("   -> Occupé de " + tp.getStart() + " à " + tp.getEnd());
+        }
+        System.out.println("-------------------------\n");
+        // ==========================================
+
+        // 5. L'algorithme de balayage : on cherche TOUS les créneaux
+        List<Map<String, Object>> allSlots = new ArrayList<>();
         LocalTime pointer = LocalTime.of(9, 0); // On commence à scanner à 09h00
-        LocalTime endDay = LocalTime.of(18, 0);
+        LocalTime endDay = LocalTime.of(18, 0); // On s'arrête à 18h00
 
         // Tant que le créneau tient avant 18h00
         while (!pointer.plusMinutes(durationMinutes).isAfter(endDay)) {
@@ -235,19 +248,21 @@ public class GoogleCalendarService {
                 // Logique de collision de temps
                 if (slotStart.isBefore(busyEnd) && slotEnd.isAfter(busyStart)) {
                     isConflict = true;
-                    break; // Pas la peine de vérifier les autres, on passe au créneau suivant
+                    break; // Conflit trouvé, on arrête de vérifier
                 }
             }
 
-            if (!isConflict) {
-                // Si pas de conflit, c'est un créneau valide !
-                freeSlots.add(slotStart.toString());
-            }
+            // On crée un petit objet pour ce créneau : { "time": "10:30", "available": true/false }
+            Map<String, Object> slotData = new java.util.HashMap<>();
+            slotData.put("time", slotStart.toString());
+            slotData.put("available", !isConflict); // S'il n'y a PAS de conflit, il est disponible
+            
+            allSlots.add(slotData);
 
-            // On avance notre "scanner" de 30 minutes (pour proposer des créneaux ronds comme 10h00, 10h30...)
+            // On avance notre "scanner" de 30 minutes
             pointer = pointer.plusMinutes(30);
         }
 
-        return freeSlots;
+        return allSlots;
     }
 }

@@ -99,31 +99,28 @@
                         style="display: none; border-top: 1px solid #bbf7d0; padding-top: 10px; margin-top: 10px;">
                         <label
                             style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #166534;">Durée
-                            estimée :</label>
-                        <select id="modal-duration"
-                            style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #bbf7d0; border-radius: 6px; background: white; box-sizing: border-box;">
-                            <option value="15">15 minutes</option>
-                            <option value="30">30 minutes</option>
-                            <option value="60" selected>1 heure</option>
-                            <option value="120">2 heures</option>
-                        </select>
+                            estimée et Disponibilités :</label>
 
-                        <label
-                            style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #166534;">Heure
-                            de début :</label>
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="time" id="modal-time"
-                                style="flex: 1; padding: 8px; border: 1px solid #bbf7d0; border-radius: 6px; box-sizing: border-box;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <select id="modal-duration"
+                                style="flex: 1; padding: 8px; border: 1px solid #bbf7d0; border-radius: 6px; background: white; box-sizing: border-box;">
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60" selected>1 heure</option>
+                                <option value="120">2 heures</option>
+                            </select>
                             <button type="button" id="btn-check-freebusy" onclick="checkFreeBusy()"
-                                style="background: #22c55e; color: white; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px;">
+                                style="background: #22c55e; color: white; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: background 0.2s;">
                                 🔍 Trouver un créneau
                             </button>
                         </div>
 
+                        <input type="hidden" id="modal-time">
+
                         <div id="freebusy-results" style="display: none; margin-top: 15px;">
                             <label
                                 style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; color: #15803d;">Créneaux
-                                libres trouvés :</label>
+                                libres trouvés (Cliquez pour sélectionner) :</label>
                             <div id="slots-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
                             <small id="no-slots-msg"
                                 style="display: none; color: #dc2626; font-size: 12px; font-weight: bold;">Aucun créneau
@@ -265,14 +262,14 @@
             }
 
             // Si l'utilisateur n'a pas mis d'heure, on met 09:00 par défaut pour éviter que ça plante
-            if (!startTime) {
-                startTime = "09:00";
+            const isAllDay = document.getElementById('modal-allday').checked;
+            if (!isAllDay && !startTime) {
+                alert("Veuillez chercher et cliquer sur un créneau horaire vert (ou cochez 'Toute la journée').");
+                return;
             }
 
             const parts = rawDate.split('-');
             const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-
-            const isAllDay = document.getElementById('modal-allday').checked; // <-- NOUVEAU
 
             // Création du Payload
             const payload = {
@@ -333,7 +330,6 @@
                 return;
             }
 
-            // Convertir YYYY-MM-DD (format input date) en DD/MM/YYYY (format API)
             const parts = dateInput.split('-');
             const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
@@ -351,28 +347,40 @@
                 btn.disabled = false;
 
                 if (data.status === 'success') {
-                    if (data.slots.length === 0) {
+                    const slots = data.slots;
+
+                    if (slots.length === 0) {
                         noSlotsMsg.style.display = 'block';
                     } else {
-                        data.slots.forEach(time => {
+                        slots.forEach(slot => {
                             const timeBtn = document.createElement('button');
                             timeBtn.type = 'button';
-                            timeBtn.innerText = time;
-                            // Style des petits boutons verts
-                            timeBtn.style.cssText = "padding: 6px 12px; background: white; border: 1px solid #22c55e; color: #15803d; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;";
+                            timeBtn.innerText = slot.time;
 
-                            timeBtn.onclick = function () {
-                                // 1. On remplit l'input Heure
-                                document.getElementById('modal-time').value = time;
-                                // 2. On reset le style de tous les boutons
-                                Array.from(slotsContainer.children).forEach(b => {
-                                    b.style.background = 'white';
-                                    b.style.color = '#15803d';
-                                });
-                                // 3. On met en surbrillance celui cliqué
-                                this.style.background = '#22c55e';
-                                this.style.color = 'white';
-                            };
+                            if (slot.available) {
+                                // Design Créneau LIBRE (Vert et cliquable)
+                                timeBtn.style.cssText = "padding: 6px 12px; background: white; border: 1px solid #22c55e; color: #15803d; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;";
+
+                                timeBtn.onclick = function () {
+                                    document.getElementById('modal-time').value = slot.time;
+
+                                    // Reset des autres boutons VERTS uniquement
+                                    Array.from(slotsContainer.children).forEach(b => {
+                                        if (!b.disabled) {
+                                            b.style.background = 'white';
+                                            b.style.color = '#15803d';
+                                        }
+                                    });
+                                    this.style.background = '#22c55e';
+                                    this.style.color = 'white';
+                                };
+                            } else {
+                                // Design Créneau PRIS (Grisé et désactivé)
+                                timeBtn.style.cssText = "padding: 6px 12px; background: #f1f5f9; border: 1px solid #cbd5e1; color: #94a3b8; border-radius: 4px; cursor: not-allowed; font-size: 12px; font-weight: 600;";
+                                timeBtn.disabled = true;
+                                timeBtn.title = "Créneau indisponible";
+                            }
+
                             slotsContainer.appendChild(timeBtn);
                         });
                     }
