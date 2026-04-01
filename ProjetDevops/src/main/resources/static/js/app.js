@@ -27,12 +27,14 @@ function openNote(cardEl, event) {
     document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
     cardEl.classList.add('active');
 
+    // CORRECTION : L'ID est maintenant l'UUID récupéré via dataset.id
     const id = cardEl.dataset.id;
     const subject = cardEl.dataset.subject;
     const from = cardEl.dataset.from;
+    // On cherche le textarea qui a maintenant l'ID 'note-content-[UUID]'
     const content = document.getElementById('note-content-' + id).value;
 
-    renderReader(subject, "Auteur IA : " + from, content, id, true);
+    renderReader(subject, "Source : " + from, content, id, true);
 }
 
 function renderReader(title, sub, content, id, isNote) {

@@ -21,31 +21,40 @@ public class Note {
 
     private String action;
 
-    // "IMPORT" ou "MERGE"
-    private String sourceType;
+    // --- NOUVEAUX CHAMPS ---
+    private String sourceType;  // "IMPORT", "MERGE" ou "NOTION"
+    private String submittedAt; // Date de création
+    private String breadcrumb;  // Utilisé par l'API Notion
 
-    // Date de soumission au format "dd/MM/yyyy HH:mm"
-    private String submittedAt;
-
+    // Constructeur vide OBLIGATOIRE pour Jackson et les instanciations manuelles
     public Note() {
         this.id = UUID.randomUUID().toString();
+        this.submittedAt = LocalDateTime.now().format(FORMATTER);
     }
 
-    public Note(String title, String author, String content, String action, String sourceType) {
+    // Constructeur ultra-complet
+    public Note(String title, String author, String content, String action, String sourceType, String breadcrumb) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.author = author;
         this.content = content;
         this.action = action;
         this.sourceType = sourceType;
+        this.breadcrumb = breadcrumb;
         this.submittedAt = LocalDateTime.now().format(FORMATTER);
     }
 
-    // Ancien constructeur conservé pour compatibilité (notes existantes sans date)
-    public Note(String title, String author, String content, String action) {
-        this(title, author, content, action, "IMPORT");
+    // Constructeur pour tes imports/merges (sans breadcrumb)
+    public Note(String title, String author, String content, String action, String sourceType) {
+        this(title, author, content, action, sourceType, "Général");
     }
 
+    // Ancien constructeur conservé pour compatibilité
+    public Note(String title, String author, String content, String action) {
+        this(title, author, content, action, "IMPORT", "Général");
+    }
+
+    // --- Getters & Setters ---
     public String getId() {
         if (id == null) id = UUID.randomUUID().toString();
         return id;
@@ -69,4 +78,7 @@ public class Note {
 
     public String getSubmittedAt() { return submittedAt; }
     public void setSubmittedAt(String submittedAt) { this.submittedAt = submittedAt; }
+
+    public String getBreadcrumb() { return breadcrumb; }
+    public void setBreadcrumb(String breadcrumb) { this.breadcrumb = breadcrumb; }
 }
