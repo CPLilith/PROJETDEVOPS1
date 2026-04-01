@@ -33,9 +33,17 @@ public class KnowledgeController {
         return "knowledge";
     }
 
-    @PostMapping("/knowledge/upload")
-    public String uploadNotes(@RequestParam("files") MultipartFile[] files) throws Exception {
-        noteService.generateAiKnowledge(files, PersonaResourceService.loadPersona());
+    @PostMapping("/knowledge/import")
+    public String importNotes(@RequestParam("files") MultipartFile[] files) throws Exception {
+        noteService.importMarkdownFiles(files);
+        return REDIRECT_KNOWLEDGE;
+    }
+
+    @PostMapping("/knowledge/merge")
+    public String mergeSelectedNotes(@RequestParam(value = "selectedNotes", required = false) List<Integer> selectedNotes) throws Exception {
+        if (selectedNotes != null && !selectedNotes.isEmpty()) {
+            noteService.mergeSelectedNotes(selectedNotes, PersonaResourceService.loadPersona());
+        }
         return REDIRECT_KNOWLEDGE;
     }
 

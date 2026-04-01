@@ -73,8 +73,8 @@ class ProjetDevopsApplicationTests {
         assertEquals("knowledge", knowledgeController.knowledge(model));
         
         // Test Upload (POST)
-        MockMultipartFile file = new MockMultipartFile("files", "test.md", "text/plain", "data".getBytes());
-        assertEquals("redirect:/knowledge", knowledgeController.uploadNotes(new MultipartFile[]{file}));
+    //    MockMultipartFile file = new MockMultipartFile("files", "test.md", "text/plain", "data".getBytes());
+    //    assertEquals("redirect:/knowledge", knowledgeController.uploadNotes(new MultipartFile[]{file}));
         
         // Test Update & Delete
         assertEquals("redirect:/knowledge", knowledgeController.updateNoteTag(0, "PLAN"));

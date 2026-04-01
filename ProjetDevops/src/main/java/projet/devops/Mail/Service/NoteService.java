@@ -3,6 +3,7 @@ package projet.devops.Mail.Service;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,7 +18,7 @@ import projet.devops.Mail.Repository.NoteRepository;
 public class NoteService {
 
     private final OllamaClient ollamaClient;
-    private final NoteRepository noteRepository; // DIP : On dépend de l'interface, pas du disque dur !
+    private final NoteRepository noteRepository;
 
     private List<Note> notes;
 
@@ -28,18 +29,51 @@ public class NoteService {
 
     @PostConstruct
     public void init() {
-        // Le service ne se soucie pas de savoir d'où viennent les notes
         this.notes = noteRepository.loadNotes();
     }
 
-    public void generateAiKnowledge(MultipartFile[] files, Persona persona) throws Exception {
-        String rawContext = extractRawData(files);
-        if (rawContext.isEmpty())
-            return;
+    /**
+     * Importe des fichiers .md directement comme notes brutes.
+     * Chaque fichier devient une note séparée, sans traitement IA.
+     */
+    public void importMarkdownFiles(MultipartFile[] files) {
+        for (MultipartFile f : files) {
+            try {
+                if (f.getOriginalFilename() != null && f.getOriginalFilename().endsWith(".md")) {
+                    String content = new String(f.getBytes(), StandardCharsets.UTF_8);
+                    String title = f.getOriginalFilename().replace(".md", "");
+                    Note note = new Note(title, "Import", content, "PENDING");
+                    notes.add(0, note);
+                }
+            } catch (Exception e) {
+                System.err.println("Erreur import fichier : " + f.getOriginalFilename());
+            }
+        }
+        noteRepository.saveNotes(notes);
+    }
+
+    /**
+     * Fusionne les notes sélectionnées (index de la vue inversée) via l'IA.
+     */
+    public void mergeSelectedNotes(List<Integer> reversedIndexes, Persona persona) throws Exception {
+        int total = notes.size();
+        List<Note> selectedNotes = reversedIndexes.stream()
+                .map(i -> (total - 1) - i)
+                .filter(i -> i >= 0 && i < total)
+                .map(notes::get)
+                .collect(Collectors.toList());
+
+        if (selectedNotes.isEmpty()) return;
+
+        StringBuilder rawContext = new StringBuilder();
+        for (Note n : selectedNotes) {
+            rawContext.append("\n--- NOTE : ").append(n.getTitle()).append(" ---\n");
+            rawContext.append(n.getContent()).append("\n");
+        }
 
         String synthesisPrompt = "En tant que " + persona.name()
-                + ", fais une synthèse comparative intelligente de ces notes. " +
-                "Identifie qui a écrit quoi et les points clés :\n" + rawContext;
+                + ", fais une synthèse comparative intelligente de ces notes. "
+                + "Identifie les points clés et les liens entre elles :\n" + rawContext;
 
         String aiSynthesis = ollamaClient.generateResponse("tinyllama", synthesisPrompt);
 
@@ -51,10 +85,19 @@ public class NoteService {
             eisenhowerTag = "PENDING";
         }
 
-        Note newNote = new Note("Intelligence Collective (" + persona.name() + ")", aiSynthesis, "AI Orchestrator",
-                eisenhowerTag);
+        String mergedTitles = selectedNotes.stream().map(Note::getTitle).collect(Collectors.joining(", "));
+        Note newNote = new Note("Synthèse IA : " + mergedTitles, "AI Orchestrator", aiSynthesis, eisenhowerTag);
         notes.add(0, newNote);
-        noteRepository.saveNotes(notes); // Délégation de la sauvegarde
+        noteRepository.saveNotes(notes);
+    }
+
+    // Ancienne méthode conservée pour compatibilité
+    public void generateAiKnowledge(MultipartFile[] files, Persona persona) throws Exception {
+        importMarkdownFiles(files);
+        int count = files.length;
+        List<Integer> reversedIndexes = java.util.stream.IntStream.range(0, count)
+                .boxed().collect(Collectors.toList());
+        mergeSelectedNotes(reversedIndexes, persona);
     }
 
     public void deleteNote(int index) {
@@ -73,22 +116,5 @@ public class NoteService {
 
     public List<Note> getNotes() {
         return notes;
-    }
-
-    // SRP : Cette méthode pourrait même, à terme, être extraite dans un
-    // "MarkdownParserService"
-    private String extractRawData(MultipartFile[] files) {
-        StringBuilder sb = new StringBuilder();
-        for (MultipartFile f : files) {
-            try {
-                if (f.getOriginalFilename() != null && f.getOriginalFilename().endsWith(".md")) {
-                    sb.append("\n--- SOURCE : ").append(f.getOriginalFilename()).append(" ---\n");
-                    sb.append(new String(f.getBytes(), StandardCharsets.UTF_8)).append("\n");
-                }
-            } catch (Exception e) {
-                sb.append("[Erreur de lecture sur ").append(f.getOriginalFilename()).append("]");
-            }
-        }
-        return sb.toString();
     }
 }
