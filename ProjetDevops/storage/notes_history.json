@@ -1,25 +1,25 @@
 [ {
-  "id" : "dc428a21-df3f-4c5a-97c3-585c4fa9b207",
-  "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "Conclusion:\n\nAs a PROFESSOR, I've summarized the key notes and points of comparison for these notes. The notes cover \"Fondamentaux de la Cybersécurite\" and include topics such as \"Auteur : Bob Lefebvre\" and \"Date : 12 Février 2026\". The notes also touch on concepts such as \"Chiffrement\" and \"Firewalling\", as well as the principles of \"Zero Trust\". Finally, the course examines topics like \"Rappels examens\" in detail.",
-  "action" : "DO",
-  "content" : "AI Orchestrator"
-}, {
-  "id" : "600323fc-5034-460a-ac6c-e21ce16be28f",
-  "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "In summary, the following points are crucial for effective DevOps and CI/CD practices:\n1. Conduct thorough analysis of standard ports (HTTPS: 443, SSH: 22, DB: 5432) to identify any potential threats and vulnerabilities.\n2. Implement secure firewall configurations to prevent unauthorized access, data breaches, and DDoS attacks.\n3. Optimize container images for faster deployment times and reduced deployment latency.\n4. Use automated builds and tests using pipelines like Jenkins or Dockerfiles.\n5. Implement Kubernetes for scalability and flexibility in the deployment of applications.\n6. Follow best practices for data encryption, backup, and security protocols.\n7. Involve all stakeholders to ensure that everyone is on the same page regarding DevOps and CI/CD goals and objectives.\n8. Monitor and audit systems for any vulnerabilities or inadequacies in security practices and take corrective action promptly.",
-  "action" : "PLAN",
-  "content" : "AI Orchestrator"
-}, {
-  "id" : "810038e8-e073-485b-8edd-1a0c0877c4fc",
-  "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "Bien sur! Vous pouvez trouver des informations complètes et expérimentales sur l'IA aux notes ci-dessus, ainsi que sur la sécurité de réseau, les filtres, les outils pour le chiffrement et le logiciel de détection des attacks DoS. Si vous avez des questions ou souhaitez en savoir plus sur ces sujets, n'hésitez pas à contacter votre professeur!",
-  "action" : "DELETE",
-  "content" : "AI Orchestrator"
-}, {
-  "id" : "46ebeb97-2928-4113-ba42-9130ea93bd31",
-  "title" : "Intelligence Collective (PROFESSEUR)",
-  "author" : "I have synthesized the notes from the professor, Alice Martin, on architecture DevOps and CI/CD. Below are the key points for comparison:\n\n1. Author: Alice Martin\n2. Date: 10 February 2026\n3. Points of interest:\n    * Pipe line Jenkins: Set up of scripts `Jenkinsfile` to automate build and test\n    * Documenterisation: Use of Docker for isolating development and production environments\n    * Kubernetes: Introduction to orchestration for scalability\n\n1. Action:\n    1. Configure Webhooks GitHub to trigger build notifications.\n    2. Optimize images Docker to reduce deployment time.\n    3. Define LLMs, prompt engineering\n    4. Explore fine-tuning of pre-trained models on specific data\n    5. Experiments with Llamas 3.2 for mail classification\n    6. Analyze latency between prompt and email response times\n\n2. Key points:\n    * LLMs (Language Models) are used to transform a base model into fine-tuned models on specific data\n    * Fine tuning of pre-trained models is essential for high accuracy in predictive analytics\n    * Llamas 3.2 for mail classification uses pre-trained models, allowing for quicker classification\n    * Optimizing images with Docker allows for scalability and reduces deployment time for our application\n    * Prompt engineering allows for testing and experimentation on live data to optimize ML models for specific use cases",
+  "id" : "8a78cced-7787-450c-acb9-b202916f951d",
+  "title" : "Synthèse IA : Note_important, Intelligence_Artificielle_LLM",
+  "author" : "AI Orchestrator",
   "action" : "PENDING",
-  "content" : "AI Orchestrator"
+  "sourceType" : "MERGE",
+  "submittedAt" : "01/04/2026 09:19",
+  "content" : "Première partie des points clés et les lieux d'intérêt du cours :\r\n1. L'importance du pipeline Jenkins pour le fonctionnement de l'équipe DevOps et la création de scripts en utilisant le JeNsPfile pour automatiser le build et le test.\r\n2. Le rôle de l'orchestration Docker dans la scalabilité d'environnement de développement et de production.\r\n3. Le déclicage des images Docker afin de réduire le temps de déploiement, ainsi que les optimisations pour la déclaration de build.\r\n4. Le rôle de l'optimisation des images Docker sur 20h du 5 avril pour améliorer la productivité.\r\n\r\nActions à entreprendre dans cette phase :\r\n1. Optimiser les Webhooks GitHub pour déclerer le build automatiquement\r\n2. Concevoir et implémenter des Prompt Engineering\r\n3. Exécuter un exercice sur l'IA d'Ollama pour déterminer la latence entre le promp et la réponse de la requête.\r\n4. Préparer les expérientements IA en utilisant l'outil LLMs pour la classification de mail\r\n5. Exécuter une série de tests de test en local ou dans un environnement d'efficacité pour optimiser les outils et la productivité du projet EisenFlow.\r\n\r\nRapidement, on observe des résultats positifs en matière de productivité. Les expérientiels IA vont être réalisés à l'aide du LLMs pour la classification de mail sur des emails spécifiques, ainsi que d'analyser la latence entre le prompt et la réponse de la requête. Ensuite, les outils LLMs sont utilisés pour déterminer la latence entre le prompt et la réponse de la requête. Ces expérientiels IA vont servir à améliorer la productivité du projet EisenFlow."
+}, {
+  "id" : "35c5d74f-d9ca-484b-8601-22f67bf49d40",
+  "title" : "Intelligence_Artificielle_LLM",
+  "author" : "Import",
+  "action" : "PENDING",
+  "sourceType" : "IMPORT",
+  "submittedAt" : "01/04/2026 09:17",
+  "content" : "# Notes : Introduction aux LLMs et Prompt Engineering\r\n**Auteur : Charlie Dubosc**\r\n**Date : 14 Février 2026**\r\n\r\n## Définitions\r\n* **Transformer** : Architecture de base des modèles comme GPT et Llama.\r\n* **Fine-tuning** : Processus d'ajustement d'un modèle pré-entraîné sur des données spécifiques.\r\n* **Ollama** : Outil pour faire tourner des LLMs localement (crucial pour notre projet EisenFlow).\r\n\r\n## Expérimentations IA\r\n- Test de Llama 3.2 pour la classification de mails.\r\n- Analyse de la latence entre l'envoi du prompt et la réception de la réponse."
+}, {
+  "id" : "afcd6ab3-3643-4a82-839b-c71a9b902c80",
+  "title" : "Note_important",
+  "author" : "Import",
+  "action" : "PENDING",
+  "sourceType" : "IMPORT",
+  "submittedAt" : "01/04/2026 09:17",
+  "content" : "# Notes : Architecture DevOps & CI/CD\r\n**Auteur : Alice Martin**\r\n**Date : 10 Février 2026**\r\n\r\n## Points Clés du Cours\r\n* **Pipeline Jenkins** : Mise en place de scripts `Jenkinsfile` pour automatiser le build et le test.\r\n* **Dockerisation** : Utilisation de Docker pour isoler les environnements de développement et de production.\r\n* **Kubernetes** : Introduction à l'orchestration de conteneurs pour la scalabilité.\r\n\r\n## Actions à entreprendre\r\n1. Configurer les Webhooks GitHub pour déclencher le build.\r\n2. Optimiser les images Docker pour réduire le temps de déploiement.\r\n3. RVD d'optimiation à 20h le 5 avril"
 } ]

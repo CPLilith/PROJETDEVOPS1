@@ -32,17 +32,13 @@ public class NoteService {
         this.notes = noteRepository.loadNotes();
     }
 
-    /**
-     * Importe des fichiers .md directement comme notes brutes.
-     * Chaque fichier devient une note séparée, sans traitement IA.
-     */
     public void importMarkdownFiles(MultipartFile[] files) {
         for (MultipartFile f : files) {
             try {
                 if (f.getOriginalFilename() != null && f.getOriginalFilename().endsWith(".md")) {
                     String content = new String(f.getBytes(), StandardCharsets.UTF_8);
                     String title = f.getOriginalFilename().replace(".md", "");
-                    Note note = new Note(title, "Import", content, "PENDING");
+                    Note note = new Note(title, "Import", content, "PENDING", "IMPORT");
                     notes.add(0, note);
                 }
             } catch (Exception e) {
@@ -52,9 +48,6 @@ public class NoteService {
         noteRepository.saveNotes(notes);
     }
 
-    /**
-     * Fusionne les notes sélectionnées (index de la vue inversée) via l'IA.
-     */
     public void mergeSelectedNotes(List<Integer> reversedIndexes, Persona persona) throws Exception {
         int total = notes.size();
         List<Note> selectedNotes = reversedIndexes.stream()
@@ -86,7 +79,7 @@ public class NoteService {
         }
 
         String mergedTitles = selectedNotes.stream().map(Note::getTitle).collect(Collectors.joining(", "));
-        Note newNote = new Note("Synthèse IA : " + mergedTitles, "AI Orchestrator", aiSynthesis, eisenhowerTag);
+        Note newNote = new Note("Synthèse IA : " + mergedTitles, "AI Orchestrator", aiSynthesis, eisenhowerTag, "MERGE");
         notes.add(0, newNote);
         noteRepository.saveNotes(notes);
     }

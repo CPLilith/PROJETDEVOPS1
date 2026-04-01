@@ -5,34 +5,104 @@
     <main class="feed-container">
         <div class="feed-header">
             <h2>Vault Obsidian</h2>
-            <div class="action-bar" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+    
+            <div class="action-bar" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:20px;">
 
-                <!-- Import de fichiers .md en tant que notes -->
-                <form action="/knowledge/import" method="post" enctype="multipart/form-data"
-                    onsubmit="showLoader('Import des notes...')" style="display:flex; gap:8px; align-items:center;">
-                    <div class="file-upload-wrapper">
-                        <div class="btn-file"><i class="fas fa-file-upload"></i> Importer .md</div>
-                        <input type="file" id="file-input" name="files" multiple accept=".md" required>
-                    </div>
-                    <button type="submit"
-                        style="background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600;">
-                        <i class="fas fa-plus"></i> Ajouter
-                    </button>
+                <form id="import-form" action="/knowledge/import" method="post" enctype="multipart/form-data" style="margin:0;">
+                    <label class="file-upload-wrapper" style="margin:0; cursor:pointer;">
+                        <div class="btn-file" style="background: white; color: black; border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-file-upload"></i> Importer .md
+                        </div>
+                        <input type="file" name="files" multiple accept=".md" required
+                            onchange="showLoader('Import des notes...'); this.form.submit();"
+                            style="display: none;">
+                    </label>
                 </form>
 
                 <button type="button" id="merge-btn" onclick="submitMerge()" disabled
-                    style="background: var(--note); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; opacity: 0.5; cursor: not-allowed; transition: all 0.2s;">
+                    style="background: #D1A3FF; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; opacity: 0.5; cursor: not-allowed; transition: all 0.2s; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-layer-group"></i> Merger sélection (<span id="merge-count">0</span>)
                 </button>
 
-                <form id="merge-form" action="/knowledge/merge" method="post" style="display:none;">
-                </form>
+                <div style="width: 1px; height: 24px; background: var(--border); margin: 0 5px;"></div>
+
+                <select id="filter-tag" onchange="applyFilters()"
+                    style="padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:13px; cursor:pointer;">
+                    <option value="">Tous les tags</option>
+                    <option value="DO">DO</option>
+                    <option value="PLAN">PLAN</option>
+                    <option value="DELEGATE">DELEGATE</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PENDING">PENDING</option>
+                </select>
+
+                <select id="filter-type" onchange="applyFilters()"
+                    style="padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:13px; cursor:pointer;">
+                    <option value="">Import &amp; Merge</option>
+                    <option value="IMPORT">Import uniquement</option>
+                    <option value="MERGE">Merge uniquement</option>
+                </select>
+
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <input type="date" id="filter-date-from" onchange="applyFilters()"
+                        style="padding:7px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:13px;">
+                    <span style="font-size:13px; color:var(--text-sub);">au</span>
+                    <input type="date" id="filter-date-to" onchange="applyFilters()"
+                        style="padding:7px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:13px;">
+                </div>
+
+                <button onclick="resetFilters()"
+                    style="padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--text-sub); font-size:13px; cursor:pointer; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-times"></i> Réinitialiser
+                </button>
+
+                <span id="filter-count" style="font-size:12px; color:var(--text-sub);"></span>
             </div>
         </div>
 
-        <!-- Bandeau d'info sélection -->
+        <!-- Filtres -->
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">
+            <!-- Filtre par tag -->
+            <select id="filter-tag" onchange="applyFilters()"
+                style="padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:13px; cursor:pointer;">
+                <option value="">Tous les tags</option>
+                <option value="DO">DO</option>
+                <option value="PLAN">PLAN</option>
+                <option value="DELEGATE">DELEGATE</option>
+                <option value="DELETE">DELETE</option>
+                <option value="PENDING">PENDING</option>
+            </select>
+
+            <!-- Filtre par type -->
+            <select id="filter-type" onchange="applyFilters()"
+                style="padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:13px; cursor:pointer;">
+                <option value="">Import &amp; Merge</option>
+                <option value="IMPORT">Import uniquement</option>
+                <option value="MERGE">Merge uniquement</option>
+            </select>
+
+            <!-- Filtre par date (depuis) -->
+            <div style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-sub);">
+                <label for="filter-date-from">Du</label>
+                <input type="date" id="filter-date-from" onchange="applyFilters()"
+                    style="padding:7px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:13px;">
+                <label for="filter-date-to">au</label>
+                <input type="date" id="filter-date-to" onchange="applyFilters()"
+                    style="padding:7px 10px; border-radius:8px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:13px;">
+            </div>
+
+            <!-- Reset -->
+            <button onclick="resetFilters()"
+                style="padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--text-sub); font-size:13px; cursor:pointer;">
+                <i class="fas fa-times"></i> Réinitialiser
+            </button>
+
+            <span id="filter-count" style="font-size:12px; color:var(--text-sub);"></span>
+        </div>
+
+        <!-- Bandeau sélection -->
         <div id="selection-banner" style="display:none; background: var(--note); color:white; padding: 10px 20px; border-radius: 10px; margin-bottom: 12px; font-size: 14px;">
-            <i class="fas fa-info-circle"></i> <span id="banner-text">0 note(s) sélectionnée(s)</span>
+            <i class="fas fa-info-circle"></i> <span id="banner-text"></span>
             <button onclick="clearSelection()" style="background:none; border:none; color:white; cursor:pointer; margin-left:12px; text-decoration:underline;">Tout désélectionner</button>
         </div>
 
@@ -42,22 +112,42 @@
                     class="mail-card selectable-note"
                     th:id="'card-note-' + ${iter.index}"
                     th:data-id="${iter.index}"
-                    th:data-subject="${note.title}"
-                    th:data-from="${note.author}">
-                    <div th:class="'status-strip dot-' + ${note.action}"></div>
-                    <span th:class="'importance-tag tag-' + ${note.action}" th:text="${note.action}"></span>
+                    th:data-tag="${note.action}"
+                    th:data-type="${note.sourceType}"
+                    th:data-date="${note.submittedAt}">
 
-                    <!-- Checkbox de sélection -->
-                    <input type="checkbox"
-                        class="note-checkbox"
+                    <div th:class="'status-strip dot-' + ${note.action}"></div>
+
+                    <!-- Checkbox -->
+                    <input type="checkbox" class="note-checkbox"
                         th:value="${iter.index}"
                         onclick="event.stopPropagation(); toggleSelection(this)"
                         style="position:absolute; top:12px; right:12px; width:18px; height:18px; cursor:pointer; accent-color: var(--note);">
 
+                    <!-- Tag + badge type -->
+                    <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
+                        <span th:class="'importance-tag tag-' + ${note.action}" th:text="${note.action}"></span>
+                        <span th:if="${note.sourceType == 'MERGE'}"
+                            style="font-size:10px; background: var(--note); color:white; padding:2px 7px; border-radius:10px; font-weight:600; opacity:0.85;">
+                            <i class="fas fa-layer-group"></i> MERGE
+                        </span>
+                        <span th:if="${note.sourceType == 'IMPORT'}"
+                            style="font-size:10px; background: var(--accent); color:white; padding:2px 7px; border-radius:10px; font-weight:600; opacity:0.85;">
+                            <i class="fas fa-file-upload"></i> IMPORT
+                        </span>
+                    </div>
+
                     <div class="card-subject" th:text="${note.title}"
-                        style="font-weight: 600; margin-bottom: 8px; padding-right: 28px;"
+                        style="font-weight: 600; margin-bottom: 6px; padding-right: 28px;"
                         onclick="openNote(this.closest('.mail-card'), event)">
                     </div>
+
+                    <!-- Date de soumission -->
+                    <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">
+                        <i class="fas fa-clock"></i>
+                        <span th:text="${note.submittedAt != null ? note.submittedAt : 'Date inconnue'}"></span>
+                    </div>
+
                     <textarea th:id="'note-content-' + ${iter.index}" style="display:none;"
                         th:text="${note.content}"></textarea>
                 </div>
@@ -69,17 +159,17 @@
         <div id="default-placeholder" style="text-align:center; margin-top:200px; color: var(--text-sub);">
             <i class="fas fa-envelope-open-text fa-4x" style="opacity: 0.2; margin-bottom: 20px;"></i>
             <h2 style="font-weight: 500; font-size: 20px;">Sélectionnez une note pour la lire</h2>
-            <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">Cochez plusieurs notes puis cliquez sur <strong>Merger sélection</strong> pour lancer une synthèse IA.</p>
+            <p style="font-size: 13px; margin-top: 8px; opacity: 0.6;">Cochez au moins 2 notes puis cliquez sur <strong>Merger sélection</strong>.</p>
         </div>
     </section>
 
     <script>
         const selectedIndexes = new Set();
 
+        // ── Sélection ──────────────────────────────────────────
         function toggleSelection(checkbox) {
             const index = parseInt(checkbox.value);
             const card = checkbox.closest('.mail-card');
-
             if (checkbox.checked) {
                 selectedIndexes.add(index);
                 card.style.outline = '2px solid var(--note)';
@@ -89,7 +179,6 @@
                 card.style.outline = '';
                 card.style.background = '';
             }
-
             updateMergeButton();
         }
 
@@ -97,7 +186,6 @@
             const btn = document.getElementById('merge-btn');
             const count = selectedIndexes.size;
             document.getElementById('merge-count').textContent = count;
-
             const banner = document.getElementById('selection-banner');
             const bannerText = document.getElementById('banner-text');
 
@@ -134,10 +222,8 @@
 
         function submitMerge() {
             if (selectedIndexes.size < 2) return;
-
             const form = document.getElementById('merge-form');
             form.innerHTML = '';
-
             selectedIndexes.forEach(index => {
                 const input = document.createElement('input');
                 input.type = 'hidden';
@@ -145,9 +231,64 @@
                 input.value = index;
                 form.appendChild(input);
             });
-
             showLoader('Fusion IA en cours...');
             form.submit();
+        }
+
+        // ── Filtres ──────────────────────────────────────────
+        function parseDate(str) {
+            // Format stocké : "dd/MM/yyyy HH:mm"
+            if (!str) return null;
+            const [datePart] = str.split(' ');
+            const [d, m, y] = datePart.split('/');
+            return new Date(y, m - 1, d);
+        }
+
+        function applyFilters() {
+            const filterTag  = document.getElementById('filter-tag').value;
+            const filterType = document.getElementById('filter-type').value;
+            const dateFrom   = document.getElementById('filter-date-from').value;
+            const dateTo     = document.getElementById('filter-date-to').value;
+
+            const cards = document.querySelectorAll('.selectable-note');
+            let visible = 0;
+
+            cards.forEach(card => {
+                const tag      = card.dataset.tag  || '';
+                const type     = card.dataset.type || '';
+                const dateStr  = card.dataset.date || '';
+                const noteDate = parseDate(dateStr);
+
+                let show = true;
+
+                if (filterTag  && tag  !== filterTag)  show = false;
+                if (filterType && type !== filterType) show = false;
+
+                if (dateFrom && noteDate) {
+                    const from = new Date(dateFrom);
+                    if (noteDate < from) show = false;
+                }
+                if (dateTo && noteDate) {
+                    const to = new Date(dateTo);
+                    to.setHours(23, 59, 59);
+                    if (noteDate > to) show = false;
+                }
+
+                card.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            const total = cards.length;
+            document.getElementById('filter-count').textContent =
+                visible < total ? visible + ' / ' + total + ' note(s) affichée(s)' : '';
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-tag').value = '';
+            document.getElementById('filter-type').value = '';
+            document.getElementById('filter-date-from').value = '';
+            document.getElementById('filter-date-to').value = '';
+            applyFilters();
         }
     </script>
 

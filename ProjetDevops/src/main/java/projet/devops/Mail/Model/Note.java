@@ -1,81 +1,72 @@
 package projet.devops.Mail.Model;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-// Cette annotation empêche le plantage si le JSON contient des champs inconnus
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Note {
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private String id;
     private String title;
     private String author;
 
-    // On s'assure que Jackson map bien le champ "content" du JSON vers cette
-    // variable
     @JsonProperty("content")
     private String content;
 
     private String action;
 
-    // Constructeur vide OBLIGATOIRE pour Jackson (lecture du JSON)
+    // "IMPORT" ou "MERGE"
+    private String sourceType;
+
+    // Date de soumission au format "dd/MM/yyyy HH:mm"
+    private String submittedAt;
+
     public Note() {
-        // Si l'ID n'existe pas dans le JSON (vieille note), on en génère un à la volée
         this.id = UUID.randomUUID().toString();
     }
 
-    // Constructeur complet
-    public Note(String title, String author, String content, String action) {
+    public Note(String title, String author, String content, String action, String sourceType) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.author = author;
         this.content = content;
         this.action = action;
+        this.sourceType = sourceType;
+        this.submittedAt = LocalDateTime.now().format(FORMATTER);
     }
 
-    // --- Getters & Setters ---
+    // Ancien constructeur conservé pour compatibilité (notes existantes sans date)
+    public Note(String title, String author, String content, String action) {
+        this(title, author, content, action, "IMPORT");
+    }
+
     public String getId() {
-        // Sécurité : si l'ID est null (vieux JSON), on en donne un
-        if (id == null)
-            id = UUID.randomUUID().toString();
+        if (id == null) id = UUID.randomUUID().toString();
         return id;
     }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getAuthor() { return author; }
+    public void setAuthor(String author) { this.author = author; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
 
-    public String getAuthor() {
-        return author;
-    }
+    public String getAction() { return action; }
+    public void setAction(String action) { this.action = action; }
 
-    public void setAuthor(String author) {
-        this.author = author;
-    }
+    public String getSourceType() { return sourceType; }
+    public void setSourceType(String sourceType) { this.sourceType = sourceType; }
 
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getAction() {
-        return action;
-    }
-
-    public void setAction(String action) {
-        this.action = action;
-    }
+    public String getSubmittedAt() { return submittedAt; }
+    public void setSubmittedAt(String submittedAt) { this.submittedAt = submittedAt; }
 }
