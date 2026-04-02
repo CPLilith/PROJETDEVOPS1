@@ -6,20 +6,31 @@
         <h1 class="mail-title">Agenda IA</h1>
 
         <div th:if="${events != null and !#lists.isEmpty(events)}">
-            <div th:each="event : ${events}" class="mail-card"
-                style="margin-bottom:15px; border-left: 4px solid var(--plan);">
-                <div style="color:var(--accent); font-weight:700; font-size: 14px;" th:text="${event.dateLieu}"></div>
-                <div th:text="${event.title}" style="font-weight:700; font-size: 18px; margin: 10px 0;"></div>
-                <span class="importance-tag" th:classappend="'tag-' + ${event.type}" th:text="${event.type}"></span>
+            <div th:each="event : ${events}"
+                 class="mail-card"
+                 style="margin-bottom:15px; border-left:4px solid var(--plan);">
+                <div th:text="${event.dateLieu}"
+                     style="color:var(--accent); font-weight:700; font-size:14px;">
+                </div>
+                <div th:text="${event.title}"
+                     style="font-weight:700; font-size:18px; margin:10px 0;">
+                </div>
+                <span class="importance-tag"
+                      th:classappend="'tag-' + ${event.type}"
+                      th:text="${event.type}">
+                </span>
 
-                <div style="margin-top: 15px; display: flex; gap: 10px;">
-                    <button th:data-id="${event.sourceId}" onclick="generateMemo(this.getAttribute('data-id'), this)"
-                        style="background: var(--text-main); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                <div style="margin-top:15px; display:flex; gap:10px;">
+                    <button th:data-id="${event.sourceId}"
+                            onclick="generateMemo(this.getAttribute('data-id'), this)"
+                            style="background:var(--text-main); color:white; border:none;
+                                   padding:8px 12px; border-radius:4px; cursor:pointer;">
                         <i class="fas fa-file-pdf"></i> Générer Mémo PDF
                     </button>
-
-                    <button th:data-id="${event.sourceId}" onclick="openAgendaModal(this.getAttribute('data-id'))"
-                        style="background: #3b82f6; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+                    <button th:data-id="${event.sourceId}"
+                            onclick="openAgendaModal(this.getAttribute('data-id'))"
+                            style="background:#3b82f6; color:white; border:none;
+                                   padding:8px 12px; border-radius:4px; cursor:pointer;">
                         <i class="fas fa-calendar-plus"></i> Ajouter à l'agenda
                     </button>
                 </div>
@@ -27,130 +38,160 @@
         </div>
 
         <div th:if="${events == null or #lists.isEmpty(events)}"
-            style="text-align:center; padding:50px; color: var(--text-sub);">
+             style="text-align:center; padding:50px; color:var(--text-sub);">
             <i class="fas fa-calendar-times fa-3x" style="opacity:0.3; margin-bottom:15px;"></i>
             <p>Aucun événement planifié pour le moment.</p>
         </div>
     </section>
 
-    <div id="agenda-modal" class="modal-overlay"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div id="agenda-modal"
+         class="modal-overlay"
+         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
         <div class="modal-content"
-            style="background: white; padding: 25px; border-radius: 8px; max-width: 500px; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <div class="modal-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-                <i class="fas fa-calendar-check" style="color: #3b82f6; font-size: 24px;"></i>
-                <h3 style="margin: 0; font-size: 18px;">Validation de l'événement</h3>
+             style="background:white; padding:25px; border-radius:8px; max-width:500px;
+                    width:100%; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+
+            <div class="modal-header"
+                 style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                <i class="fas fa-calendar-check" style="color:#3b82f6; font-size:24px;"></i>
+                <h3 style="margin:0; font-size:18px;">Validation de l'événement</h3>
             </div>
 
-            <div class="modal-body" style="text-align: left; margin-bottom: 20px;">
+            <div class="modal-body" style="text-align:left; margin-bottom:20px;">
                 <input type="hidden" id="modal-message-id">
 
-                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">Titre du RDV
-                    :</label>
-                <input type="text" id="modal-title"
-                    style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box;">
+                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:13px;">
+                    Titre du RDV :
+                </label>
+                <input type="text"
+                       id="modal-title"
+                       style="width:100%; padding:8px; margin-bottom:15px;
+                              border:1px solid var(--border); border-radius:6px; box-sizing:border-box;">
 
-                <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">Stratégie IA
-                    :</label>
-                <select id="modal-strategy" onchange="updateModalFields()"
-                    style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; background: white; box-sizing: border-box;">
+                <label style="display:block; margin-bottom:5px; font-weight:600; font-size:13px;">
+                    Stratégie IA :
+                </label>
+                <select id="modal-strategy"
+                        onchange="updateModalFields()"
+                        style="width:100%; padding:8px; margin-bottom:15px; border:1px solid var(--border);
+                               border-radius:6px; background:white; box-sizing:border-box;">
                     <option value="PLAN">PLAN (Tâche classique / Réunion)</option>
                     <option value="TOIA">TOIA (Urgent / À faire soi-même)</option>
                     <option value="BOOMERANG">BOOMERANG (Délégation avec suivi)</option>
                 </select>
 
                 <div id="delegation-zone"
-                    style="display: none; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 15px;">
-                    <label
-                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #334155;">Assigné
-                        à :</label>
-                    <input type="text" id="modal-assignee" placeholder="Nom ou email"
-                        style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box;">
+                     style="display:none; background:#f8fafc; padding:15px; border-radius:6px;
+                            border:1px dashed #cbd5e1; margin-bottom:15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600;
+                                  font-size:13px; color:#334155;">
+                        Assigné à :
+                    </label>
+                    <input type="text"
+                           id="modal-assignee"
+                           placeholder="Nom ou email"
+                           style="width:100%; padding:8px; margin-bottom:15px;
+                                  border:1px solid var(--border); border-radius:6px; box-sizing:border-box;">
 
-                    <label
-                        style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #334155;">Niveau
-                        de confiance :</label>
+                    <label style="display:block; margin-bottom:5px; font-weight:600;
+                                  font-size:13px; color:#334155;">
+                        Niveau de confiance :
+                    </label>
                     <select id="modal-confidence"
-                        style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: white; box-sizing: border-box;">
+                            style="width:100%; padding:8px; border:1px solid var(--border);
+                                   border-radius:6px; background:white; box-sizing:border-box;">
                         <option value="MAJEUR">Majeure (1 seul rappel la veille)</option>
                         <option value="MOYEN">Moyenne (Rappel à 75% du temps restant)</option>
                         <option value="MINEUR">Mineure (Multiples rappels plus tôt)</option>
                     </select>
                 </div>
 
-                <label
-                    style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #ef4444;">Date
-                    limite (obligatoire) :</label>
-                <input type="date" id="modal-date"
-                    style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box;">
+                <label style="display:block; margin-bottom:5px; font-weight:600;
+                              font-size:13px; color:#ef4444;">
+                    Date limite (obligatoire) :
+                </label>
+                <input type="date"
+                       id="modal-date"
+                       style="width:100%; padding:8px; border:1px solid var(--border);
+                              border-radius:6px; box-sizing:border-box;">
 
                 <div id="time-management-zone"
-                    style="background: #f0fdf4; padding: 15px; border-radius: 6px; border: 1px dashed #86efac; margin-top: 15px;">
-
-                    <div style="margin-bottom: 10px;">
-                        <label
-                            style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600; color: #166534;">
+                     style="background:#f0fdf4; padding:15px; border-radius:6px;
+                            border:1px dashed #86efac; margin-top:15px;">
+                    <div style="margin-bottom:10px;">
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;
+                                      font-size:13px; font-weight:600; color:#166534;">
                             <input type="checkbox" id="modal-allday" onchange="toggleTimeZone()" checked>
                             Toute la journée
                         </label>
                     </div>
 
                     <div id="time-fields"
-                        style="display: none; border-top: 1px solid #bbf7d0; padding-top: 10px; margin-top: 10px;">
-                        <label
-                            style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #166534;">Durée
-                            estimée et Disponibilités :</label>
+                         style="display:none; border-top:1px solid #bbf7d0;
+                                padding-top:10px; margin-top:10px;">
+                        <label style="display:block; margin-bottom:5px; font-weight:600;
+                                      font-size:13px; color:#166534;">
+                            Durée estimée et Disponibilités :
+                        </label>
 
-                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <div style="display:flex; gap:10px; margin-bottom:15px;">
                             <select id="modal-duration"
-                                style="flex: 1; padding: 8px; border: 1px solid #bbf7d0; border-radius: 6px; background: white; box-sizing: border-box;">
+                                    style="flex:1; padding:8px; border:1px solid #bbf7d0;
+                                           border-radius:6px; background:white; box-sizing:border-box;">
                                 <option value="15">15 minutes</option>
                                 <option value="30">30 minutes</option>
                                 <option value="60" selected>1 heure</option>
                                 <option value="120">2 heures</option>
                             </select>
-                            <button type="button" id="btn-check-freebusy" onclick="checkFreeBusy()"
-                                style="background: #22c55e; color: white; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: background 0.2s;">
+                            <button type="button"
+                                    id="btn-check-freebusy"
+                                    onclick="checkFreeBusy()"
+                                    style="background:#22c55e; color:white; border:none; padding:0 15px;
+                                           border-radius:6px; cursor:pointer; font-weight:600;
+                                           font-size:13px; transition:background 0.2s;">
                                 🔍 Trouver un créneau
                             </button>
                         </div>
 
                         <input type="hidden" id="modal-time">
 
-                        <div id="freebusy-results" style="display: none; margin-top: 15px;">
-                            <label
-                                style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; color: #15803d;">Créneaux
-                                libres trouvés (Cliquez pour sélectionner) :</label>
-                            <div id="slots-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                        <div id="freebusy-results" style="display:none; margin-top:15px;">
+                            <label style="display:block; margin-bottom:8px; font-weight:600;
+                                          font-size:12px; color:#15803d;">
+                                Créneaux libres trouvés (Cliquez pour sélectionner) :
+                            </label>
+                            <div id="slots-container" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
                             <small id="no-slots-msg"
-                                style="display: none; color: #dc2626; font-size: 12px; font-weight: bold;">Aucun créneau
-                                disponible pour cette durée ce jour-là.</small>
+                                   style="display:none; color:#dc2626; font-size:12px; font-weight:bold;">
+                                Aucun créneau disponible pour cette durée ce jour-là.
+                            </small>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:10px;">
                 <button onclick="closeAgendaModal()"
-                    style="padding: 8px 16px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;">Annuler</button>
-                <button id="modal-submit-btn" onclick="confirmAgendaEvent()"
-                    style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">Confirmer
-                    la création</button>
+                        style="padding:8px 16px; border:1px solid #cbd5e1;
+                               background:white; border-radius:6px; cursor:pointer;">
+                    Annuler
+                </button>
+                <button id="modal-submit-btn"
+                        onclick="confirmAgendaEvent()"
+                        style="padding:8px 16px; background:#3b82f6; color:white;
+                               border:none; border-radius:6px; cursor:pointer;">
+                    Confirmer la création
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Fonction d'affichage conditionnel pour la stratégie
         function updateModalFields() {
-            const strategy = document.getElementById('modal-strategy').value;
+            const strategy      = document.getElementById('modal-strategy').value;
             const delegationZone = document.getElementById('delegation-zone');
-
-            if (strategy === 'BOOMERANG') {
-                delegationZone.style.display = 'block';
-            } else {
-                delegationZone.style.display = 'none';
-            }
+            delegationZone.style.display = strategy === 'BOOMERANG' ? 'block' : 'none';
         }
 
         function closeAgendaModal() {
@@ -174,36 +215,27 @@
 
                 const intent = await response.json();
 
-                // Pré-remplissage basique
                 document.getElementById('modal-message-id').value = messageId;
-                document.getElementById('modal-title').value = intent.title || '';
+                document.getElementById('modal-title').value       = intent.title || '';
 
-                // Pré-remplissage de la stratégie et mise à jour de l'affichage
                 const strategySelect = document.getElementById('modal-strategy');
                 if (intent.strategy && ["PLAN", "TOIA", "BOOMERANG"].includes(intent.strategy.toUpperCase())) {
                     strategySelect.value = intent.strategy.toUpperCase();
                 } else {
-                    strategySelect.value = "PLAN"; // Fallback par défaut
+                    strategySelect.value = "PLAN";
                 }
 
-                // Pré-remplissage de l'assigné
                 document.getElementById('modal-assignee').value = intent.assignee || '';
-
-                // On met à jour l'affichage en fonction de la stratégie pré-remplie
                 updateModalFields();
 
-                // Gestion de la date
                 const dateInput = document.getElementById('modal-date');
-                if (intent.dateDetected && intent.deadline && intent.deadline !== "INCONNUE") {
-                    // Il remplit la case
-                } else {
-                    dateInput.value = ''; // Il laisse la case vide !
+                if (!intent.dateDetected || !intent.deadline || intent.deadline === "INCONNUE") {
+                    dateInput.value = '';
                 }
 
                 dateInput.addEventListener('input', validateDate);
                 validateDate();
 
-                // Affichage centré de la modale (flex)
                 document.getElementById('agenda-modal').style.display = 'flex';
 
             } catch (error) {
@@ -225,13 +257,13 @@
             }
 
             const selectedDate = new Date(dateInput.value);
-            const today = new Date();
+            const today        = new Date();
             today.setHours(0, 0, 0, 0);
 
             if (selectedDate >= today) {
-                submitBtn.disabled = false;
+                submitBtn.disabled     = false;
                 submitBtn.style.opacity = '1';
-                submitBtn.style.cursor = 'pointer';
+                submitBtn.style.cursor  = 'pointer';
                 dateInput.style.borderColor = 'var(--border)';
             } else {
                 lockButton(submitBtn, dateInput);
@@ -239,21 +271,19 @@
         }
 
         function lockButton(btn, input) {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
+            btn.disabled        = true;
+            btn.style.opacity   = '0.5';
+            btn.style.cursor    = 'not-allowed';
             input.style.borderColor = '#ef4444';
         }
 
         async function confirmAgendaEvent() {
-            const messageId = document.getElementById('modal-message-id').value;
-            const title = document.getElementById('modal-title').value;
+            const messageId      = document.getElementById('modal-message-id').value;
+            const title          = document.getElementById('modal-title').value;
             const strategyChoice = document.getElementById('modal-strategy').value;
-            const assignee = document.getElementById('modal-assignee').value;
-            const rawDate = document.getElementById('modal-date').value;
-
-            // --- NOUVELLES DONNÉES DE TEMPS ---
-            let startTime = document.getElementById('modal-time').value;
+            const assignee       = document.getElementById('modal-assignee').value;
+            const rawDate        = document.getElementById('modal-date').value;
+            const startTime      = document.getElementById('modal-time').value;
             const durationMinutes = document.getElementById('modal-duration').value;
 
             if (!rawDate) {
@@ -261,28 +291,26 @@
                 return;
             }
 
-            // Si l'utilisateur n'a pas mis d'heure, on met 09:00 par défaut pour éviter que ça plante
             const isAllDay = document.getElementById('modal-allday').checked;
             if (!isAllDay && !startTime) {
                 alert("Veuillez chercher et cliquer sur un créneau horaire vert (ou cochez 'Toute la journée').");
                 return;
             }
 
-            const parts = rawDate.split('-');
+            const parts         = rawDate.split('-');
             const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
-            // Création du Payload
             const payload = {
-                title: title,
-                strategy: strategyChoice,
-                assignee: strategyChoice === 'BOOMERANG' ? assignee : "",
-                deadline: formattedDate,
-                dateDetected: true,
-                confidence: strategyChoice === 'BOOMERANG' ? document.getElementById('modal-confidence').value : "AUCUNE",
-
-                // --- MODIFICATIONS ICI ---
-                allDay: isAllDay,
-                startTime: isAllDay ? "" : startTime, // Si c'est toute la journée, on envoie rien
+                title:           title,
+                strategy:        strategyChoice,
+                assignee:        strategyChoice === 'BOOMERANG' ? assignee : "",
+                deadline:        formattedDate,
+                dateDetected:    true,
+                confidence:      strategyChoice === 'BOOMERANG'
+                                    ? document.getElementById('modal-confidence').value
+                                    : "AUCUNE",
+                allDay:          isAllDay,
+                startTime:       isAllDay ? "" : startTime,
                 durationMinutes: isAllDay ? 0 : parseInt(durationMinutes)
             };
 
@@ -290,12 +318,11 @@
             if (typeof showLoader === "function") showLoader('Création dans Google Calendar...');
 
             try {
-                const url = `/api/calendar/confirm?messageId=${encodeURIComponent(messageId)}`;
-
+                const url      = `/api/calendar/confirm?messageId=${encodeURIComponent(messageId)}`;
                 const response = await fetch(url, {
-                    method: 'POST',
+                    method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body:    JSON.stringify(payload)
                 });
 
                 if (document.getElementById('loading-overlay')) {
@@ -318,67 +345,69 @@
         }
 
         async function checkFreeBusy() {
-            const dateInput = document.getElementById('modal-date').value;
-            const durationInput = document.getElementById('modal-duration').value;
-            const btn = document.getElementById('btn-check-freebusy');
-            const resultsZone = document.getElementById('freebusy-results');
+            const dateInput      = document.getElementById('modal-date').value;
+            const durationInput  = document.getElementById('modal-duration').value;
+            const btn            = document.getElementById('btn-check-freebusy');
+            const resultsZone    = document.getElementById('freebusy-results');
             const slotsContainer = document.getElementById('slots-container');
-            const noSlotsMsg = document.getElementById('no-slots-msg');
+            const noSlotsMsg     = document.getElementById('no-slots-msg');
 
             if (!dateInput) {
                 alert("Veuillez d'abord choisir une date !");
                 return;
             }
 
-            const parts = dateInput.split('-');
+            const parts         = dateInput.split('-');
             const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
-            btn.innerHTML = "⏳ Recherche...";
-            btn.disabled = true;
+            btn.innerHTML         = "⏳ Recherche...";
+            btn.disabled          = true;
             resultsZone.style.display = 'block';
-            slotsContainer.innerHTML = '';
-            noSlotsMsg.style.display = 'none';
+            slotsContainer.innerHTML  = '';
+            noSlotsMsg.style.display  = 'none';
 
             try {
-                const response = await fetch(`/api/calendar/freebusy?date=${encodeURIComponent(formattedDate)}&duration=${durationInput}`);
+                const response = await fetch(
+                    `/api/calendar/freebusy?date=${encodeURIComponent(formattedDate)}&duration=${durationInput}`
+                );
                 const data = await response.json();
 
                 btn.innerHTML = "🔍 Trouver un créneau";
-                btn.disabled = false;
+                btn.disabled  = false;
 
                 if (data.status === 'success') {
-                    const slots = data.slots;
-
-                    if (slots.length === 0) {
+                    if (data.slots.length === 0) {
                         noSlotsMsg.style.display = 'block';
                     } else {
-                        slots.forEach(slot => {
-                            const timeBtn = document.createElement('button');
-                            timeBtn.type = 'button';
+                        data.slots.forEach(slot => {
+                            const timeBtn  = document.createElement('button');
+                            timeBtn.type   = 'button';
                             timeBtn.innerText = slot.time;
 
                             if (slot.available) {
-                                // Design Créneau LIBRE (Vert et cliquable)
-                                timeBtn.style.cssText = "padding: 6px 12px; background: white; border: 1px solid #22c55e; color: #15803d; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s;";
+                                timeBtn.style.cssText =
+                                    "padding:6px 12px; background:white; border:1px solid #22c55e;" +
+                                    "color:#15803d; border-radius:4px; cursor:pointer;" +
+                                    "font-size:12px; font-weight:600; transition:all 0.2s;";
 
                                 timeBtn.onclick = function () {
                                     document.getElementById('modal-time').value = slot.time;
-
-                                    // Reset des autres boutons VERTS uniquement
                                     Array.from(slotsContainer.children).forEach(b => {
                                         if (!b.disabled) {
                                             b.style.background = 'white';
-                                            b.style.color = '#15803d';
+                                            b.style.color      = '#15803d';
                                         }
                                     });
                                     this.style.background = '#22c55e';
-                                    this.style.color = 'white';
+                                    this.style.color      = 'white';
                                 };
                             } else {
-                                // Design Créneau PRIS (Grisé et désactivé)
-                                timeBtn.style.cssText = "padding: 6px 12px; background: #f1f5f9; border: 1px solid #cbd5e1; color: #94a3b8; border-radius: 4px; cursor: not-allowed; font-size: 12px; font-weight: 600;";
+                                timeBtn.style.cssText =
+                                    "padding:6px 12px; background:#f1f5f9; border:1px solid #cbd5e1;" +
+                                    "color:#94a3b8; border-radius:4px; cursor:not-allowed;" +
+                                    "font-size:12px; font-weight:600;";
                                 timeBtn.disabled = true;
-                                timeBtn.title = "Créneau indisponible";
+                                timeBtn.title    = "Créneau indisponible";
                             }
 
                             slotsContainer.appendChild(timeBtn);
@@ -390,21 +419,17 @@
             } catch (error) {
                 console.error("Erreur Fetch:", error);
                 btn.innerHTML = "🔍 Trouver un créneau";
-                btn.disabled = false;
+                btn.disabled  = false;
                 alert("Erreur de connexion avec le serveur.");
             }
         }
 
         function toggleTimeZone() {
-            const isAllDay = document.getElementById('modal-allday').checked;
+            const isAllDay   = document.getElementById('modal-allday').checked;
             const timeFields = document.getElementById('time-fields');
-            if (isAllDay) {
-                timeFields.style.display = 'none';
-            } else {
-                timeFields.style.display = 'block';
-            }
+            timeFields.style.display = isAllDay ? 'none' : 'block';
         }
     </script>
-</th:block>
 
+</th:block>
 </html>
