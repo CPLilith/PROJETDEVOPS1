@@ -13,8 +13,7 @@
     --purple: #6f42c1;
 }
 
-html,
-body {
+html, body {
     height: 100vh;
     width: 100vw;
     margin: 0;
@@ -24,24 +23,104 @@ body {
     background: #fff;
 }
 
+/* ---- GRILLE PRINCIPALE ---- */
 .app-container {
     display: grid;
     grid-template-columns: 260px 420px 1fr;
     height: 100vh;
+    transition: grid-template-columns 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
 .app-container.full-view {
     grid-template-columns: 260px 1fr;
 }
 
-/* --- SIDEBAR --- */
+.app-container.sidebar-hidden {
+    grid-template-columns: 0px 420px 1fr !important;
+}
+
+.app-container.full-view.sidebar-hidden {
+    grid-template-columns: 0px 1fr !important;
+}
+
+/* ---- SIDEBAR ---- */
 .sidebar {
     background: var(--sidebar-bg);
     border-right: 1px solid var(--border);
-    padding: 40px 24px;
+    padding: 24px 24px 40px 24px;
     display: flex;
     flex-direction: column;
-    gap: 40px;
+    gap: 32px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+.sidebar.collapsed {
+    padding: 0 !important;
+    border-right: none !important;
+    visibility: hidden;
+}
+
+.sidebar-controls {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.sidebar-ctrl-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--text-sub);
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.sidebar-ctrl-btn:hover {
+    background: #f1f5f9;
+    color: var(--text-main);
+}
+
+/* ---- BOUTON REVEAL ---- */
+#sidebar-reveal-btn {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    z-index: 999999;
+    width: 24px;
+    height: 56px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+    cursor: pointer;
+    padding: 0;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.08);
+    transition: width 0.2s, background 0.2s;
+    font-size: 10px;
+    color: var(--text-sub);
+}
+
+#sidebar-reveal-btn:hover {
+    width: 32px;
+    background: #e2e8f0;
+}
+
+#sidebar-reveal-btn.visible {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
 }
 
 .logo {
@@ -49,6 +128,7 @@ body {
     font-size: 22px;
     color: var(--text-main);
     letter-spacing: -1px;
+    white-space: nowrap;
 }
 
 .nav-label {
@@ -58,6 +138,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 12px;
+    white-space: nowrap;
 }
 
 .nav-item {
@@ -72,23 +153,24 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    white-space: nowrap;
 }
 
 .nav-item.active {
     background: #fff;
     color: var(--accent);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
     border: 1px solid var(--border);
 }
 
-/* --- PERSONA --- */
+/* ---- PERSONA ---- */
 .persona-box {
     background: #fff;
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 16px;
     margin-top: auto;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.03);
 }
 
 .persona-btn {
@@ -106,6 +188,7 @@ body {
     cursor: pointer;
     transition: 0.2s ease;
     margin-top: 5px;
+    white-space: nowrap;
 }
 
 .persona-btn.active {
@@ -114,13 +197,14 @@ body {
     color: var(--accent);
 }
 
-/* --- FEED --- */
+/* ---- FEED ---- */
 .feed-container {
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--border);
     height: 100vh;
     background: #fff;
+    min-width: 0;
 }
 
 .feed-header {
@@ -139,7 +223,7 @@ body {
     background: #fbfcfd;
 }
 
-/* --- CARDS --- */
+/* ---- CARDS ---- */
 .mail-card {
     background: #fff;
     padding: 20px 20px 20px 28px;
@@ -152,7 +236,7 @@ body {
 
 .mail-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .mail-card.active {
@@ -169,25 +253,11 @@ body {
     border-radius: 0 4px 4px 0;
 }
 
-.dot-DO {
-    background: var(--do);
-}
-
-.dot-PLAN {
-    background: var(--plan);
-}
-
-.dot-DELEGATE {
-    background: var(--delegate);
-}
-
-.dot-DELETE {
-    background: var(--delete);
-}
-
-.dot-PENDING {
-    background: #cbd5e1;
-}
+.dot-DO { background: var(--do); }
+.dot-PLAN { background: var(--plan); }
+.dot-DELEGATE { background: var(--delegate); }
+.dot-DELETE { background: var(--delete); }
+.dot-PENDING { background: #cbd5e1; }
 
 .importance-tag {
     font-size: 10px;
@@ -229,7 +299,7 @@ body {
     border: 1px solid #cbd5e1;
 }
 
-/* --- BUTTONS & ACTIONS --- */
+/* ---- BUTTONS ---- */
 .action-bar {
     display: flex;
     gap: 8px;
@@ -266,7 +336,7 @@ button {
     padding: 8px 12px;
 }
 
-/* --- UI ELEMENTS --- */
+/* ---- LOADING ---- */
 #loading-overlay {
     display: none;
     position: fixed;
@@ -274,7 +344,7 @@ button {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255,255,255,0.85);
     z-index: 9999;
     flex-direction: column;
     justify-content: center;
@@ -300,21 +370,16 @@ button {
 }
 
 @keyframes load {
-    from {
-        left: -60px;
-    }
-
-    to {
-        left: 160px;
-    }
+    from { left: -60px; }
+    to { left: 160px; }
 }
 
-.content-view,
-.view-wrapper {
+.content-view, .view-wrapper {
     padding: 60px;
     overflow-y: auto;
     height: 100vh;
     box-sizing: border-box;
+    min-width: 0;
 }
 
 .mail-title {
@@ -324,7 +389,7 @@ button {
     margin-bottom: 10px;
 }
 
-/* --- KANBAN & MISC --- */
+/* ---- KANBAN ---- */
 .kanban-container {
     display: flex;
     gap: 24px;
@@ -369,7 +434,7 @@ button {
     cursor: pointer;
 }
 
-/* --- FILTER BAR --- */
+/* ---- FILTER BAR ---- */
 .filter-bar {
     padding: 12px 20px;
     border-bottom: 1px solid var(--border);
@@ -403,47 +468,26 @@ button {
     border-color: transparent;
 }
 
-.filter-chip.active.chip-all {
-    background: var(--text-main);
-}
-
-.filter-chip.active.chip-DO {
-    background: var(--do);
-}
-
-.filter-chip.active.chip-PLAN {
-    background: var(--plan);
-}
-
-.filter-chip.active.chip-DELEGATE {
-    background: var(--delegate);
-}
-
-.filter-chip.active.chip-DELETE {
-    background: var(--delete);
-}
-
-.filter-chip.active.chip-PENDING {
-    background: #94a3b8;
-}
-
-.filter-chip.active.chip-custom {
-    background: var(--do);
-}
+.filter-chip.active.chip-all { background: var(--text-main); }
+.filter-chip.active.chip-DO { background: var(--do); }
+.filter-chip.active.chip-PLAN { background: var(--plan); }
+.filter-chip.active.chip-DELEGATE { background: var(--delegate); }
+.filter-chip.active.chip-DELETE { background: var(--delete); }
+.filter-chip.active.chip-PENDING { background: #94a3b8; }
+.filter-chip.active.chip-custom { background: var(--do); }
 
 .mail-card.hidden {
     display: none !important;
 }
 
-/* --- MODALE DE CONFIRMATION --- */
+/* ---- MODALE ---- */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(15, 23, 42, 0.4);
-    /* Backdrop flou et sombre */
+    background: rgba(15,23,42,0.4);
     backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
@@ -457,7 +501,7 @@ button {
     border-radius: 20px;
     width: 100%;
     max-width: 400px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
     text-align: center;
 }
 
@@ -492,4 +536,117 @@ button {
     border: none;
     padding: 10px 20px;
     font-weight: 600;
+}
+
+/* ---- MODE TOPBAR ---- */
+.app-container.topbar-mode {
+    grid-template-columns: 420px 1fr !important;
+    grid-template-rows: 56px 1fr;
+    height: 100vh;
+}
+
+.app-container.topbar-mode .sidebar {
+    width: 100% !important;
+    height: 56px;
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 0 16px 0 12px !important;
+    gap: 0 !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    overflow: visible !important;
+    grid-row: 1;
+    grid-column: 1 / 3;
+    box-sizing: border-box;
+}
+
+.app-container.topbar-mode .sidebar .logo {
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.app-container.topbar-mode .sidebar .nav-group {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    flex: 1;
+    align-items: center;
+}
+
+.app-container.topbar-mode .sidebar .nav-label {
+    display: none !important;
+}
+
+.app-container.topbar-mode .sidebar .nav-item {
+    padding: 10px 12px !important;
+    margin-bottom: 0 !important;
+}
+
+.app-container.topbar-mode .sidebar .persona-box {
+    margin-left: auto;
+    margin-top: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 4px !important;
+    background: transparent !important;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+.app-container.topbar-mode .sidebar .persona-box .nav-label {
+    display: none !important;
+}
+
+.app-container.topbar-mode .sidebar .persona-box form {
+    display: flex;
+    gap: 8px;
+}
+
+.app-container.topbar-mode .sidebar .persona-btn {
+    width: auto;
+    padding: 6px 14px;
+    margin-top: 0;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.app-container.topbar-mode .sidebar .sidebar-controls {
+    display: flex !important;
+    margin-left: 8px;
+    flex-shrink: 0;
+    order: 10;
+}
+
+.app-container.topbar-mode #sidebar-collapse-btn {
+    display: none !important;
+}
+
+#layout-toggle-btn {
+    margin-top: 0;
+}
+
+.app-container.topbar-mode > *:not(.sidebar) {
+    grid-row: 2;
+}
+
+.app-container.topbar-mode .feed-container {
+    grid-column: 1;
+}
+
+.app-container.topbar-mode .content-view,
+.app-container.topbar-mode .view-wrapper {
+    grid-column: 2;
+}
+
+.app-container.topbar-mode.full-view .view-wrapper {
+    grid-column: 1 / 3;
+}
+
+.app-container.topbar-mode .feed-container,
+.app-container.topbar-mode .content-view,
+.app-container.topbar-mode .view-wrapper {
+    height: calc(100vh - 56px) !important;
 }
