@@ -650,3 +650,128 @@ button {
 .app-container.topbar-mode .view-wrapper {
     height: calc(100vh - 56px) !important;
 }
+
+
+.mobile-header { 
+    display: none !important; 
+}
+
+/* =========================================
+   2. RESPONSIVE DESIGN (Tablettes & Mobiles)
+   ========================================= */
+
+/* On cache le bouton retour sur PC */
+.mobile-back-btn { display: none !important; }
+
+@media (max-width: 1024px) {
+    /* 1. CORRECTION DU SCROLL : On autorise la page à défiler ! */
+    html, body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+
+    /* 2. Header et Sidebar Mobile */
+    .mobile-header {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        position: fixed;
+        top: 0; left: 0; width: 100%;
+        height: 60px;
+        z-index: 10000;
+        box-sizing: border-box;
+    }
+    .hamburger-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-main); }
+
+    .app-container, .app-container.full-view {
+        display: block !important;
+        margin-top: 60px !important;
+        height: auto !important;
+    }
+
+    .sidebar {
+        position: fixed !important;
+        top: 60px !important;
+        left: -350px !important;
+        width: 280px !important;
+        height: calc(100vh - 60px) !important;
+        background: var(--sidebar-bg) !important;
+        z-index: 9999 !important;
+        transition: left 0.3s ease-in-out !important;
+        display: flex !important;
+        border-right: 1px solid var(--border) !important;
+        padding: 20px !important;
+        box-sizing: border-box !important;
+    }
+    .sidebar.open { left: 0 !important; box-shadow: 10px 0 20px rgba(0,0,0,0.1) !important; }
+    .sidebar .logo { display: none !important; }
+
+    /* 3. GESTION DES VUES (INBOX ET AUTRES PAGES) */
+    #default-placeholder { display: none !important; }
+
+    /* ✅ POUR TOUTES LES PAGES (Agenda, Knowledge Base, Tags...) : On force l'affichage */
+    .content-view, .view-wrapper, .kanban-container {
+        display: block !important;
+        width: 100% !important;
+        padding: 15px !important;
+        height: auto !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 📧 SPÉCIFIQUE BOÎTE MAIL : Configuration de la liste */
+    .feed-container {
+        display: flex !important;
+        flex-direction: column;
+        width: 100% !important;
+        height: auto !important;
+        min-height: calc(100vh - 60px) !important;
+        border-right: none !important;
+    }
+
+    /* 📧 SPÉCIFIQUE BOÎTE MAIL (Mode Liste) : Cache le lecteur SEULEMENT sur l'inbox */
+    body:not(.reading-active) .feed-container ~ .content-view,
+    body:not(.reading-active) .feed-container ~ .view-wrapper {
+        display: none !important;
+    }
+
+    /* 📧 SPÉCIFIQUE BOÎTE MAIL (Mode Lecture) : Cache la liste des mails */
+    body.reading-active .feed-container {
+        display: none !important;
+    }
+
+    /* Design du bouton retour */
+    .mobile-back-btn {
+        display: inline-flex !important;
+        align-items: center;
+        background: #f8fafc;
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        margin-bottom: 20px;
+        width: fit-content;
+    }
+
+    /* On transforme le conteneur en colonne flexible avec un espace */
+    .kanban-container {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 24px !important; /* L'espace magique entre les blocs ! */
+    }
+
+    /* Sécurité supplémentaire au cas où les blocs ne réagiraient pas au gap */
+    .kanban-container > div {
+        margin-bottom: 24px !important;
+    }
+    
+    /* On enlève la marge sur le tout dernier bloc pour faire propre */
+    .kanban-container > div:last-child {
+        margin-bottom: 0 !important;
+    }
+}

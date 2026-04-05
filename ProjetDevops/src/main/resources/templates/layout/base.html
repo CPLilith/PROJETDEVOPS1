@@ -18,6 +18,13 @@
             Traitement...</p>
     </div>
 
+    <div class="mobile-header">
+        <div class="mobile-logo">EisenFlow</div>
+        <button class="hamburger-btn" onclick="toggleMobileMenu(event)">
+            ☰
+        </button>
+    </div>
+
     <div class="app-container"
         th:classappend="${view == 'events' or view == 'kanban' or view == 'tags' ? 'full-view' : ''}">
 
@@ -31,6 +38,32 @@
         /*<![CDATA[*/
         window.jsCustomTags = /*[[${customDoTags}]]*/[];
         /*]]>*/
+
+        // 1. Menu Burger & Clic extérieur
+        function toggleMobileMenu(event) {
+            if (event) event.stopPropagation();
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) sidebar.classList.toggle('open');
+        }
+
+        document.addEventListener('click', function (event) {
+            const sidebar = document.querySelector('.sidebar');
+            const hamburger = document.querySelector('.hamburger-btn');
+            if (sidebar && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(event.target) && !hamburger.contains(event.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+
+        document.querySelectorAll('.nav-item, .persona-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar) {
+                    sidebar.classList.remove('open');
+                }
+            });
+        });
     </script>
 
     <script th:src="@{/js/app.js}"></script>

@@ -13,148 +13,147 @@ function openMail(cardEl, event) {
     if (event) event.stopPropagation();
     document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
     cardEl.classList.add('active');
-    const id      = cardEl.dataset.id;
+
+    const id = cardEl.dataset.id;
     const subject = cardEl.dataset.subject;
-    const from    = cardEl.dataset.from;
+    const from = cardEl.dataset.from;
     const content = document.getElementById('content-' + id).value;
+
     renderReader(subject, "De : " + from, content, id, false);
+
+    if (window.innerWidth <= 768) {
+        document.getElementById('main-reader').scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 function openNote(cardEl, event) {
     if (event) event.stopPropagation();
     document.querySelectorAll('.mail-card').forEach(c => c.classList.remove('active'));
     cardEl.classList.add('active');
-    const id      = cardEl.dataset.id;
-    const titleEl = cardEl.querySelector('.card-subject');
-    const subject = titleEl ? titleEl.textContent.trim() : (cardEl.dataset.subject || 'Sans titre');
-    const from    = cardEl.dataset.from || '';
+
+    // CORRECTION : L'ID est maintenant l'UUID récupéré via dataset.id
+    const id = cardEl.dataset.id;
+    const subject = cardEl.dataset.subject;
+    const from = cardEl.dataset.from;
+    // On cherche le textarea qui a maintenant l'ID 'note-content-[UUID]'
     const content = document.getElementById('note-content-' + id).value;
-    renderReader(subject, from, content, id, true);
+
+    renderReader(subject, "Source : " + from, content, id, true);
+
+    if (window.innerWidth <= 768) {
+        document.getElementById('main-reader').scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
-function renderReader(title, sub, content, id, isNote) {
-    document.getElementById('default-placeholder')?.remove();
+// ==========================================
+// MÉMOIRE DE DÉFILEMENT POUR MOBILE
+// ==========================================
+window.savedListScrollPosition = 0;
 
-    const deleteFileBtn = isNote
-        ? `<button onclick="deleteNote('${id}')" class="btn-delete">
-               <i class="fas fa-trash"></i> Supprimer Note
-           </button>`
-        : '';
+// ==========================================
+// FONCTION D'AFFICHAGE DU MAIL
+// ==========================================
+function renderReader(title, sub, content, id, isNote) {
+    // 1. Sauvegarde de la position AVANT d'afficher le mail
+    if (window.innerWidth <= 1024) {
+        window.savedListScrollPosition = window.scrollY || document.documentElement.scrollTop;
+    }
+
+    document.getElementById('default-placeholder')?.remove();
+    const reader = document.getElementById('main-reader');
+
+    // 2. Activation du mode lecture
+    document.body.classList.add('reading-active');
+    reader.style.display = 'block';
+
+    const deleteFileBtn = isNote ? `<button onclick="deleteNote('${id}')" class="btn-delete"><i class="fas fa-trash"></i> Supprimer Note</button>` : '';
 
     let customTagsButtons = '';
     if (!isNote && window.jsCustomTags && window.jsCustomTags.length > 0) {
-        customTagsButtons = `
-            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;
-                        padding-top:10px; border-top:1px dashed var(--border);">`;
+        customTagsButtons = '<div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px dashed var(--border);">';
         window.jsCustomTags.forEach(tag => {
             const displayLabel = tag.replace('DO_', '').replace('_', ' ');
-            customTagsButtons += `
-                <button onclick="upd('${id}','${tag}',false)"
-                        class="tag-DO"
-                        style="opacity:0.8;">
-                    DO · ${displayLabel}
-                </button>`;
+            customTagsButtons += `<button onclick="upd('${id}', '${tag}', false)" class="tag-DO" style="opacity: 0.8;">DO · ${displayLabel}</button>`;
         });
-        customTagsButtons += `
-            </div>`;
+        customTagsButtons += '</div>';
     }
 
-    const authorSection = isNote
-        ? `<div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-               <span style="color:var(--text-sub); font-size:13px;">Auteur :</span>
-               <input type="text"
-                      id="note-author-${id}"
-                      value="${sub}"
-                      placeholder="Ajouter un auteur..."
-                      style="border:1px solid var(--border); border-radius:8px; padding:4px 10px;
-                             font-size:13px; color:var(--text-main); background:#fff;
-                             font-family:Inter; width:200px;">
-           </div>`
-        : `<p style="color:var(--text-sub); font-size:15px; margin:0;">${sub}</p>`;
+    // 3. Injection du HTML (avec sécurités de débordement flex-wrap et break-word)
+    reader.innerHTML = `
+        <button class="mobile-back-btn" onclick="window.closeMobileReader()">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </button>
 
-    const quickTagInput = !isNote
-        ? `<div style="display:flex; gap:5px;">
-               <input type="text"
-                      id="quick-tag-input-${id}"
-                      placeholder="Nouveau sous-tag DO..."
-                      style="padding:6px 10px; border-radius:6px; border:1px solid var(--border); font-size:11px;">
-               <button onclick="createQuickTag('${id}')"
-                       style="padding:6px 10px; font-size:11px; background:white;">
-                   <i class="fas fa-plus"></i>
-               </button>
-           </div>`
-        : '';
-
-    const delegateBtn = !isNote
-        ? `<button onclick="startDelegation('${id}')" class="tag-DELEGATE">
-               <i class="fas fa-robot"></i> IA DELEGATE
-           </button>`
-        : '';
-
-    document.getElementById('main-reader').innerHTML = `
-        <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:25px;">
-            <div>
-                <h1 class="mail-title">${title}</h1>
-                ${authorSection}
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:25px;">
+            <div style="flex: 1; min-width: 0;">
+                <h1 class="mail-title" style="margin:0; word-break: break-word; overflow-wrap: break-word;">${title}</h1>
+                <p style="color:var(--text-sub); font-size: 15px; margin: 5px 0 0 0; word-break: break-word;">${sub}</p>
             </div>
             ${deleteFileBtn}
         </div>
 
-        <div class="action-bar"
-             style="background:#f8fafc; padding:20px; border-radius:16px; border:1px solid var(--border);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span style="font-size:11px; font-weight:800; color:var(--text-sub); letter-spacing:0.5px;">
-                    ACTIONS EISENHOWER :
-                </span>
-                ${quickTagInput}
+        <div class="action-bar" style="background:#f8fafc; padding:20px; border-radius:16px; border:1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <span style="font-size:11px; font-weight:800; color:var(--text-sub); letter-spacing: 0.5px;">ACTIONS EISENHOWER :</span>
+                ${!isNote ? `
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="quick-tag-input-${id}" placeholder="Nouveau sous-tag DO..." style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 11px;">
+                    <button onclick="createQuickTag('${id}')" style="padding: 6px 10px; font-size: 11px; background: white;"><i class="fas fa-plus"></i></button>
+                </div>
+                ` : ''}
             </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button onclick="upd('${id}','DO',${isNote})" class="tag-DO">DO (Générique)</button>
-                <button onclick="upd('${id}','PLAN',${isNote})" class="tag-PLAN">PLAN</button>
-                ${delegateBtn}
-                <button onclick="upd('${id}','DELETE',${isNote})" class="tag-DELETE">DELETE</button>
+            
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="upd('${id}', 'DO', ${isNote})" class="tag-DO">DO (Générique)</button>
+                <button onclick="upd('${id}', 'PLAN', ${isNote})" class="tag-PLAN">PLAN</button>
+                ${!isNote ? `<button onclick="startDelegation('${id}')" class="tag-DELEGATE"><i class="fas fa-robot"></i> IA DELEGATE</button>` : ''}
+                <button onclick="upd('${id}', 'DELETE', ${isNote})" class="tag-DELETE">DELETE</button>
             </div>
             ${customTagsButtons}
         </div>
 
-        <div id="delegation-result-${id}"
-             style="display:none; background:#fff; border:1px solid var(--delegate);
-                    border-radius:16px; padding:20px; margin-top:20px;">
-            <div style="font-size:11px; color:#b45309; font-weight:800;
-                        margin-bottom:10px; text-transform:uppercase;">
+        <div id="delegation-result-${id}" style="display:none; background: #fff; border: 1px solid var(--delegate); border-radius: 16px; padding: 20px; margin-top: 20px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);">
+            <div style="font-size:11px; color:#b45309; font-weight:800; margin-bottom:10px; text-transform: uppercase;">
                 🤖 Suggestion IA pour <span id="del-who-${id}">...</span>
             </div>
-            <textarea id="del-draft-${id}"
-                      style="width:100%; height:120px; padding:15px; border:1px solid #cbd5e1;
-                             border-radius:10px; font-family:'Inter'; font-size:14px;
-                             color:#334155; line-height:1.6; resize:vertical; box-sizing:border-box;">
-            </textarea>
-            <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:11px; color:var(--text-sub); font-family:monospace;
-                             background:#f1f5f9; padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
-                    Ref: <span id="del-id-${id}">...</span>
-                </span>
-                <div style="display:flex; gap:10px;">
-                    <button onclick="document.getElementById('delegation-result-${id}').style.display='none'"
-                            style="background:white; color:var(--text-sub);">
-                        Annuler
-                    </button>
-                    <button id="btn-confirm-${id}"
-                            style="display:none; background:#16a34a; color:white; border:none;
-                                   padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600;">
-                        <i class="fas fa-paper-plane"></i> Valider & Créer Brouillon
+            <textarea id="del-draft-${id}" style="width:100%; height:120px; padding:15px; border:1px solid #cbd5e1; border-radius:10px; font-family:'Inter'; font-size:14px; color:#334155; line-height:1.6; resize:vertical; box-sizing:border-box;"></textarea>
+            <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <span style="font-size:11px; color:var(--text-sub); font-family:monospace; background:#f1f5f9; padding:6px 10px; border-radius:6px; border: 1px solid var(--border); word-break: break-all;">Ref: <span id="del-id-${id}">...</span></span>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="document.getElementById('delegation-result-${id}').style.display='none'" style="background: white; color: var(--text-sub);">Annuler</button>
+                    <button id="btn-confirm-${id}" style="display:none; background:#16a34a; color:white; border:none; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:600;">
+                        <i class="fas fa-paper-plane"></i> Valider
                     </button>
                 </div>
             </div>
         </div>
-
-        <div style="margin-top:40px; line-height:1.8; white-space:pre-wrap; font-size:15px;
-                    color:#334155; background:#fbfcfd; padding:30px; border-radius:16px;
-                    border:1px solid var(--border);">
-            ${content}
-        </div>
+        
+        <div style="margin-top:30px; line-height:1.8; white-space:pre-wrap; word-break:break-word; overflow-wrap:break-word; font-size:15px; color:#334155; background: #fbfcfd; padding: 20px; border-radius: 16px; border: 1px solid var(--border); width: 100%; box-sizing: border-box; overflow-x: hidden;">${content}</div>
     `;
+
+    // 4. Remonte tout en haut instantanément pour bien voir le bouton de retour
+    if (window.innerWidth <= 1024) {
+        setTimeout(function() {
+            // Force le scroll tout en haut instantanément
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            
+            // Sécurité supplémentaire pour certains navigateurs mobiles (Safari iOS)
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        }, 50); // 50 millisecondes de délai
+    }
 }
+
+// ==========================================
+// FONCTION POUR FERMER LE MAIL SUR MOBILE
+// ==========================================
+window.closeMobileReader = function () {
+    // On enlève le mode lecture (la liste réapparaît via le CSS)
+    document.body.classList.remove('reading-active');
+
+    // On restaure instantanément la position de la liste
+    window.scrollTo(0, window.savedListScrollPosition || 0);
+};
 
 function deleteNote(index) {
     if (confirm("Supprimer définitivement ce résumé de la base de connaissances ?")) {
@@ -179,6 +178,10 @@ function upd(id, tag, isNote) {
     `;
     document.body.appendChild(f);
     f.submit();
+
+    if (typeof closeMobileReader === 'function') {
+        closeMobileReader();
+    }
 }
 
 function createQuickTag(messageId) {
