@@ -51,4 +51,6 @@ target/
 
 src/main/java/projet/devops/Mail/Gestion/mails_temp.txt
 storage/custom_do_tags.json
-ProjetDevops/src/main/resources/mails_temp.txt
+src/main/resources/mails_temp.txt
+src/main/resources/credentials.json
+storage/google_tokens/StoredCredential

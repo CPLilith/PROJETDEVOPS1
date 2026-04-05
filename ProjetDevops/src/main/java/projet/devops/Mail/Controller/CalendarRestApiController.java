@@ -2,6 +2,8 @@ package projet.devops.Mail.Controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.HttpServletResponse;
 import projet.devops.Mail.Model.CalendarIntent;
 import projet.devops.Mail.Service.CalendarIntelligenceService;
 import projet.devops.Mail.Service.GoogleCalendarService;
@@ -20,6 +22,22 @@ public class CalendarRestApiController {
     public CalendarRestApiController(CalendarIntelligenceService intelligenceService, GoogleCalendarService googleCalendarService) {
         this.intelligenceService = intelligenceService;
         this.googleCalendarService = googleCalendarService;
+    }
+
+    @GetMapping("/auth")
+    public void googleAuth(HttpServletResponse response) throws Exception {
+        // Envoie l'utilisateur vers la page de connexion Google
+        String url = googleCalendarService.getAuthorizationUrl();
+        response.sendRedirect(url);
+    }
+
+    @GetMapping("/Callback")
+    public void callback(@RequestParam("code") String code, HttpServletResponse response) throws Exception {
+        // 1. Reçoit le code et crée le Token dans storage/google_tokens
+        googleCalendarService.storeCode(code);
+        
+        // 2. Redirige vers la page d'accueil une fois fini
+        response.sendRedirect("/");
     }
 
     // ON GARDE CETTE MÉTHODE (Pour charger la modale)

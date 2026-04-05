@@ -278,12 +278,14 @@
         }
 
         async function confirmAgendaEvent() {
-            const messageId      = document.getElementById('modal-message-id').value;
-            const title          = document.getElementById('modal-title').value;
+            const messageId = document.getElementById('modal-message-id').value;
+            const title = document.getElementById('modal-title').value;
             const strategyChoice = document.getElementById('modal-strategy').value;
-            const assignee       = document.getElementById('modal-assignee').value;
-            const rawDate        = document.getElementById('modal-date').value;
-            const startTime      = document.getElementById('modal-time').value;
+            const assignee = document.getElementById('modal-assignee').value;
+            const rawDate = document.getElementById('modal-date').value;
+
+            // --- DONNÉES DE TEMPS ---
+            let startTime = document.getElementById('modal-time').value;
             const durationMinutes = document.getElementById('modal-duration').value;
 
             if (!rawDate) {
@@ -297,43 +299,81 @@
                 return;
             }
 
-            const parts         = rawDate.split('-');
+            const parts = rawDate.split('-');
             const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
+            // Création du Payload
             const payload = {
-                title:           title,
-                strategy:        strategyChoice,
-                assignee:        strategyChoice === 'BOOMERANG' ? assignee : "",
-                deadline:        formattedDate,
-                dateDetected:    true,
-                confidence:      strategyChoice === 'BOOMERANG'
-                                    ? document.getElementById('modal-confidence').value
-                                    : "AUCUNE",
-                allDay:          isAllDay,
-                startTime:       isAllDay ? "" : startTime,
+                title: title,
+                strategy: strategyChoice,
+                assignee: strategyChoice === 'BOOMERANG' ? assignee : "",
+                deadline: formattedDate,
+                dateDetected: true,
+                confidence: strategyChoice === 'BOOMERANG' ? document.getElementById('modal-confidence').value : "AUCUNE",
+                allDay: isAllDay,
+                startTime: isAllDay ? "" : startTime,
                 durationMinutes: isAllDay ? 0 : parseInt(durationMinutes)
             };
 
-            closeAgendaModal();
+            // On ne ferme pas la modale tout de suite pour pouvoir afficher le succès dedans !
             if (typeof showLoader === "function") showLoader('Création dans Google Calendar...');
 
             try {
-                const url      = `/api/calendar/confirm?messageId=${encodeURIComponent(messageId)}`;
+                const url = `/api/calendar/confirm?messageId=${encodeURIComponent(messageId)}`;
+
                 const response = await fetch(url, {
-                    method:  'POST',
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify(payload)
+                    body: JSON.stringify(payload)
                 });
 
+                // On cache l'écran de chargement noir
                 if (document.getElementById('loading-overlay')) {
                     document.getElementById('loading-overlay').style.display = 'none';
                 }
 
                 if (response.ok) {
-                    alert('Événement généré et programmé avec succès !');
-                    window.location.reload();
+                    // 1. On lit la réponse JSON pour récupérer le lien de l'événement
+                    const data = await response.json(); 
+
+                    // 2. On transforme l'intérieur de la modale en message de succès
+                    const modalBody = document.querySelector('#agenda-modal .modal-body');
+                    const modalActions = document.querySelector('#agenda-modal .modal-actions');
+                    const modalHeader = document.querySelector('#agenda-modal .modal-header');
+
+                    // On cache le titre et les boutons d'annulation/validation
+                    modalHeader.style.display = 'none';
+                    modalActions.style.display = 'none';
+
+                    // On injecte le design de succès
+                    modalBody.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 10px; text-align: center;">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 20px;">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <h3 style="color: #15803d; margin: 0 0 10px 0; font-size: 20px;">Événement programmé !</h3>
+                            <p style="color: #475569; font-size: 14px; margin-bottom: 25px;">Votre tâche a bien été ajoutée à votre Google Calendar.</p>
+                            ${data.link ? `<a href="${data.link}" target="_blank" style="background: #f0fdf4; color: #166534; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid #bbf7d0; transition: all 0.2s;">Voir dans l'agenda ↗</a>` : ''}
+                        </div>
+                    `;
+
+                    // 3. Recharge la page en douceur après 3.5 secondes pour rafraîchir la liste
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3500);
+
                 } else {
-                    alert('Erreur lors de la création du RDV sur le serveur.');
+                    // Gestion de l'erreur intégrée aussi
+                    const modalBody = document.querySelector('#agenda-modal .modal-body');
+                    modalBody.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 40px; margin-bottom: 15px;"></i>
+                            <h3 style="color: #dc2626;">Erreur de création</h3>
+                            <p>Impossible de créer l'événement. Veuillez réessayer.</p>
+                            <button onclick="closeAgendaModal()" style="margin-top: 15px; padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">Fermer</button>
+                        </div>
+                    `;
                 }
             } catch (error) {
                 console.error('Erreur:', error);

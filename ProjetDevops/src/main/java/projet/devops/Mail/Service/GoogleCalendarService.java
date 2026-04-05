@@ -1,8 +1,7 @@
 package projet.devops.Mail.Service;
 
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
+import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -26,7 +25,7 @@ import org.springframework.stereotype.Service;
 import projet.devops.Mail.Model.CalendarIntent;
 import projet.devops.Mail.Strategy.*;
 
-import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -41,50 +40,47 @@ import java.util.ArrayList;
 
 @Service
 public class GoogleCalendarService {
+    private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "storage/google_tokens";
-
+    // L'URL EXACTE que tu as vérifiée à l'étape 2
+    private static final String REDIRECT_URI = "http://localhost:8080/api/calendar/Callback";
     @Autowired
     private JavaMailSender mailSender;
-
-    @Value("${google.client.id}")
-    private String clientId;
-
-    @Value("${google.client.secret}")
-    private String clientSecret;
 
     @Value("${spring.mail.username}")
     private String senderEmail;
 
     private Calendar getCalendarClient() throws Exception {
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        String credentialsJson = String.format(
-            "{\"installed\":{\"client_id\":\"%s\",\"project_id\":\"eisenflow\",\"auth_uri\":\"https://accounts.google.com/o/oauth2/auth\",\"token_uri\":\"https://oauth2.googleapis.com/token\",\"client_secret\":\"%s\",\"redirect_uris\":[\"http://localhost:8888/Callback\"]}}", 
-            clientId, clientSecret
-        );
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8))));
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, Collections.singletonList(CalendarScopes.CALENDAR))
-                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
-                .setAccessType("offline").build();
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-        return new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName("EisenFlow").build();
+        final NetHttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
+        Credential credential = getFlow(transport).loadCredential("user");
+        
+        if (credential == null) {
+            throw new IllegalStateException("Utilisateur non connecté. Le token 'user' est introuvable.");
+        }
+        
+        return new Calendar.Builder(transport, JSON_FACTORY, credential).setApplicationName("EisenFlow").build();
     }
 
     private DelegationStrategy getStrategyAlgo(String confidence) {
-        if (confidence == null) return new MajeureStrategy(); 
+        if (confidence == null)
+            return new MajeureStrategy();
         switch (confidence.toUpperCase()) {
-            case "MINEUR": return new MineureStrategy();
-            case "MOYEN":  return new MoyenneStrategy();
+            case "MINEUR":
+                return new MineureStrategy();
+            case "MOYEN":
+                return new MoyenneStrategy();
             case "MAJEUR":
-            default:       return new MajeureStrategy();
+            default:
+                return new MajeureStrategy();
         }
     }
 
     public String insertEvent(CalendarIntent intent) {
         try {
             Calendar service = getCalendarClient();
-            String mainSummary = (intent.getTitle() != null && !intent.getTitle().isEmpty()) ? intent.getTitle() : "Tâche déléguée";
+            String mainSummary = (intent.getTitle() != null && !intent.getTitle().isEmpty()) ? intent.getTitle()
+                    : "Tâche déléguée";
             DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             LocalDate deadlineDate = LocalDate.parse(intent.getDeadline(), inputFormatter);
             LocalDate today = LocalDate.now();
@@ -95,31 +91,35 @@ public class GoogleCalendarService {
             }
 
             // 2. TES RELANCES STRATEGY (Uniquement chez toi)
-            // Note : On laisse ça en événement "Toute la journée" car c'est juste un pense-bête
+            // Note : On laisse ça en événement "Toute la journée" car c'est juste un
+            // pense-bête
             if ("BOOMERANG".equalsIgnoreCase(intent.getStrategy())) {
                 DelegationStrategy strategyAlgo = getStrategyAlgo(intent.getConfidence());
                 List<LocalDate> reminderDates = strategyAlgo.calculateReminderDates(deadlineDate, today);
                 for (LocalDate rDate : reminderDates) {
                     Event rEvent = new Event().setSummary("⏳ Relance : " + mainSummary);
                     rEvent.setStart(new EventDateTime().setDate(new DateTime(rDate.toString())))
-                          .setEnd(new EventDateTime().setDate(new DateTime(rDate.plusDays(1).toString())));
+                            .setEnd(new EventDateTime().setDate(new DateTime(rDate.plusDays(1).toString())));
                     service.events().insert("primary", rEvent).execute();
                 }
             }
 
             // 3. TA DEADLINE RÉELLE (Jour J - Seulement pour toi)
             Event realDeadlineEvent = new Event()
-                .setSummary("🚨 DEADLINE RÉELLE : " + mainSummary)
-                .setDescription("Fin de la tâche déléguée à " + intent.getAssignee());
+                    .setSummary("🚨 DEADLINE RÉELLE : " + mainSummary)
+                    .setDescription("Fin de la tâche déléguée à " + intent.getAssignee());
 
             // --- GESTION TOUTE LA JOURNÉE VS HEURE PRÉCISE ---
             if (intent.isAllDay()) {
                 // Création en mode "Toute la journée" (All Day)
                 realDeadlineEvent.setStart(new EventDateTime().setDate(new DateTime(deadlineDate.toString())));
-                realDeadlineEvent.setEnd(new EventDateTime().setDate(new DateTime(deadlineDate.plusDays(1).toString())));
+                realDeadlineEvent
+                        .setEnd(new EventDateTime().setDate(new DateTime(deadlineDate.plusDays(1).toString())));
             } else {
                 // Création en mode "Heure précise"
-                String startTimeStr = (intent.getStartTime() != null && !intent.getStartTime().isEmpty()) ? intent.getStartTime() : "09:00";
+                String startTimeStr = (intent.getStartTime() != null && !intent.getStartTime().isEmpty())
+                        ? intent.getStartTime()
+                        : "09:00";
                 int duration = intent.getDurationMinutes() > 0 ? intent.getDurationMinutes() : 60;
 
                 LocalTime startTime = LocalTime.parse(startTimeStr);
@@ -128,12 +128,12 @@ public class GoogleCalendarService {
                 ZoneId zoneId = ZoneId.of("Europe/Paris");
 
                 realDeadlineEvent.setStart(new EventDateTime()
-                    .setDateTime(new DateTime(startDateTime.atZone(zoneId).toInstant().toEpochMilli()))
-                    .setTimeZone("Europe/Paris"));
+                        .setDateTime(new DateTime(startDateTime.atZone(zoneId).toInstant().toEpochMilli()))
+                        .setTimeZone("Europe/Paris"));
 
                 realDeadlineEvent.setEnd(new EventDateTime()
-                    .setDateTime(new DateTime(endDateTime.atZone(zoneId).toInstant().toEpochMilli()))
-                    .setTimeZone("Europe/Paris"));
+                        .setDateTime(new DateTime(endDateTime.atZone(zoneId).toInstant().toEpochMilli()))
+                        .setTimeZone("Europe/Paris"));
             }
             // --- FIN DE LA NOUVELLE GESTION ---
 
@@ -150,51 +150,58 @@ public class GoogleCalendarService {
     private void sendIcsEmail(CalendarIntent intent, String title, LocalDate deadline) {
         try {
             LocalDate jMoinsUn = deadline.minusDays(1);
-            
+
             // On crée le mail enrichi (MimeMessage)
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            
+
             helper.setFrom(senderEmail);
             helper.setTo(intent.getAssignee().trim());
             helper.setSubject("Invitation : " + title);
-            helper.setText("Bonjour,\n\nCette tâche vous a été déléguée. Vous trouverez l'invitation pour la veille de l'échéance en pièce jointe (qui s'ajoute souvent automatiquement à votre calendrier).\n\n" +
-                           "--- CONTENU DU MAIL ---\n" + intent.getFullMailContent());
+            helper.setText(
+                    "Bonjour,\n\nCette tâche vous a été déléguée. Vous trouverez l'invitation pour la veille de l'échéance en pièce jointe (qui s'ajoute souvent automatiquement à votre calendrier).\n\n"
+                            +
+                            "--- CONTENU DU MAIL ---\n" + intent.getFullMailContent());
 
             // On génère le fichier iCalendar (Le format lu par Gmail, Outlook, Apple)
             String icsContent = "BEGIN:VCALENDAR\n" +
-                                "VERSION:2.0\n" +
-                                "PRODID:-//EisenFlow//FR\n" +
-                                "METHOD:REQUEST\n" +
-                                "BEGIN:VEVENT\n" +
-                                "DTSTART;VALUE=DATE:" + jMoinsUn.format(DateTimeFormatter.BASIC_ISO_DATE) + "\n" +
-                                "DTEND;VALUE=DATE:" + deadline.format(DateTimeFormatter.BASIC_ISO_DATE) + "\n" +
-                                "SUMMARY:📌 À FAIRE : " + title + "\n" +
-                                "DESCRIPTION:Tâche déléguée via EisenFlow.\\n\\n" + intent.getFullMailContent().replace("\n", "\\n") + "\n" +
-                                "END:VEVENT\n" +
-                                "END:VCALENDAR";
+                    "VERSION:2.0\n" +
+                    "PRODID:-//EisenFlow//FR\n" +
+                    "METHOD:REQUEST\n" +
+                    "BEGIN:VEVENT\n" +
+                    "DTSTART;VALUE=DATE:" + jMoinsUn.format(DateTimeFormatter.BASIC_ISO_DATE) + "\n" +
+                    "DTEND;VALUE=DATE:" + deadline.format(DateTimeFormatter.BASIC_ISO_DATE) + "\n" +
+                    "SUMMARY:📌 À FAIRE : " + title + "\n" +
+                    "DESCRIPTION:Tâche déléguée via EisenFlow.\\n\\n" + intent.getFullMailContent().replace("\n", "\\n")
+                    + "\n" +
+                    "END:VEVENT\n" +
+                    "END:VCALENDAR";
 
             // On l'attache au mail
-            helper.addAttachment("invitation.ics", new ByteArrayResource(icsContent.getBytes(StandardCharsets.UTF_8)), "text/calendar");
+            helper.addAttachment("invitation.ics", new ByteArrayResource(icsContent.getBytes(StandardCharsets.UTF_8)),
+                    "text/calendar");
 
             mailSender.send(mimeMessage);
             System.out.println("✅ Email .ics envoyé avec succès !");
-            
+
         } catch (Exception e) {
             System.err.println("❌ Erreur d'envoi du mail .ics : " + e.getMessage());
         }
     }
 
     /**
-     * Interroge Google Calendar pour lister TOUS les créneaux d'une journée (libres et occupés).
-     * @param dateStr La date cible au format "dd/MM/yyyy"
+     * Interroge Google Calendar pour lister TOUS les créneaux d'une journée (libres
+     * et occupés).
+     * 
+     * @param dateStr         La date cible au format "dd/MM/yyyy"
      * @param durationMinutes La durée de la tâche (ex: 60)
-     * @return Une liste de dictionnaires (Map) contenant l'heure ("time") et l'état de disponibilité ("available").
+     * @return Une liste de dictionnaires (Map) contenant l'heure ("time") et l'état
+     *         de disponibilité ("available").
      */
     public List<Map<String, Object>> getAvailableSlots(String dateStr, int durationMinutes) throws Exception {
-        
+
         // 1. Initialisation du client Google Calendar
-        Calendar service = getCalendarClient(); 
+        Calendar service = getCalendarClient();
 
         // 2. Définir la plage horaire de travail (09h00 à 18h00)
         LocalDate targetDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
@@ -208,7 +215,8 @@ public class GoogleCalendarService {
         FreeBusyRequest request = new FreeBusyRequest();
         request.setTimeMin(timeMin);
         request.setTimeMax(timeMax);
-        request.setItems(Collections.singletonList(new FreeBusyRequestItem().setId("primary"))); // "primary" = agenda principal
+        request.setItems(Collections.singletonList(new FreeBusyRequestItem().setId("primary"))); // "primary" = agenda
+                                                                                                 // principal
 
         // 4. Récupérer les événements existants (les conflits)
         FreeBusyResponse response = service.freebusy().query(request).execute();
@@ -218,12 +226,12 @@ public class GoogleCalendarService {
         }
 
         // ==========================================
-        //         🔍 BLOC DE LOGS DE DEBUG 🔍
+        // 🔍 BLOC DE LOGS DE DEBUG 🔍
         // ==========================================
         System.out.println("\n--- 🛠️ DEBUG FREEBUSY ---");
         System.out.println("📅 Date demandée : " + dateStr);
         System.out.println("⏳ Nombre d'événements bloquants trouvés : " + busyPeriods.size());
-        for(TimePeriod tp : busyPeriods) {
+        for (TimePeriod tp : busyPeriods) {
             System.out.println("   -> Occupé de " + tp.getStart() + " à " + tp.getEnd());
         }
         System.out.println("-------------------------\n");
@@ -242,8 +250,13 @@ public class GoogleCalendarService {
 
             // Vérifier s'il chevauche un événement existant
             for (TimePeriod busy : busyPeriods) {
-                LocalTime busyStart = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(busy.getStart().getValue()), ZoneId.of("Europe/Paris")).toLocalTime();
-                LocalTime busyEnd = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(busy.getEnd().getValue()), ZoneId.of("Europe/Paris")).toLocalTime();
+                LocalTime busyStart = LocalDateTime
+                        .ofInstant(java.time.Instant.ofEpochMilli(busy.getStart().getValue()),
+                                ZoneId.of("Europe/Paris"))
+                        .toLocalTime();
+                LocalTime busyEnd = LocalDateTime
+                        .ofInstant(java.time.Instant.ofEpochMilli(busy.getEnd().getValue()), ZoneId.of("Europe/Paris"))
+                        .toLocalTime();
 
                 // Logique de collision de temps
                 if (slotStart.isBefore(busyEnd) && slotEnd.isAfter(busyStart)) {
@@ -252,11 +265,12 @@ public class GoogleCalendarService {
                 }
             }
 
-            // On crée un petit objet pour ce créneau : { "time": "10:30", "available": true/false }
+            // On crée un petit objet pour ce créneau : { "time": "10:30", "available":
+            // true/false }
             Map<String, Object> slotData = new java.util.HashMap<>();
             slotData.put("time", slotStart.toString());
             slotData.put("available", !isConflict); // S'il n'y a PAS de conflit, il est disponible
-            
+
             allSlots.add(slotData);
 
             // On avance notre "scanner" de 30 minutes
@@ -264,5 +278,44 @@ public class GoogleCalendarService {
         }
 
         return allSlots;
+    }
+
+    private GoogleAuthorizationCodeFlow getFlow(NetHttpTransport transport) throws Exception {
+        InputStream in = GoogleCalendarService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        if (in == null) {
+            throw new RuntimeException("Fichier credentials.json introuvable dans src/main/resources/");
+        }
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+        
+        return new GoogleAuthorizationCodeFlow.Builder(transport, JSON_FACTORY, clientSecrets, Collections.singletonList(CalendarScopes.CALENDAR))
+                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
+                .setAccessType("offline")
+                .build();
+    }
+
+    public boolean isAuthorized() {
+        try {
+            java.io.File dir = new java.io.File(TOKENS_DIRECTORY_PATH);
+            if (!dir.exists()) return false;
+            return new FileDataStoreFactory(dir).getDataStore("StoredCredential").get("user") != null;
+        } catch (Exception e) { return false; }
+    }
+
+    public String getAuthorizationUrl() throws Exception {
+        return getFlow(GoogleNetHttpTransport.newTrustedTransport())
+                .newAuthorizationUrl()
+                .setRedirectUri(REDIRECT_URI)
+                .build();
+    }
+
+    public void storeCode(String code) throws Exception {
+        final NetHttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
+        GoogleAuthorizationCodeFlow flow = getFlow(transport);
+        
+        // On échange le code contre le token
+        TokenResponse response = flow.newTokenRequest(code).setRedirectUri(REDIRECT_URI).execute();
+        
+        // On stocke le token avec l'identifiant "user"
+        flow.createAndStoreCredential(response, "user");
     }
 }

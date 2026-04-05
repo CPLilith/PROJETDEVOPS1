@@ -9,19 +9,26 @@ import java.util.List;
 
 import projet.devops.Mail.Model.EisenhowerAction;
 import projet.devops.Mail.Model.Mail;
+import projet.devops.Mail.Service.GoogleCalendarService;
 import projet.devops.Mail.Service.MailFlowService;
 
 @Controller
 public class HomeController {
 
     private final MailFlowService flowService;
+    private GoogleCalendarService googleCalendarService;
 
-    public HomeController(MailFlowService flowService) {
+    public HomeController(MailFlowService flowService, GoogleCalendarService googleCalendarService) {
         this.flowService = flowService;
+        this.googleCalendarService = googleCalendarService;
     }
 
     @GetMapping("/")
     public String index(Model model) {
+        if (!googleCalendarService.isAuthorized()) {
+            return "redirect:/api/calendar/auth";
+        }
+
         model.addAttribute("view", "inbox");
         List<Mail> currentMails = flowService.getMails();
         if (currentMails == null)
