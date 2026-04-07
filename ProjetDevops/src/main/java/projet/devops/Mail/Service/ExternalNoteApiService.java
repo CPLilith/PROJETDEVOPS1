@@ -19,9 +19,7 @@ import projet.devops.Mail.Model.Note;
 public class ExternalNoteApiService {
 
     private final RestTemplate restTemplate;
-
-    @Value("${notion.api.token}")
-    private String notionToken;
+    private final String notionToken;
 
     @Value("${notion.api.url}")
     private String notionUrl;
@@ -32,8 +30,9 @@ public class ExternalNoteApiService {
     @Value("${notion.parent.page.id}")
     private String parentPageId;
 
-    public ExternalNoteApiService() {
+    public ExternalNoteApiService(String notionToken) {
         this.restTemplate = new RestTemplate();
+        this.notionToken = notionToken;
     }
 
     // --- HELPER : HEADERS ---
@@ -49,7 +48,6 @@ public class ExternalNoteApiService {
     public List<String> fetchExistingBreadcrumbs() {
         List<String> breadcrumbs = new ArrayList<>();
         try {
-            // Ajout de catégories par défaut pour guider l'IA
             breadcrumbs.add("Projets/DevOps");
             breadcrumbs.add("Notes/Réunions");
             breadcrumbs.add("Veille/IA");
@@ -65,7 +63,6 @@ public class ExternalNoteApiService {
         try {
             String createUrl = notionUrl + "/pages";
 
-            // Protection contre les caractères spéciaux dans le JSON
             String sanitizedContent = content.replace("\"", "\\\"").replace("\n", "\\n");
 
             String jsonBody = """
@@ -120,10 +117,9 @@ public class ExternalNoteApiService {
                 for (Map<String, Object> block : blocks) {
                     String type = (String) block.get("type");
                     if (type == null) continue;
-                    
+
                     Map<String, Object> typeObject = (Map<String, Object>) block.get(type);
 
-                    // On cherche la propriété "rich_text" (paragraphes, titres, listes...)
                     if (typeObject != null && typeObject.containsKey("rich_text")) {
                         List<Map<String, Object>> richTexts = (List<Map<String, Object>>) typeObject.get("rich_text");
                         for (Map<String, Object> textObj : richTexts) {
@@ -132,7 +128,7 @@ public class ExternalNoteApiService {
                                 contentBuilder.append(plainText);
                             }
                         }
-                        contentBuilder.append("\n\n"); // Double saut de ligne entre les blocs pour aérer le texte
+                        contentBuilder.append("\n\n");
                     }
                 }
             }
@@ -146,7 +142,6 @@ public class ExternalNoteApiService {
     public List<Note> fetchAllNotionNotes() {
         List<Note> notionNotes = new ArrayList<>();
         try {
-            // 1. On récupère le texte écrit DIRECTEMENT sur la page parente
             String parentContent = fetchPageContent(parentPageId);
             if (parentContent != null && !parentContent.isEmpty()) {
                 Note parentNote = new Note();
@@ -154,11 +149,10 @@ public class ExternalNoteApiService {
                 parentNote.setTitle("Notes Générales (Page Principale)");
                 parentNote.setContent(parentContent);
                 parentNote.setBreadcrumb("Notion/Cloud");
-                parentNote.setAction("DO"); // Tag par défaut pour l'affichage Kanban
+                parentNote.setAction("DO");
                 notionNotes.add(parentNote);
             }
 
-            // 2. On récupère les SOUS-PAGES (child_page)
             String url = notionUrl + "/blocks/" + parentPageId + "/children";
             HttpEntity<String> entity = new HttpEntity<>(getNotionHeaders());
             ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
@@ -169,16 +163,16 @@ public class ExternalNoteApiService {
                 for (Map<String, Object> block : results) {
                     if ("child_page".equals(block.get("type"))) {
                         Map<String, Object> childPage = (Map<String, Object>) block.get("child_page");
-                        
+
                         String pageId = (String) block.get("id");
-                        
+
                         Note n = new Note();
-                        n.setId(pageId); 
+                        n.setId(pageId);
                         n.setTitle((String) childPage.get("title"));
-                        n.setContent(fetchPageContent(pageId)); // Extraction du vrai texte
+                        n.setContent(fetchPageContent(pageId));
                         n.setBreadcrumb("Notion/Cloud");
-                        n.setAction("DO"); // Tag par défaut pour l'affichage Kanban
-                        
+                        n.setAction("DO");
+
                         notionNotes.add(n);
                     }
                 }
