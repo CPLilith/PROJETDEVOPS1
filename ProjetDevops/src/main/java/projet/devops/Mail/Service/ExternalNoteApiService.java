@@ -37,7 +37,6 @@ public class ExternalNoteApiService {
     public ExternalNoteApiService(String notionToken) {
         this.notionToken = notionToken;
         this.restTemplate = new RestTemplate();
-        this.notionToken = notionToken;
     }
 
     // --- HELPER : HEADERS ---
