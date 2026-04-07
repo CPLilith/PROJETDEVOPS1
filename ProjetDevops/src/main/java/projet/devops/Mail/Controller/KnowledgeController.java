@@ -1,5 +1,9 @@
 package projet.devops.Mail.Controller;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,13 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import projet.devops.Mail.Model.Note;
-import projet.devops.Mail.Service.NoteService;
 import projet.devops.Mail.Service.ExternalNoteApiService;
+import projet.devops.Mail.Service.NoteService;
 import projet.devops.Mail.Service.PersonaResourceService;
 
 @Controller
@@ -73,8 +73,15 @@ public class KnowledgeController {
     }
 
     @PostMapping("/knowledge/delete")
-    public String deleteNote(@RequestParam("id") String id) { // Remplacé index par id
+    public String deleteNote(@RequestParam(value = "id", required = false) String id) {
+        // Si la requête fantôme arrive sans ID, on la redirige silencieusement sans crasher
+        if (id == null || id.isEmpty()) {
+            return "redirect:/knowledge";
+        }
+        
+        System.out.println("🗑️ Demande de suppression pour l'ID : " + id);
         noteService.deleteNote(id);
-        return REDIRECT_KNOWLEDGE;
+        
+        return "redirect:/knowledge";
     }
 }

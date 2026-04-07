@@ -20,7 +20,7 @@ public class NoteService {
 
     private final OllamaClient ollamaClient;
     private final NoteRepository noteRepository;
-    private final ExternalNoteApiService notionService; // 1. Injection du service Notion
+    private final ExternalNoteApiService notionService; // Injection du service Notion
 
     private List<Note> notes;
 
@@ -57,11 +57,11 @@ public class NoteService {
     public void mergeSelectedNotes(List<String> selectedIds, Persona persona) throws Exception {
         if (selectedIds == null || selectedIds.isEmpty()) return;
 
-        // 2. CRITIQUE : Créer une liste de TOUTES les notes possibles (Locales + Notion)
+        // 1. Créer une liste de TOUTES les notes possibles (Locales + Notion)
         List<Note> allPossibleNotes = new ArrayList<>(this.notes);
         allPossibleNotes.addAll(notionService.fetchAllNotionNotes());
 
-        // 3. On filtre maintenant sur cette liste complète
+        // 2. On filtre maintenant sur cette liste complète
         List<Note> selectedNotes = allPossibleNotes.stream()
                 .filter(note -> selectedIds.contains(note.getId()))
                 .collect(Collectors.toList());
@@ -95,14 +95,25 @@ public class NoteService {
         String mergedTitles = selectedNotes.stream().map(Note::getTitle).collect(Collectors.joining(", "));
         Note newNote = new Note("Synthèse IA : " + mergedTitles, "AI Orchestrator", aiSynthesis, eisenhowerTag, "MERGE");
         
-        // 4. On supprime uniquement les notes qui étaient locales
+        // 3. On supprime uniquement les notes qui étaient locales
         notes.removeIf(note -> selectedIds.contains(note.getId()));
         
-        // 5. On ajoute la synthèse (qui devient une note locale définitive)
+        // 4. On ajoute la synthèse (qui devient une note locale définitive)
         notes.add(0, newNote);
         
         noteRepository.saveNotes(notes);
         System.out.println("✅ Nouvelle note de synthèse créée avec succès !");
+
+        // ==========================================
+        // 5. NOUVEAU : Envoi automatique sur Notion
+        // ==========================================
+        try {
+            System.out.println("☁️ Envoi de la synthèse vers Notion en cours...");
+            notionService.pushNoteToNotion(newNote); // Appel à la nouvelle méthode
+            System.out.println("✅ Synthèse exportée sur Notion avec succès !");
+        } catch (Exception e) {
+            System.err.println("⚠️ Erreur lors de l'export Notion : " + e.getMessage());
+        }
     }
 
     public void generateAiKnowledge(MultipartFile[] files, Persona persona) throws Exception {
@@ -111,9 +122,17 @@ public class NoteService {
     }
 
     public void deleteNote(String id) {
-        boolean removed = notes.removeIf(note -> note.getId().equals(id));
-        if (removed) {
+        // 1. On cherche d'abord à supprimer la note dans le JSON local
+        boolean removedLocally = notes.removeIf(note -> note.getId().equals(id));
+        
+        if (removedLocally) {
+            // C'était une note locale (IMPORT ou MERGE), on sauvegarde le JSON
             noteRepository.saveNotes(notes);
+            System.out.println("✅ Note locale supprimée avec succès.");
+        } else {
+            // 2. Si elle n'est pas dans le JSON, c'est une note tirée en direct de Notion
+            System.out.println("☁️ Note absente du stockage local. Tentative d'archivage sur Notion...");
+            notionService.archiveNotionPage(id);
         }
     }
 

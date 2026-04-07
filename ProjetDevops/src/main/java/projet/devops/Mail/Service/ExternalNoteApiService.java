@@ -1,5 +1,9 @@
 package projet.devops.Mail.Service;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +35,7 @@ public class ExternalNoteApiService {
     private String parentPageId;
 
     public ExternalNoteApiService(String notionToken) {
+        this.notionToken = notionToken;
         this.restTemplate = new RestTemplate();
         this.notionToken = notionToken;
     }
@@ -182,4 +187,89 @@ public class ExternalNoteApiService {
         }
         return notionNotes;
     }
+
+    // ======================================================================
+    // --- NOUVELLE FEATURE : POUSSER LA SYNTHÈSE VERS NOTION ---
+    // ======================================================================
+    public void pushNoteToNotion(Note note) throws Exception {
+        // Sécurisation du contenu (Notion limite les blocs de texte à 2000 caractères)
+        String safeContent = note.getContent() != null ? note.getContent() : "Contenu vide";
+        if (safeContent.length() > 2000) {
+            safeContent = safeContent.substring(0, 1995) + "...";
+        }
+
+        // Nettoyage des caractères spéciaux pour ne pas casser le JSON
+        String safeTitle = note.getTitle() != null ? note.getTitle().replace("\"", "\\\"").replace("\n", " ") : "Nouvelle Synthèse IA";
+        String escapedContent = safeContent.replace("\"", "\\\"").replace("\n", "\\n");
+
+        // Construction du JSON au format spécifique de Notion
+        String jsonBody = """
+            {
+                "parent": { "page_id": "%s" },
+                "properties": {
+                    "title": [
+                        {
+                            "text": { "content": "%s" }
+                        }
+                    ]
+                },
+                "children": [
+                    {
+                        "object": "block",
+                        "type": "paragraph",
+                        "paragraph": {
+                            "rich_text": [
+                                {
+                                    "type": "text",
+                                    "text": {
+                                        "content": "%s"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+            """.formatted(parentPageId, safeTitle, escapedContent);
+
+        // On réutilise intelligemment getNotionHeaders() que tu avais déjà créé
+        HttpEntity<String> request = new HttpEntity<>(jsonBody, getNotionHeaders());
+        
+        // Appel POST à l'API Notion pour créer la nouvelle page
+        restTemplate.exchange(
+                notionUrl + "/pages",
+                HttpMethod.POST,
+                request,
+                String.class
+        );
+    }
+
+public void archiveNotionPage(String pageId) {
+    try {
+        String url = "https://api.notion.com/v1/pages/" + pageId;
+        String body = "{\"archived\": true}";
+
+        // On utilise le client HTTP moderne de Java qui gère le PATCH sans problème !
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Authorization", "Bearer " + this.notionToken)
+                .header("Notion-Version", "2022-06-28")
+                .header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(body)) // Le vrai PATCH !
+                .build();
+
+        // Envoi de la requête
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+            System.out.println("☁️✅ Page Notion archivée avec succès (ID: " + pageId + ")");
+        } else {
+            System.err.println("☁️❌ Erreur Notion : Code " + response.statusCode() + " - " + response.body());
+        }
+        
+    } catch (Exception e) {
+        System.err.println("☁️❌ Erreur lors de l'archivage sur Notion : " + e.getMessage());
+    }
+}
 }

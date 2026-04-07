@@ -4,16 +4,11 @@
 
     <main class="feed-container">
         <div class="feed-header">
-            <h2>Vault Obsidian & Notion</h2>
+            <h2>Mes Notes</h2>
+    
+            <div class="action-bar" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:20px;">
 
-            <div class="action-bar"
-                 style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:20px;">
-
-                <form id="import-form"
-                      action="/knowledge/import"
-                      method="post"
-                      enctype="multipart/form-data"
-                      style="margin:0;">
+                <form id="import-form" th:action="@{/knowledge/import}" method="post" enctype="multipart/form-data" style="margin:0;">
                     <label style="margin:0; cursor:pointer; display:block;">
                         <div class="btn-file"
                              style="background:white; color:black; border:1px solid var(--border);
@@ -105,12 +100,13 @@
         <div class="feed-list" id="notes-list">
             <th:block th:if="${notes != null}">
                 <div th:each="note : ${notes}"
-                     class="mail-card selectable-note"
-                     th:id="'card-note-' + ${note.id}"
-                     th:data-id="${note.id}"
-                     th:data-tag="${note.action}"
-                     th:data-type="${note.sourceType}"
-                     th:data-date="${note.submittedAt}">
+                    class="mail-card selectable-note"
+                    th:id="'card-note-' + ${note.id}"
+                    th:data-id="${note.id}"
+                    th:data-tag="${note.action}"
+                    th:data-type="${note.sourceType}"
+                    th:data-date="${note.submittedAt}"
+                    style="position: relative;">
 
                     <div th:class="'status-strip dot-' + ${note.action}"></div>
 
@@ -143,21 +139,31 @@
                          style="font-weight:600; margin-bottom:6px; padding-right:28px; cursor:pointer;">
                     </div>
 
-                    <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">
-                        <i class="fas fa-clock"></i>
-                        <span th:text="${note.submittedAt != null ? note.submittedAt : 'Date inconnue'}"></span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                        <div style="font-size:11px; color:var(--text-sub);">
+                            <i class="fas fa-clock"></i>
+                            <span th:text="${note.submittedAt != null ? note.submittedAt : 'Date inconnue'}"></span>
+                        </div>
+
+                        <form th:action="@{/knowledge/delete}" method="POST" style="margin: 0;" 
+                              onclick="event.stopPropagation();"
+                              onsubmit="return confirm('Voulez-vous vraiment supprimer cette note locale ?');">
+                            <input type="hidden" name="id" th:value="${note.id}" />
+                            <button type="submit" onclick="event.stopPropagation();" 
+                                    style="background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.2); color: #ff4d4d; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 12px; transition: all 0.2s;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
                     </div>
 
-                    <textarea th:id="'note-content-' + ${note.id}"
-                              th:text="${note.content}"
-                              style="display:none;">
-                    </textarea>
+                    <textarea th:id="'note-content-' + ${note.id}" style="display:none;"
+                        th:text="${note.content}"></textarea>
                 </div>
             </th:block>
         </div>
     </main>
 
-    <form id="merge-form" action="/knowledge/merge" method="post" style="display:none;"></form>
+    <form id="merge-form" th:action="@{/knowledge/merge}" method="post" style="display:none;"></form>
 
     <section class="content-view" id="main-reader">
         <div id="default-placeholder"
@@ -173,10 +179,10 @@
     </section>
 
     <script>
-        const selectedIds = new Set();
+        const selectedIds = new Set(); 
 
         function toggleSelection(checkbox) {
-            const id   = checkbox.value;
+            const id = checkbox.value; 
             const card = checkbox.closest('.mail-card');
 
             if (checkbox.checked) {
@@ -232,17 +238,16 @@
             const form = document.getElementById('merge-form');
             form.innerHTML = '';
             selectedIds.forEach(id => {
-                const input  = document.createElement('input');
-                input.type   = 'hidden';
-                input.name   = 'selectedNotes';
-                input.value  = id;
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selectedNotes';
+                input.value = id; 
                 form.appendChild(input);
             });
             showLoader('Fusion IA en cours...');
             form.submit();
         }
 
-        // --- FILTRES ---
         function parseDate(str) {
             if (!str) return null;
             const [datePart] = str.split(' ');
@@ -255,7 +260,8 @@
             const filterType = document.getElementById('filter-type').value;
             const dateFrom   = document.getElementById('filter-date-from').value;
             const dateTo     = document.getElementById('filter-date-to').value;
-            const cards      = document.querySelectorAll('.selectable-note');
+
+            const cards = document.querySelectorAll('.selectable-note');
 
             cards.forEach(card => {
                 const tag      = card.dataset.tag  || '';
