@@ -50,7 +50,7 @@ public class MailActionRestController {
 
     @PostMapping("/analyze")
     public ResponseEntity<Map<String, String>> analyze() {
-        flowService.processPendingMails(personaRepository.load());
+        flowService.processPendingMails(personaRepository.loadRaw());
         return ResponseEntity.ok(Map.of("status", "success", "message", "Pending mails analyzed"));
     }
 

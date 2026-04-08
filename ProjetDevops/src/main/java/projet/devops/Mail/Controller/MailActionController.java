@@ -1,5 +1,6 @@
 package projet.devops.Mail.Controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,7 +19,7 @@ public class MailActionController {
     private static final String REDIRECT_KANBAN = "redirect:/kanban";
 
     private final MailFlowService flowService;
-    private final PersonaRepository personaRepository; 
+    private final PersonaRepository personaRepository;
 
     public MailActionController(MailFlowService flowService, PersonaRepository personaRepository) {
         this.flowService = flowService;
@@ -40,7 +41,8 @@ public class MailActionController {
 
     @PostMapping("/analyze")
     public String analyze() {
-        flowService.processPendingMails(personaRepository.load());
+        // On passe le raw pour que les profils custom soient pris en compte dans le prompt IA
+        flowService.processPendingMails(personaRepository.loadRaw());
         return REDIRECT_HOME;
     }
 
@@ -85,8 +87,10 @@ public class MailActionController {
 
     // --- PERSONA ---
     @PostMapping("/persona")
-    public String persona(@RequestParam("persona") String p) {
+    public String persona(@RequestParam("persona") String p, HttpServletRequest request) {
         personaRepository.saveRaw(p.toUpperCase());
-        return REDIRECT_HOME;
+        // Redirige vers la page d'où vient l'utilisateur au lieu de toujours aller à /
+        String referer = request.getHeader("Referer");
+        return (referer != null && !referer.isBlank()) ? "redirect:" + referer : REDIRECT_HOME;
     }
 }

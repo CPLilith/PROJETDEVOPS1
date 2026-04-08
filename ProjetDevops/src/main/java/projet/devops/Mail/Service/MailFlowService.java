@@ -82,8 +82,17 @@ public class MailFlowService {
     }
 
     // --- CLASSIFICATION PARALLÈLE ---
-    public void processPendingMails(Persona currentPersona) {
-        // On filtre uniquement les mails à traiter
+    // Accepte le raw persona (ex: "PROFIL_MON_PROFIL") pour les profils custom
+    public void processPendingMails(String rawPersona) {
+        // Résolution de l'enum (NEUTRE si custom — le raw est passé séparément)
+        Persona currentPersona;
+        try {
+            currentPersona = Persona.valueOf(rawPersona.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            currentPersona = Persona.NEUTRE;
+        }
+        final Persona persona = currentPersona;
+
         List<Mail> pendingMails = cachedMails.stream()
                 .filter(m -> m.getAction() == EisenhowerAction.PENDING)
                 .toList();
@@ -94,21 +103,19 @@ public class MailFlowService {
         }
 
         System.out.println(
-                "🚀 Analyse parallèle de " + pendingMails.size() + " mail(s) avec " + THREAD_POOL_SIZE + " threads...");
+                "🚀 Analyse parallèle de " + pendingMails.size() + " mail(s) avec " + THREAD_POOL_SIZE + " threads... [profil: " + rawPersona + "]");
 
-        // Pool de threads fixe — évite de surcharger Ollama
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
         List<Future<?>> futures = new ArrayList<>();
 
         for (Mail mail : pendingMails) {
             Future<?> future = executor.submit(() -> {
                 try {
-                    String tag = classifier.classifyAsString(mail, currentPersona);
-                    // synchronized pour éviter les race conditions sur le mail
+                    // On passe le rawPersona pour que les profils custom soient pris en compte
+                    String tag = classifier.classifyAsString(mail, persona, rawPersona);
                     synchronized (mail) {
                         mail.setAction(tag);
                     }
-                    // Notification Observer
                     eventPublisher.publish(new MailClassifiedEvent(mail));
                     System.out.println("✔ [" + Thread.currentThread().getName() + "] "
                             + mail.getSubject() + " → " + tag);
@@ -208,7 +215,6 @@ public class MailFlowService {
         if (mail != null) {
             mail.setAction(tag);
             saveCache();
-
             eventPublisher.publish(new MailClassifiedEvent(mail));
         }
     }

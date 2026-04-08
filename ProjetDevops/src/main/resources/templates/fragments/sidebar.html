@@ -14,14 +14,14 @@
         <a href="/tags" th:class="${view == 'tags' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-tags"></i> Tags Custom</a>
     </nav>
     
-    <div class="persona-box" style="display: flex; flex-direction: column; min-width: 0;">
+    <div class="persona-box" style="display: flex; min-width: 0;">
         <div class="nav-label">Active Profile</div>
         
-        <form action="/persona" method="post" id="personaForm" style="display: block; min-width: 0;">
+        <form action="/persona" method="post" id="personaForm" style="display: flex; min-width: 0;">
             <input type="hidden" name="persona" id="selectedPersona">
             
             <!-- LE CONTENEUR DE SCROLL CRITIQUE -->
-            <div id="persona-scroll-container" style="display: flex; gap: 8px; overflow: auto;">
+            <div id="persona-scroll-container" style="display: flex; gap: 8px;">
                 <!-- Profils de base -->
                 <button type="button" class="persona-btn"
                     th:classappend="${currentPersona != null and currentPersona.name() == 'ETUDIANT' ? 'active' : ''}"
@@ -47,44 +47,61 @@
     <!-- CSS CORRECTIF FORCÉ -->
     <style>
         /* --- MODE VERTICAL (Sidebar à gauche) --- */
-        #main-sidebar:not(.top-layout) #persona-scroll-container {
+        .app-container:not(.topbar-mode) .persona-box {
+            flex-direction: column !important;
+        }
+        .app-container:not(.topbar-mode) #personaForm {
+            display: block !important;
+            min-width: 0;
+        }
+        .app-container:not(.topbar-mode) #persona-scroll-container {
             flex-direction: column !important;
             max-height: 300px;
             overflow-y: auto !important;
             overflow-x: hidden !important;
         }
-        #main-sidebar:not(.top-layout) .persona-btn {
+        .app-container:not(.topbar-mode) .persona-btn {
             width: 100% !important;
             flex: 0 0 auto !important;
         }
 
         /* --- MODE HORIZONTAL (Sidebar en haut) --- */
-        #main-sidebar.top-layout #persona-scroll-container {
-            flex-direction: row !important; /* FORCE l'alignement de gauche à droite */
-            flex-wrap: nowrap !important;  /* EMPÊCHE le retour à la ligne */
-            max-width: 500px;               /* LIMITE la largeur pour forcer le scroll */
-            overflow-x: auto !important;    /* ACTIVE le scroll horizontal */
+        .app-container.topbar-mode .persona-box {
+            flex-direction: row !important;
+            align-items: center !important;
+        }
+        .app-container.topbar-mode #personaForm {
+            display: flex !important;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .app-container.topbar-mode #persona-scroll-container {
+            flex-direction: row !important;   /* gauche à droite */
+            flex-wrap: nowrap !important;      /* pas de retour à la ligne */
+            overflow-x: auto !important;       /* scroll horizontal */
             overflow-y: hidden !important;
             align-items: center !important;
-            padding-bottom: 5px;
+            padding-bottom: 3px;
+            max-width: 400px;
         }
-        #main-sidebar.top-layout .persona-btn {
-            width: auto !important;         /* Les boutons ne prennent que la place nécessaire */
-            min-width: 130px !important;    /* Taille minimum pour ne pas être écrasés */
-            flex: 0 0 auto !important;      /* EMPÊCHE les boutons de rétrécir */
+        .app-container.topbar-mode .persona-btn {
+            width: auto !important;
+            min-width: max-content !important;
+            flex: 0 0 auto !important;
             margin: 0 !important;
-            height: 35px !important;        /* Hauteur fixe pour rester dans la barre */
+            height: 32px !important;
             display: flex !important;
             align-items: center;
             justify-content: center;
+            white-space: nowrap !important;
         }
         
-        /* Cacher la scrollbar pour un look plus propre (optionnel) */
+        /* Scrollbar fine pour un look propre */
         #persona-scroll-container::-webkit-scrollbar {
-            height: 4px;
+            height: 3px;
         }
         #persona-scroll-container::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.15);
             border-radius: 10px;
         }
     </style>

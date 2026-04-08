@@ -34,7 +34,6 @@ public class EisenhowerClassifier {
 
     /**
      * Retourne l'action Eisenhower standard (DO, PLAN, DELEGATE, DELETE).
-     * Utiliser classifyAsString() si on veut récupérer un custom tag DO.
      */
     public EisenhowerAction classify(Mail mail, Persona persona) {
         ClassificationStrategy strategy = strategies.get(currentStrategyName);
@@ -45,20 +44,17 @@ public class EisenhowerClassifier {
     }
 
     /**
-     * Retourne le tag brut sous forme de String — peut être un custom tag comme "DO_FORMATION".
-     * À utiliser dans processPendingMails pour appeler mail.setAction(String).
+     * Retourne le tag brut — supporte les profils custom via rawPersona.
      */
-    public String classifyAsString(Mail mail, Persona persona) {
+    public String classifyAsString(Mail mail, Persona persona, String rawPersona) {
         if (strategies.get(currentStrategyName) == null)
             return EisenhowerAction.PENDING.name();
 
         List<String> customTags = customDoTagService.getCustomTags();
 
         try {
-            // On demande à la stratégie de classifier
-            // La réponse IA brute peut contenir un custom tag
-            // On réutilise OllamaClient directement pour avoir la string brute
-            String personaText = PersonaPromptProvider.getPersonaSection(persona);
+            // Utilise le raw pour que les profils custom aient un vrai prompt IA
+            String personaText = PersonaPromptProvider.getPersonaSectionFromRaw(rawPersona);
             String cleanContent = TextCleaner.cleanEmailText(mail.getContent(), 500);
 
             StringBuilder customTagsSection = new StringBuilder();
@@ -103,10 +99,10 @@ public class EisenhowerClassifier {
             }
 
             // Sinon retombe sur les quadrants standard
-            if (raw.contains("DELETE"))  return "DELETE";
+            if (raw.contains("DELETE"))   return "DELETE";
             if (raw.contains("DELEGATE")) return "DELEGATE";
-            if (raw.contains("PLAN"))    return "PLAN";
-            if (raw.contains("DO"))      return "DO";
+            if (raw.contains("PLAN"))     return "PLAN";
+            if (raw.contains("DO"))       return "DO";
 
             return EisenhowerAction.PENDING.name();
 
@@ -114,6 +110,13 @@ public class EisenhowerClassifier {
             System.err.println("⚠️ [classifyAsString] " + e.getMessage());
             return EisenhowerAction.PENDING.name();
         }
+    }
+
+    /**
+     * Surcharge de compatibilité — utilise le nom de l'enum comme raw.
+     */
+    public String classifyAsString(Mail mail, Persona persona) {
+        return classifyAsString(mail, persona, persona.name());
     }
 
     public List<String> getAvailableStrategies() {

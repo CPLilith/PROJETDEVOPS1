@@ -11,7 +11,7 @@ import java.util.Map;
 import projet.devops.Mail.Model.EisenhowerAction;
 import projet.devops.Mail.Model.Mail;
 import projet.devops.Mail.Service.MailFlowService;
-import projet.devops.Mail.Service.PersonaResourceService;
+import projet.devops.Mail.Repository.PersonaRepository;
 
 record RestResponse<T>(T data, Map<String, String> _links) {}
 
@@ -20,9 +20,11 @@ record RestResponse<T>(T data, Map<String, String> _links) {}
 public class MailRestApiController {
 
     private final MailFlowService flowService;
+    private final PersonaRepository personaRepository;
 
-    public MailRestApiController(MailFlowService flowService) {
+    public MailRestApiController(MailFlowService flowService, PersonaRepository personaRepository) {
         this.flowService = flowService;
+        this.personaRepository = personaRepository;
     }
 
     @GetMapping
@@ -72,7 +74,7 @@ public class MailRestApiController {
 
     @PostMapping("/analyze")
     public ResponseEntity<Map<String, Object>> apiAnalyze() {
-        flowService.processPendingMails(PersonaResourceService.loadPersona());
+        flowService.processPendingMails(personaRepository.loadRaw());
         long classified = flowService.getMails().stream()
                 .filter(m -> m.getAction() != EisenhowerAction.PENDING)
                 .count();
