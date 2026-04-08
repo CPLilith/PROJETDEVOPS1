@@ -13,19 +13,79 @@
         <a href="/kanban" th:class="${view == 'kanban' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-columns"></i> Suivi Kanban</a>
         <a href="/tags" th:class="${view == 'tags' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-tags"></i> Tags Custom</a>
     </nav>
-    <div class="persona-box">
+    
+    <div class="persona-box" style="display: flex; flex-direction: column; min-width: 0;">
         <div class="nav-label">Active Profile</div>
-        <form action="/persona" method="post" id="personaForm">
+        
+        <form action="/persona" method="post" id="personaForm" style="display: block; min-width: 0;">
             <input type="hidden" name="persona" id="selectedPersona">
-            <button type="button" class="persona-btn"
-                th:classappend="${currentPersona != null and currentPersona.name() == 'ETUDIANT' ? 'active' : ''}"
-                onclick="switchPersona('ETUDIANT')">🎓 Student</button>
-            <button type="button" class="persona-btn"
-                th:classappend="${currentPersona != null and currentPersona.name() == 'DEVELOPPEUR' ? 'active' : ''}"
-                onclick="switchPersona('DEVELOPPEUR')">💻 Developer</button>
-            <button type="button" class="persona-btn"
-                th:classappend="${currentPersona != null and currentPersona.name() == 'PROFESSEUR' ? 'active' : ''}"
-                onclick="switchPersona('PROFESSEUR')">👨‍🏫 Teacher</button>
+            
+            <!-- LE CONTENEUR DE SCROLL CRITIQUE -->
+            <div id="persona-scroll-container" style="display: flex; gap: 8px; overflow: auto;">
+                <!-- Profils de base -->
+                <button type="button" class="persona-btn"
+                    th:classappend="${currentPersona != null and currentPersona.name() == 'ETUDIANT' ? 'active' : ''}"
+                    onclick="switchPersona('ETUDIANT')">🎓 Student</button>
+                <button type="button" class="persona-btn"
+                    th:classappend="${currentPersona != null and currentPersona.name() == 'DEVELOPPEUR' ? 'active' : ''}"
+                    onclick="switchPersona('DEVELOPPEUR')">💻 Developer</button>
+                <button type="button" class="persona-btn"
+                    th:classappend="${currentPersona != null and currentPersona.name() == 'PROFESSEUR' ? 'active' : ''}"
+                    onclick="switchPersona('PROFESSEUR')">👨‍🏫 Teacher</button>
+
+                <!-- Profils personnalisés -->
+                <button th:each="prof : ${customProfiles}"
+                        type="button" class="persona-btn"
+                        th:classappend="${currentPersonaRaw == prof ? 'active' : ''}"
+                        th:onclick="switchPersona([[${prof}]])">
+                    👤 <span th:text="${prof.replace('PROFIL_', '').replace('_', ' ')}"></span>
+                </button>
+            </div>
         </form>
     </div>
+
+    <!-- CSS CORRECTIF FORCÉ -->
+    <style>
+        /* --- MODE VERTICAL (Sidebar à gauche) --- */
+        #main-sidebar:not(.top-layout) #persona-scroll-container {
+            flex-direction: column !important;
+            max-height: 300px;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+        #main-sidebar:not(.top-layout) .persona-btn {
+            width: 100% !important;
+            flex: 0 0 auto !important;
+        }
+
+        /* --- MODE HORIZONTAL (Sidebar en haut) --- */
+        #main-sidebar.top-layout #persona-scroll-container {
+            flex-direction: row !important; /* FORCE l'alignement de gauche à droite */
+            flex-wrap: nowrap !important;  /* EMPÊCHE le retour à la ligne */
+            max-width: 500px;               /* LIMITE la largeur pour forcer le scroll */
+            overflow-x: auto !important;    /* ACTIVE le scroll horizontal */
+            overflow-y: hidden !important;
+            align-items: center !important;
+            padding-bottom: 5px;
+        }
+        #main-sidebar.top-layout .persona-btn {
+            width: auto !important;         /* Les boutons ne prennent que la place nécessaire */
+            min-width: 130px !important;    /* Taille minimum pour ne pas être écrasés */
+            flex: 0 0 auto !important;      /* EMPÊCHE les boutons de rétrécir */
+            margin: 0 !important;
+            height: 35px !important;        /* Hauteur fixe pour rester dans la barre */
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Cacher la scrollbar pour un look plus propre (optionnel) */
+        #persona-scroll-container::-webkit-scrollbar {
+            height: 4px;
+        }
+        #persona-scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+    </style>
 </aside>

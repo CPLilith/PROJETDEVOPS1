@@ -775,3 +775,49 @@ button {
         margin-bottom: 0 !important;
     }
 }
+
+/* --- Zone de défilement adaptative pour les profils --- */
+
+/* Conteneur de base */
+.persona-scroll-container {
+    display: flex;
+    gap: 8px;
+}
+
+/* 1. Quand la sidebar est à GAUCHE (Verticale) */
+.sidebar:not(.top-layout) .persona-scroll-container {
+    flex-direction: column;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+}
+
+/* 2. Quand la sidebar est en HAUT (Horizontale) */
+.sidebar.top-layout .persona-scroll-container {
+    flex-direction: row !important; /* Force l'alignement horizontal */
+    max-width: 100%;
+    overflow-x: auto !important; /* Active le scroll horizontal */
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    white-space: nowrap; /* Empêche le retour à la ligne */
+    align-items: center;
+}
+
+/* IMPORTANT : On force les boutons à ne pas prendre toute la largeur en mode horizontal */
+.sidebar.top-layout .persona-scroll-container .persona-btn {
+    flex: 0 0 auto !important; /* Empêche les boutons de s'écraser ou de s'étirer */
+    width: auto !important;    /* Permet aux boutons de prendre la largeur de leur texte */
+    min-width: 120px;          /* Largeur minimum pour la lisibilité */
+    margin: 0 !important;
+}
+
+/* Style de la barre de défilement pour qu'elle soit discrète */
+.persona-scroll-container::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+.persona-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
