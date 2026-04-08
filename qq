@@ -1,0 +1,22 @@
+[33m5aaec4e[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m HEAD@{0}: reset: moving to 5aaec4e
+[33m7c0037a[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: commit: rajout gitignore des mailstemps
+[33mb906402[m HEAD@{2}: commit: changement du comportement de l'analyse des mails ( rajout de thread et timeout après 10mn car trop loong
+[33m5aaec4e[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m HEAD@{3}: rebase (abort): updating HEAD
+[33m187e1af[m HEAD@{4}: pull origin main --rebase (start): checkout 187e1af7c0a107a3fd8c7553bca4c06d75bebcd6
+[33m5aaec4e[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m HEAD@{5}: commit: rajout de bouton retour kanban, correction apporté pour respect des principes solid/patrons, inclusion dans l'analyses automatique des mails des tags customs.
+[33m900d875[m HEAD@{6}: commit: rajout de bouton retour kanban, correction apporté pour respect des principes solid/patrons, inclusion dans l'analyses automatique des mails des tags customs.
+[33m963f740[m HEAD@{7}: pull: Fast-forward
+[33m55890b3[m HEAD@{8}: commit: rajout d'un filtre des tags, et de spécialisation des DO avec des sous - do custom par les utilisateurs.
+[33md9ef232[m HEAD@{9}: pull: Fast-forward
+[33mad518f1[m HEAD@{10}: commit: correction du mails.htlm avec rajout du kanban + boutons pas moches
+[33m707f407[m HEAD@{11}: commit: petite correcion
+[33m0c7ab27[m HEAD@{12}: commit: kanban
+[33m072d7e2[m HEAD@{13}: commit: suppression de mailcontroller
+[33m230582a[m HEAD@{14}: commit: changement target
+[33m26f9f32[m HEAD@{15}: commit: changement gitignore
+[33m68a0151[m HEAD@{16}: commit: correction
+[33m9044d9d[m HEAD@{17}: pull: Fast-forward
+[33m6de84be[m HEAD@{18}: reset: moving to HEAD
+[33m6de84be[m HEAD@{19}: pull: Fast-forward
+[33ma49fa36[m HEAD@{20}: reset: moving to HEAD
+[33ma49fa36[m HEAD@{21}: clone: from https://github.com/CPLilith/PROJETDEVOPS1.git

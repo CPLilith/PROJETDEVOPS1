@@ -3,63 +3,130 @@
 <th:block th:fragment="mainContent">
 
     <section class="view-wrapper" id="main-reader">
-        <h1 class="mail-title">Gestion des Tags</h1>
+        <h1 class="mail-title">Tags &amp; Profils Custom</h1>
         <p style="color:var(--text-sub); margin-bottom:30px;">
-            Créez des sous-catégories pour organiser vos tâches DO.
+            Créez des sous-catégories et des profils personnalisés pour adapter EisenFlow à votre contexte.
         </p>
 
-        <div style="background:#f8fafc; padding:25px; border-radius:16px;
-                    border:1px solid var(--border); margin-bottom:30px; max-width:500px;">
-            <h3 style="margin-top:0; font-size:15px;">Créer un nouveau tag</h3>
+        <!-- ========== SECTION TAGS DO ========== -->
+        <div style="margin-bottom:40px;">
+            <h2 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-tags" style="color:var(--accent);"></i> Tags DO personnalisés
+            </h2>
+            <p style="color:var(--text-sub); font-size:13px; margin-bottom:18px;">
+                Créez des sous-catégories pour organiser vos tâches DO.
+            </p>
 
-            <div th:if="${tagError}"
-                 th:text="${tagError}"
-                 style="background:#fee2e2; color:#ef4444; padding:10px; border-radius:8px;
-                        margin-bottom:15px; font-size:13px; border:1px solid #fca5a5;">
-            </div>
-            <div th:if="${tagSuccess}"
-                 th:text="${tagSuccess}"
-                 style="background:#dcfce7; color:#16a34a; padding:10px; border-radius:8px;
-                        margin-bottom:15px; font-size:13px; border:1px solid #bbf7d0;">
+            <div style="background:#f8fafc; padding:25px; border-radius:16px;
+                        border:1px solid var(--border); margin-bottom:20px; max-width:500px;">
+                <h3 style="margin-top:0; font-size:15px;">Créer un nouveau tag</h3>
+
+                <div th:if="${tagError}"
+                     th:text="${tagError}"
+                     style="background:#fee2e2; color:#ef4444; padding:10px; border-radius:8px;
+                            margin-bottom:15px; font-size:13px; border:1px solid #fca5a5;"></div>
+                <div th:if="${tagSuccess}"
+                     th:text="${tagSuccess}"
+                     style="background:#dcfce7; color:#16a34a; padding:10px; border-radius:8px;
+                            margin-bottom:15px; font-size:13px; border:1px solid #bbf7d0;"></div>
+
+                <form action="/tags/create" method="post" style="display:flex; gap:10px;">
+                    <input type="text" name="label" placeholder="Ex: Formation, Urgence Client..."
+                           required style="flex:1; padding:10px 15px; border-radius:10px;
+                                          border:1px solid var(--border); font-family:'Inter';">
+                    <button type="submit" class="btn-primary">Ajouter</button>
+                </form>
             </div>
 
-            <form action="/tags/create" method="post" style="display:flex; gap:10px;">
-                <input type="text"
-                       name="label"
-                       placeholder="Ex: Formation, Urgence Client..."
-                       required
-                       style="flex:1; padding:10px 15px; border-radius:10px;
-                              border:1px solid var(--border); font-family:'Inter';">
-                <button type="submit" class="btn-primary">Ajouter</button>
-            </form>
+            <h3 style="font-size:15px; margin-bottom:15px;">Tags personnalisés existants</h3>
+            <div style="display:flex; flex-direction:column; gap:10px; max-width:500px;">
+                <div th:each="ct : ${customDoTags}"
+                     style="display:flex; justify-content:space-between; align-items:center;
+                            background:white; padding:15px; border-radius:12px; border:1px solid var(--border);">
+                    <span class="importance-tag tag-DO"
+                          th:text="${#strings.replace(ct, 'DO_', 'DO · ').replace('_', ' ')}"
+                          style="margin:0; font-size:12px;"></span>
+                    <button type="button" class="btn-delete"
+                            th:onclick="openDeleteTagModal([[${ct}]])"
+                            style="padding:6px 10px; font-size:11px; cursor:pointer;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div th:if="${#lists.isEmpty(customDoTags)}"
+                     style="color:var(--text-sub); font-size:13px; padding:20px; text-align:center;
+                            background:white; border-radius:12px; border:1px dashed var(--border);">
+                    Aucun tag personnalisé créé.
+                </div>
+            </div>
         </div>
 
-        <h3 style="font-size:15px; margin-bottom:15px;">Tags personnalisés existants</h3>
+        <hr style="border:none; border-top:1px solid var(--border); margin-bottom:36px;">
 
-        <div style="display:flex; flex-direction:column; gap:10px; max-width:500px;">
-            <div th:each="ct : ${customDoTags}"
-                 style="display:flex; justify-content:space-between; align-items:center;
-                        background:white; padding:15px; border-radius:12px; border:1px solid var(--border);">
-                <span class="importance-tag tag-DO"
-                      th:text="${#strings.replace(ct, 'DO_', 'DO · ').replace('_', ' ')}"
-                      style="margin:0; font-size:12px;">
-                </span>
-                <button type="button"
-                        class="btn-delete"
-                        th:onclick="openDeleteModal([[${ct}]])"
-                        style="padding:6px 10px; font-size:11px; cursor:pointer;">
-                    <i class="fas fa-trash"></i>
-                </button>
+        <!-- ========== SECTION PROFILS ========== -->
+        <div>
+            <h2 style="font-size:16px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-user-circle" style="color:var(--accent);"></i> Profils personnalisés
+            </h2>
+            <p style="color:var(--text-sub); font-size:13px; margin-bottom:18px;">
+                Créez vos propres profils. Ils apparaîtront dans la barre latérale et adapteront l'analyse IA à votre contexte.
+            </p>
+
+            <div style="background:#f8fafc; padding:25px; border-radius:16px;
+                        border:1px solid var(--border); margin-bottom:20px; max-width:500px;">
+                <h3 style="margin-top:0; font-size:15px;">Créer un nouveau profil</h3>
+
+                <div th:if="${profileError}"
+                     th:text="${profileError}"
+                     style="background:#fee2e2; color:#ef4444; padding:10px; border-radius:8px;
+                            margin-bottom:15px; font-size:13px; border:1px solid #fca5a5;"></div>
+                <div th:if="${profileSuccess}"
+                     th:text="${profileSuccess}"
+                     style="background:#dcfce7; color:#16a34a; padding:10px; border-radius:8px;
+                            margin-bottom:15px; font-size:13px; border:1px solid #bbf7d0;"></div>
+
+                <form action="/profiles/create" method="post" style="display:flex; gap:10px;">
+                    <input type="text" name="label" placeholder="Ex: Comptable, Chef de projet..."
+                           required style="flex:1; padding:10px 15px; border-radius:10px;
+                                          border:1px solid var(--border); font-family:'Inter';">
+                    <button type="submit" class="btn-primary">Créer</button>
+                </form>
             </div>
 
-            <div th:if="${#lists.isEmpty(customDoTags)}"
-                 style="color:var(--text-sub); font-size:13px; padding:20px; text-align:center;
-                        background:white; border-radius:12px; border:1px dashed var(--border);">
-                Aucun tag personnalisé créé.
+            <h3 style="font-size:15px; margin-bottom:15px;">Profils existants</h3>
+            <div style="display:flex; flex-direction:column; gap:10px; max-width:500px;">
+                <div th:each="prof : ${customProfiles}"
+                     style="display:flex; justify-content:space-between; align-items:center;
+                            background:white; padding:15px; border-radius:12px; border:1px solid var(--border);">
+                    <span style="font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-user" style="color:var(--text-sub);"></i>
+                        <span th:text="${prof.replace('PROFIL_', '').replace('_', ' ')}"></span>
+                    </span>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <form action="/persona" method="post" style="margin:0;">
+                            <input type="hidden" name="persona" th:value="${prof}">
+                            <button type="submit"
+                                    th:class="${currentPersonaRaw == prof} ? 'btn-primary' : 'btn-secondary'"
+                                    style="padding:6px 12px; font-size:11px; cursor:pointer;">
+                                <span th:text="${currentPersonaRaw == prof} ? 'Actif ✓' : 'Activer'"></span>
+                            </button>
+                        </form>
+                        <button type="button" class="btn-delete"
+                                th:onclick="openDeleteProfileModal([[${prof}]])"
+                                style="padding:6px 10px; font-size:11px; cursor:pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div th:if="${#lists.isEmpty(customProfiles)}"
+                     style="color:var(--text-sub); font-size:13px; padding:20px; text-align:center;
+                            background:white; border-radius:12px; border:1px dashed var(--border);">
+                    Aucun profil personnalisé créé.
+                </div>
             </div>
         </div>
 
-        <div id="delete-modal" class="modal-overlay" style="display:none;">
+        <!-- MODAL DELETE TAG -->
+        <div id="delete-tag-modal" class="modal-overlay" style="display:none;">
             <div class="modal-content">
                 <div class="modal-header">
                     <i class="fas fa-exclamation-triangle" style="color:#ef4444; font-size:24px;"></i>
@@ -67,14 +134,49 @@
                 </div>
                 <p>Êtes-vous sûr de vouloir supprimer ce tag ? Cette action est définitive.</p>
                 <div class="modal-actions">
-                    <button onclick="closeDeleteModal()" class="btn-cancel">Annuler</button>
-                    <form id="confirm-delete-form" action="/tags/delete" method="post" style="margin:0;">
+                    <button onclick="closeDeleteTagModal()" class="btn-cancel">Annuler</button>
+                    <form id="confirm-delete-tag-form" action="/tags/delete" method="post" style="margin:0;">
                         <input type="hidden" name="tagName" id="modal-tag-name">
                         <button type="submit" class="btn-confirm-delete">Supprimer</button>
                     </form>
                 </div>
             </div>
         </div>
+
+        <!-- MODAL DELETE PROFILE -->
+        <div id="delete-profile-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <i class="fas fa-exclamation-triangle" style="color:#ef4444; font-size:24px;"></i>
+                    <h3>Supprimer le profil ?</h3>
+                </div>
+                <p>Êtes-vous sûr de vouloir supprimer ce profil ? Cette action est définitive.</p>
+                <div class="modal-actions">
+                    <button onclick="closeDeleteProfileModal()" class="btn-cancel">Annuler</button>
+                    <form id="confirm-delete-profile-form" action="/profiles/delete" method="post" style="margin:0;">
+                        <input type="hidden" name="profileName" id="modal-profile-name">
+                        <button type="submit" class="btn-confirm-delete">Supprimer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openDeleteTagModal(tagName) {
+                document.getElementById('modal-tag-name').value = tagName;
+                document.getElementById('delete-tag-modal').style.display = 'flex';
+            }
+            function closeDeleteTagModal() {
+                document.getElementById('delete-tag-modal').style.display = 'none';
+            }
+            function openDeleteProfileModal(profileName) {
+                document.getElementById('modal-profile-name').value = profileName;
+                document.getElementById('delete-profile-modal').style.display = 'flex';
+            }
+            function closeDeleteProfileModal() {
+                document.getElementById('delete-profile-modal').style.display = 'none';
+            }
+        </script>
     </section>
 
 </th:block>

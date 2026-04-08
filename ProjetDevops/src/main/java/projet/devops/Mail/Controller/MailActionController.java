@@ -86,7 +86,7 @@ public class MailActionController {
     // --- PERSONA ---
     @PostMapping("/persona")
     public String persona(@RequestParam("persona") String p) {
-        personaRepository.save(Persona.valueOf(p.toUpperCase()));
+        personaRepository.saveRaw(p.toUpperCase());
         return REDIRECT_HOME;
     }
 }

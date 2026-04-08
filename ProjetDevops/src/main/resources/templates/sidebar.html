@@ -15,28 +15,29 @@
         <a href="/events" th:class="${view == 'events' ? 'nav-item active' : 'nav-item'}"
             onclick="showLoader('Chargement de l\'agenda...')"><i class="fas fa-calendar-alt"></i> <span class="nav-text">Agenda / RDV</span></a>
         <a href="/kanban" th:class="${view == 'kanban' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-columns"></i> <span class="nav-text">Suivi Kanban</span></a>
-        <a href="/tags" th:class="${view == 'tags' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-tags"></i> <span class="nav-text">Tags Custom</span></a>
+        <a href="/tags" th:class="${view == 'tags' ? 'nav-item active' : 'nav-item'}"><i class="fas fa-tags"></i> <span class="nav-text">Tags / Profils Custom</span></a>
     </nav>
-
     <div class="persona-box sidebar-inner">
         <div class="nav-label">Active Profile</div>
-        <form action="/persona" method="post" id="personaForm">
-            <input type="hidden" name="persona" id="selectedPersona">
-            <button type="button" class="persona-btn"
-                th:classappend="${currentPersona != null and currentPersona.name() == 'ETUDIANT' ? 'active' : ''}"
-                onclick="switchPersona('ETUDIANT')">🎓 <span class="nav-text">Student</span></button>
-            <button type="button" class="persona-btn"
-                th:classappend="${currentPersona != null and currentPersona.name() == 'DEVELOPPEUR' ? 'active' : ''}"
-                onclick="switchPersona('DEVELOPPEUR')">💻 <span class="nav-text">Developer</span></button>
-            <button type="button" class="persona-btn"
-                th:classappend="${currentPersona != null and currentPersona.name() == 'PROFESSEUR' ? 'active' : ''}"
-                onclick="switchPersona('PROFESSEUR')">👨‍🏫 <span class="nav-text">Teacher</span></button>
-        </form>
+        <div th:if="${#lists.isEmpty(customProfiles)}"
+             style="color:var(--text-sub); font-size:12px; padding:8px 4px;">
+            <a href="/tags" style="color:var(--accent); text-decoration:none; font-size:12px;">
+                <span class="nav-text">+ Créer un profil</span>
+            </a>
+        </div>
+        <div th:each="prof : ${customProfiles}" style="margin-bottom:4px;">
+            <form action="/persona" method="post" style="margin:0;">
+                <input type="hidden" name="persona" th:value="${prof}">
+                <button type="submit" class="persona-btn"
+                    th:classappend="${currentPersonaRaw == prof ? ' active' : ''}">
+                    👤 <span class="nav-text" th:text="${prof.replace('PROFIL_', '').replace('_', ' ')}"></span>
+                </button>
+            </form>
+        </div>
     </div>
 </aside>
 
-<!-- Bouton flottant pour ré-ouvrir la sidebar quand elle est cachée -->
-<button id="sidebar-reveal-btn" onclick="toggleSidebar()" 
+<button id="sidebar-reveal-btn" onclick="toggleSidebar()"
     style="display:none; position:fixed; top:50%; left:0; transform:translateY(-50%); z-index:1000; width:24px; height:48px; background:var(--sidebar-bg); border:1px solid var(--border); border-left:none; border-radius:0 10px 10px 0; cursor:pointer; padding:0; transition:all 0.2s;">
     <i class="fas fa-chevron-right" style="font-size:10px; color:var(--text-sub);"></i>
 </button>
