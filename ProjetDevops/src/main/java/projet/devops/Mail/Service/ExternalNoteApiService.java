@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +24,9 @@ import projet.devops.Mail.Model.Note;
 public class ExternalNoteApiService {
 
     private final RestTemplate restTemplate;
-    private final String notionToken;
+    
+    // On passe le token en final car il est injecté par le constructeur
+    private final String notionToken; 
 
     @Value("${notion.api.url}")
     private String notionUrl;
@@ -34,7 +37,11 @@ public class ExternalNoteApiService {
     @Value("${notion.parent.page.id}")
     private String parentPageId;
 
-    public ExternalNoteApiService(String notionToken) {
+    /**
+     * Le constructeur utilise @Qualifier("notionToken") pour dire à Spring :
+     * "Va chercher le Bean String que nous avons créé dans CredentialsConfig"
+     */
+    public ExternalNoteApiService(@Qualifier("notionToken") String notionToken) {
         this.notionToken = notionToken;
         this.restTemplate = new RestTemplate();
     }
@@ -108,6 +115,7 @@ public class ExternalNoteApiService {
     }
 
     // --- HELPER : EXTRAIRE LE TEXTE D'UNE PAGE OU SOUS-PAGE ---
+    @SuppressWarnings("unchecked")
     private String fetchPageContent(String pageId) {
         StringBuilder contentBuilder = new StringBuilder();
         try {
@@ -124,15 +132,72 @@ public class ExternalNoteApiService {
 
                     Map<String, Object> typeObject = (Map<String, Object>) block.get(type);
 
-                    if (typeObject != null && typeObject.containsKey("rich_text")) {
-                        List<Map<String, Object>> richTexts = (List<Map<String, Object>>) typeObject.get("rich_text");
-                        for (Map<String, Object> textObj : richTexts) {
-                            String plainText = (String) textObj.get("plain_text");
-                            if (plainText != null) {
-                                contentBuilder.append(plainText);
+                    if (typeObject == null) continue;
+
+                    switch (type) {
+                        case "paragraph":
+                        case "heading_1":
+                        case "heading_2":
+                        case "heading_3":
+                        case "quote":
+                        case "callout":
+                        case "code":
+                            appendRichText(contentBuilder, typeObject, "rich_text");
+                            // Ajout de <br> pour les retours à la ligne en HTML si besoin, 
+                            // sinon on garde \n\n (certains clients mails gèrent bien les \n dans un <pre> ou si tu convertis plus tard)
+                            contentBuilder.append("\n\n");
+                            break;
+
+                        case "bulleted_list_item":
+                        case "numbered_list_item":
+                            contentBuilder.append("- ");
+                            appendRichText(contentBuilder, typeObject, "rich_text");
+                            contentBuilder.append("\n");
+                            break;
+
+                        case "image": {
+                            String imageUrl = null;
+                            String imageKind = (String) typeObject.get("type");
+                            
+                            // On extrait l'URL selon le type d'image (externe ou uploadée)
+                            if ("external".equals(imageKind)) {
+                                Map<String, Object> external = (Map<String, Object>) typeObject.get("external");
+                                if (external != null) imageUrl = (String) external.get("url");
+                            } else if ("file".equals(imageKind)) {
+                                Map<String, Object> file = (Map<String, Object>) typeObject.get("file");
+                                if (file != null) imageUrl = (String) file.get("url");
+                            }
+                            
+                            String caption = extractPlainTextFromRichText((List<Map<String, Object>>) typeObject.get("caption"));
+                            
+                            // ✅ MODIFICATION ICI : Création d'une balise HTML <img> au lieu de Markdown
+                            if (imageUrl != null) {
+                                String altText = caption != null ? caption : "Image Notion";
+                                contentBuilder.append("\n<br>\n")
+                                              .append("<img src=\"").append(imageUrl).append("\" ")
+                                              .append("alt=\"").append(altText).append("\" ")
+                                              .append("style=\"max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0;\" />")
+                                              .append("\n<br>\n\n");
                             }
                         }
-                        contentBuilder.append("\n\n");
+                        break;
+
+                        case "child_page": {
+                            Map<String, Object> childPage = (Map<String, Object>) block.get("child_page");
+                            if (childPage != null && childPage.containsKey("title")) {
+                                contentBuilder.append("# ").append((String) childPage.get("title")).append("\n\n");
+                            }
+                        }
+                        break;
+
+                        default:
+                            if (typeObject.containsKey("rich_text")) {
+                                appendRichText(contentBuilder, typeObject, "rich_text");
+                                contentBuilder.append("\n\n");
+                            } else if (typeObject.containsKey("caption")) {
+                                appendRichText(contentBuilder, typeObject, "caption");
+                                contentBuilder.append("\n\n");
+                            }
                     }
                 }
             }
@@ -142,7 +207,46 @@ public class ExternalNoteApiService {
         return contentBuilder.toString().trim();
     }
 
+    // Helper pour concaténer le plain_text depuis un champ rich_text ou caption
+    @SuppressWarnings("unchecked")
+    private void appendRichText(StringBuilder sb, Map<String, Object> typeObject, String fieldName) {
+        try {
+            if (typeObject == null || !typeObject.containsKey(fieldName)) return;
+            List<Map<String, Object>> richTexts = (List<Map<String, Object>>) typeObject.get(fieldName);
+            for (Map<String, Object> textObj : richTexts) {
+                if (textObj == null) continue;
+                String plainText = (String) textObj.get("plain_text");
+                if (plainText != null) sb.append(plainText);
+                else {
+                    // Parfois le texte est imbriqué sous "text" -> "content"
+                    Map<String, Object> inner = (Map<String, Object>) textObj.get("text");
+                    if (inner != null && inner.containsKey("content")) {
+                        sb.append((String) inner.get("content"));
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private String extractPlainTextFromRichText(List<Map<String, Object>> richTexts) {
+        if (richTexts == null) return null;
+        StringBuilder sb = new StringBuilder();
+        for (Map<String, Object> t : richTexts) {
+            if (t == null) continue;
+            String plain = (String) t.get("plain_text");
+            if (plain != null) sb.append(plain);
+            else {
+                Map<String, Object> inner = (Map<String, Object>) t.get("text");
+                if (inner != null && inner.containsKey("content")) sb.append((String) inner.get("content"));
+            }
+        }
+        return sb.length() == 0 ? null : sb.toString();
+    }
+
     // --- FEATURE : RÉCUPÉRER TOUTES LES NOTES DE NOTION ---
+    @SuppressWarnings("unchecked")
     public List<Note> fetchAllNotionNotes() {
         List<Note> notionNotes = new ArrayList<>();
         try {
@@ -167,7 +271,6 @@ public class ExternalNoteApiService {
                 for (Map<String, Object> block : results) {
                     if ("child_page".equals(block.get("type"))) {
                         Map<String, Object> childPage = (Map<String, Object>) block.get("child_page");
-
                         String pageId = (String) block.get("id");
 
                         Note n = new Note();
@@ -187,21 +290,16 @@ public class ExternalNoteApiService {
         return notionNotes;
     }
 
-    // ======================================================================
-    // --- NOUVELLE FEATURE : POUSSER LA SYNTHÈSE VERS NOTION ---
-    // ======================================================================
+    // --- FEATURE : POUSSER LA SYNTHÈSE VERS NOTION ---
     public void pushNoteToNotion(Note note) throws Exception {
-        // Sécurisation du contenu (Notion limite les blocs de texte à 2000 caractères)
         String safeContent = note.getContent() != null ? note.getContent() : "Contenu vide";
         if (safeContent.length() > 2000) {
             safeContent = safeContent.substring(0, 1995) + "...";
         }
 
-        // Nettoyage des caractères spéciaux pour ne pas casser le JSON
         String safeTitle = note.getTitle() != null ? note.getTitle().replace("\"", "\\\"").replace("\n", " ") : "Nouvelle Synthèse IA";
         String escapedContent = safeContent.replace("\"", "\\\"").replace("\n", "\\n");
 
-        // Construction du JSON au format spécifique de Notion
         String jsonBody = """
             {
                 "parent": { "page_id": "%s" },
@@ -231,10 +329,8 @@ public class ExternalNoteApiService {
             }
             """.formatted(parentPageId, safeTitle, escapedContent);
 
-        // On réutilise intelligemment getNotionHeaders() que tu avais déjà créé
         HttpEntity<String> request = new HttpEntity<>(jsonBody, getNotionHeaders());
         
-        // Appel POST à l'API Notion pour créer la nouvelle page
         restTemplate.exchange(
                 notionUrl + "/pages",
                 HttpMethod.POST,
@@ -243,32 +339,39 @@ public class ExternalNoteApiService {
         );
     }
 
-public void archiveNotionPage(String pageId) {
-    try {
-        String url = "https://api.notion.com/v1/pages/" + pageId;
-        String body = "{\"archived\": true}";
-
-        // On utilise le client HTTP moderne de Java qui gère le PATCH sans problème !
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Authorization", "Bearer " + this.notionToken)
-                .header("Notion-Version", "2022-06-28")
-                .header("Content-Type", "application/json")
-                .method("PATCH", HttpRequest.BodyPublishers.ofString(body)) // Le vrai PATCH !
-                .build();
-
-        // Envoi de la requête
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (response.statusCode() == 200) {
-            System.out.println("☁️✅ Page Notion archivée avec succès (ID: " + pageId + ")");
-        } else {
-            System.err.println("☁️❌ Erreur Notion : Code " + response.statusCode() + " - " + response.body());
-        }
+    // --- FEATURE : ARCHIVER UNE PAGE NOTION ---
+    public void archiveNotionPage(String pageId) {
         
-    } catch (Exception e) {
-        System.err.println("☁️❌ Erreur lors de l'archivage sur Notion : " + e.getMessage());
+        // 🛡️ AJOUT DU GARDE-FOU ICI
+        // Si l'ID qu'on essaie de supprimer est celui de la page principale (parentPageId)
+        if (pageId.equals(this.parentPageId)) {
+            System.err.println("☁️❌ Sécurité : Tentative d'archivage de la page racine Notion (" + pageId + ") bloquée par le backend.");
+            return; // On coupe l'exécution ici, la requête HTTP vers Notion n'est pas envoyée.
+        }
+
+        try {
+            String url = notionUrl + "/pages/" + pageId;
+            String body = "{\"archived\": true}";
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Authorization", "Bearer " + this.notionToken)
+                    .header("Notion-Version", this.notionVersion) 
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                System.out.println("☁️✅ Page Notion archivée avec succès (ID: " + pageId + ")");
+            } else {
+                System.err.println("☁️❌ Erreur Notion : Code " + response.statusCode() + " - " + response.body());
+            }
+            
+        } catch (Exception e) {
+            System.err.println("☁️❌ Erreur lors de l'archivage sur Notion : " + e.getMessage());
+        }
     }
-}
 }
