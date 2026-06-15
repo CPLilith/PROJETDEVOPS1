@@ -1,9 +1,11 @@
 package projet.devops.Mail.Service;
 
-import org.springframework.stereotype.Service;
-import projet.devops.Mail.Model.CalendarIntent;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
+import projet.devops.Mail.Model.CalendarIntent;
 
 @Service
 public class CalendarIntelligenceService {
@@ -15,17 +17,23 @@ public class CalendarIntelligenceService {
      * Récupère une intention précédemment analysée
      */
     public CalendarIntent getIntent(String messageId) {
-        return intentStorage.getOrDefault(messageId, new CalendarIntent());
+        System.out.println("🔍 [DEBUG] Recherche de l'intention pour le messageId : " + messageId);
+        CalendarIntent intent = intentStorage.getOrDefault(messageId, new CalendarIntent());
+        System.out.println("🔍 [DEBUG] Résultat de la recherche : " + (intentStorage.containsKey(messageId) ? "Trouvé en mémoire" : "Non trouvé (Création d'une nouvelle instance vide)"));
+        return intent;
     }
 
     /**
      * Analyse le mail et prépare l'objet d'intention
      */
     public CalendarIntent analyzeAndStoreIntent(String messageId, String subject, String content) {
+        System.out.println("\n==================================================");
         System.out.println("[AgendaObserver] Déclenchement de l'IA pour : " + subject);
+        System.out.println("⚙️ [DEBUG] ID du message en cours de traitement : " + messageId);
         
         // 1. On récupère la vraie date d'aujourd'hui
         String dateDuJour = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        System.out.println("⚙️ [DEBUG] Date du jour injectée : " + dateDuJour);
         
         // 2. Le prompt complet avec les règles strictes
         String prompt = "Tu es un assistant d'agenda ultra-précis.\n" +
@@ -41,6 +49,7 @@ public class CalendarIntelligenceService {
         
         // 🚨 3. C'EST ICI QU'ON BRANCHE LE VRAI CERVEAU 🚨
         // Remplace cette ligne par l'appel à ta vraie classe qui gère Ollama/l'IA !
+        System.out.println("⚙️ [DEBUG] Simulation de l'appel à l'IA en cours...");
         String vraieReponseIA = "[STRATEGIE] = PLAN\n" +
                                 "[DATE] = INCONNUE\n" +
                                 "[RELANCE] = \n" +
@@ -49,13 +58,17 @@ public class CalendarIntelligenceService {
         System.out.println("🕵️ REPONSE BRUTE IA :\n" + vraieReponseIA);
         
         // 4. On transforme le vrai texte de l'IA en objet Java
+        System.out.println("⚙️ [DEBUG] Envoi de la réponse brute vers le parseur...");
         CalendarIntent intent = parseResponseToIntent(vraieReponseIA);
         
         // 5. On injecte le contenu original du mail (Pour le bug du 'null')
+        System.out.println("⚙️ [DEBUG] Injection du contenu original du mail dans l'objet Intent.");
         intent.setFullMailContent(content); 
         
         // 6. On stocke en mémoire pour la confirmation Web
+        System.out.println("⚙️ [DEBUG] Sauvegarde de l'Intent dans la Map 'intentStorage' avec la clé : " + messageId);
         intentStorage.put(messageId, intent);
+        System.out.println("==================================================\n");
 
         return intent;
     }
@@ -77,11 +90,15 @@ public class CalendarIntelligenceService {
 
         try {
             String[] lines = rawResponse.split("\n");
+            System.out.println("🛠️ [DEBUG-PARSER] Début de l'analyse ligne par ligne (" + lines.length + " lignes à traiter)");
+            
             for (String line : lines) {
                 line = line.trim();
                 
                 if (line.startsWith("[STRATEGIE] =") || line.startsWith("[STRATEGIE]=")) {
-                    intent.setStrategy(line.substring(line.indexOf("=") + 1).trim());
+                    String value = line.substring(line.indexOf("=") + 1).trim();
+                    intent.setStrategy(value);
+                    System.out.println("   -> [STRATEGIE] extraite : '" + value + "'");
                 } 
                 else if (line.startsWith("[DATE] =") || line.startsWith("[DATE]=")) {
                     String dateStr = line.substring(line.indexOf("=") + 1).trim();
@@ -89,26 +106,39 @@ public class CalendarIntelligenceService {
                     if (!dateStr.equalsIgnoreCase("INCONNUE") && !dateStr.isEmpty()) {
                         intent.setDeadline(dateStr);
                         intent.setDateDetected(true);
+                        System.out.println("   -> [DATE] valide détectée : '" + dateStr + "' (DateDetected = true)");
                     } else {
                         intent.setDeadline("INCONNUE");
                         intent.setDateDetected(false);
+                        System.out.println("   -> [DATE] non valide ou INCONNUE (DateDetected = false)");
                     }
                 } 
                 else if (line.startsWith("[RELANCE] =") || line.startsWith("[RELANCE]=")) {
-                    intent.setFollowUpDate(line.substring(line.indexOf("=") + 1).trim());
+                    String value = line.substring(line.indexOf("=") + 1).trim();
+                    intent.setFollowUpDate(value);
+                    System.out.println("   -> [RELANCE] extraite : '" + value + "'");
                 }
                 else if (line.startsWith("[ASSIGNE] =") || line.startsWith("[ASSIGNE]=")) {
-                    intent.setAssignee(line.substring(line.indexOf("=") + 1).trim());
+                    String value = line.substring(line.indexOf("=") + 1).trim();
+                    intent.setAssignee(value);
+                    System.out.println("   -> [ASSIGNE] extrait : '" + value + "'");
                 }
                 else if (line.startsWith("[TITRE] =") || line.startsWith("[TITRE]=")) {
-                    intent.setTitle(line.substring(line.indexOf("=") + 1).trim());
+                    String value = line.substring(line.indexOf("=") + 1).trim();
+                    intent.setTitle(value);
+                    System.out.println("   -> [TITRE] extrait : '" + value + "'");
                 }
                 else if (line.startsWith("[CONFIANCE] =") || line.startsWith("[CONFIANCE]=")) {
-                    intent.setConfidence(line.substring(line.indexOf("=") + 1).trim());
+                    String value = line.substring(line.indexOf("=") + 1).trim();
+                    intent.setConfidence(value);
+                    System.out.println("   -> [CONFIANCE] extraite : '" + value + "'");
                 }
             }
+            System.out.println("🛠️ [DEBUG-PARSER] Fin du parsing avec succès.");
+            
         } catch (Exception e) {
             System.err.println("❌ Erreur de parsing IA : " + e.getMessage());
+            e.printStackTrace(); // Ajout de la stacktrace complète pour le debug
         }
         
         return intent;
