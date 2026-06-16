@@ -66,13 +66,16 @@ cd /PROJETDEVOPS1/ProjetDevops
 #Lancer le projet
 ./run_project.sh
 ```
-
+- créer un fichier credentials.json dans le répertoire suivant : src/main/resources
+```bash
+{"notion_token": "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", "web":{"client_id":"854616131353-5r7vr843o0emqtpkt43jt3a37bfo8vtl.apps.googleusercontent.com","project_id":"ivory-pathway-492108-v4","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_secret":"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","redirect_uris":["http://localhost:8080/api/calendar/Callback"],"javascript_origins":["http://localhost:8080"]}}
+```
 ---
 ## Équipe
 
 | Membre | GitHub | Numéro Étudiant | Rôle |
 | :--- | :--- | :--- | :--- |
 | **Alex BRINDUSOIU** | [@4l43](https://github.com/4l43) | 41014348 | ? |
-| **Franck ZHENG** | [@CPLilith](https://github.com/CPLilith) | 43010994 | ? |
-| **Swetha SARAVANAN** | [@SwethaSaravanan16](https://github.com/SwethaSaravanan16) | 41003040 | ? |
+| **Franck ZHENG** | [@CPLilith](https://github.com/CPLilith) | 41003040 | ? |
+| **Swetha SARAVANAN** | [@SwethaSaravanan16](https://github.com/SwethaSaravanan16) | 43010994 | ? |
 | **Arthur CHAUVEAU** | [@CHAUVEAUArthur](https://github.com/CHAUVEAUArthur) | 41005688 | ? |
