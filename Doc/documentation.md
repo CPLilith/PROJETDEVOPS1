@@ -101,6 +101,9 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 ## 6. Diagramme de classes
 
 ![Diagramme de classes](https://github.com/user-attachments/assets/04e1e5df-bce5-4aa3-aa25-af5c25877ec3){width=100%}
+Diagramme de classes (mis à jour S2) : 
+<img width="938" height="250" alt="image" src="https://github.com/user-attachments/assets/e16785a0-2341-49a1-b1ac-79485b3fe7c1" />
+
 
 ### 6.1 But des features
 
@@ -148,6 +151,9 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 ![Diagramme de séquence](https://github.com/user-attachments/assets/45069392-ac90-40bf-aba1-297a3d2ce816)
 ![Diagramme de séquence](https://github.com/user-attachments/assets/adc5f698-546b-4cdd-9199-6c838600df28)
 
+* **Scénario F7 — Base de Connaissances Notion (Nouveau S2)**
+<img width="859" height="991" alt="image" src="https://github.com/user-attachments/assets/ce024f6c-3acb-4a32-9018-cc6fbbb57c86" />
+
 
 ### 6.3 Wireframe et screenshots
 
@@ -167,6 +173,14 @@ Dans le cadre de ce projet, nous avons mis en place une organisation d'équipe s
 ![SreanF5](https://github.com/user-attachments/assets/c264c441-d032-4e98-ab94-f679bb8cbbca)
 **F6 : Agenda & Rendez-vous**
 ![SreanF6](https://github.com/user-attachments/assets/ac544583-a606-4329-aaed-cb31b5fa2e4b)
+
+
+**F7 : AGENDA / RDV**
+<img width="700" height="326" alt="image" src="https://github.com/user-attachments/assets/2af3afbe-f1ce-4bdc-8bc6-6fb246febed5" />
+
+**F8 : Notion API**
+<img width="466" height="163" alt="image" src="https://github.com/user-attachments/assets/9f921348-cca8-4a38-94a9-34e30dc9623b" />
+
 
 \newpage
 
